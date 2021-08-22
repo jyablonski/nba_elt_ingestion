@@ -1,0 +1,1 @@
+# personal python docker image for web scrape ETL script
