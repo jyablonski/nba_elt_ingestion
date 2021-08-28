@@ -25,7 +25,7 @@ def get_player_stats():
         year = 2021
         url = "https://www.basketball-reference.com/leagues/NBA_{}_per_game.html".format(year)
         html = urlopen(url)
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, "html.parser")
 
         headers = [th.getText() for th in soup.findAll('tr', limit=2)[0].findAll('th')]
         headers = headers[1:]
@@ -48,7 +48,7 @@ def get_player_stats():
 def get_boxscores(month = month, day = day, year = year):
     url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(month, day, year)
     html = urlopen(url)
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, "html.parser")
 
     try: 
         headers = [th.getText() for th in soup.findAll('tr', limit=2)[0].findAll('th')]
@@ -90,7 +90,7 @@ def get_injuries():
 def get_transactions():
     url = "https://www.basketball-reference.com/leagues/NBA_2021_transactions.html"
     html = urlopen(url)
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, "html.parser")
     trs = soup.findAll('li')[71:] # theres a bunch of garbage in the first 71 rows - no matter what 
     rows = []
     mylist = []
