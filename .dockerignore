@@ -1,2 +1,5 @@
 requirements.txt
 .gitignore
+*.env
+.env
+example.log
