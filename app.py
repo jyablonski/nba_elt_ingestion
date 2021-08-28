@@ -15,6 +15,7 @@ print('LOADED FUNCTIONS')
 logging.info('LOADED FUNCTIONS')
 
 today = datetime.now().date()
+todaytime = datetime.now()
 yesterday = today - timedelta(1)
 day = (datetime.now() - timedelta(1)).day
 month = (datetime.now() - timedelta(1)).month
