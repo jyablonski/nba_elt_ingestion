@@ -1,6 +1,9 @@
 import os
 import logging
 from urllib.request import urlopen
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timezone, timedelta
 import pandas as pd
 import praw
@@ -201,6 +204,38 @@ def write_to_sql(data, table_type):
         print("Writing " + data_name + " table to SQL")
         logging.info("Writing " + data_name + " table to SQL")
 
+def sendEmail():
+    email = os.environ.get("USER_EMAIL") # the email where you sent the email
+    password = os.environ.get("USER_PW")
+    send_to_email = os.environ.get("USER_EMAIL") # for whom
+    message = '''\
+<h3>sup hoe here are the errors.</h3>
+                   {}'''.format(logs.to_html())
+
+    msg = MIMEMultipart()
+    msg["From"] = email
+    msg["To"] = send_to_email
+    msg["Subject"] = str(len(logs)) +" Alert Fails for " + str(today) + ' Python NBA Web Scrape'
+    msg.attach(MIMEText(message, 'html'))
+
+    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server.starttls()
+    server.login(email, password)
+    text = msg.as_string()
+    server.sendmail(email, send_to_email, text)
+    server.quit()
+
+def send_email_function():
+    try:
+        if len(logs) > 0:
+            print('Sending Email')
+            sendEmail()
+        elif len(logs) == 0:
+            print('No Errors!')
+            ## DONT SEND EMAIL
+    except ValueError:
+        print('oof')
+
 
 print('STARTING WEB SCRAPE')
 logging.info('STARTING WEB SCRAPE')
@@ -234,5 +269,8 @@ write_to_sql(adv_stats, "replace")
 write_to_sql(odds, "append")
 write_to_sql(reddit_data, "append")
 
-
+logs = pd.read_csv('example.log', sep=r'\\t', engine='python', header = None)
+logs = logs.rename(columns = {0 : "errors"})
+logs = logs.query("errors.str.contains('Failed')", engine = "python")
+send_email_function()
 print('WOOT FINISHED')
