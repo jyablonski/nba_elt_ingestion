@@ -23,6 +23,7 @@ yesterday = today - timedelta(1)
 day = (datetime.now() - timedelta(1)).day
 month = (datetime.now() - timedelta(1)).month
 year = (datetime.now() - timedelta(1)).year
+season_type = 'Regular Season'
 
 def get_player_stats():
     try:
@@ -52,22 +53,41 @@ def get_player_stats():
 def get_boxscores(month = month, day = day, year = year):
     url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(month, day, year)
     html = urlopen(url)
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(html)
 
     try: 
         headers = [th.getText() for th in soup.findAll('tr', limit=2)[0].findAll('th')]
         headers = headers[1:]
+        headers[1] = 'Team'
         headers[2] = "Location"
+        headers[3] = 'Opponent'
         headers[4] = "Outcome"
+        headers[6] = "FGM"
+        headers[8] = "FGPercent"
+        headers[9] = "threePFGMade"
+        headers[10] = "threePAttempted"
+        headers[11] = "threePointPercent"
+        headers[14] = "FTPercent"
+        headers[15] = "OREB"
+        headers[16] = "DREB"
+        headers[24] = 'PlusMinus'
 
         rows = soup.findAll('tr')[1:]
         player_stats = [[td.getText() for td in rows[i].findAll('td')]
             for i in range(len(rows))]
 
         df = pd.DataFrame(player_stats, columns = headers)
-        df[['FG', 'FGA', 'FG%', '3P', '3PA', '3P%', 'DRB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'GmSc']] = df[['FG', 'FGA', 'FG%', '3P', '3PA', '3P%', 'DRB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'GmSc']].apply(pd.to_numeric)
-
-        df.sort_values('PTS', ascending = False)
+        df[['FGM', 'FGA', 'FGPercent', 'threePFGMade', 'threePAttempted', 'threePointPercent', 'OREB', 'DREB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'PlusMinus', 'GmSc']] = df[['FGM', 'FGA', 'FGPercent', 'threePFGMade', 'threePAttempted', 'threePointPercent','OREB', 'DREB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'PlusMinus', 'GmSc']].apply(pd.to_numeric)
+        df['Date'] = yesterday
+        df['Type'] = season_type
+        df['Season'] = 2022
+        df['Location'] = df['Location'].apply(lambda x: 'A' if x == '@' else 'H')
+        df['Team'] = df['Team'].str.replace("PHO", "PHX")
+        df['Team'] = df['Team'].str.replace("CHO", "CHA")
+        df['Team'] = df['Team'].str.replace("BRK", "BKN")
+        df['Opponent'] = df['Opponent'].str.replace("PHO", "PHX")
+        df['Opponent'] = df['Opponent'].str.replace("CHO", "CHA")
+        df['Opponent'] = df['Opponent'].str.replace("BRK", "BKN")
         logging.info(f'Box Score Function Successful, retrieving {len(df)} rows for {yesterday}')
         print(f'Box Score Function Successful, retrieving {len(df)} rows for {yesterday}')
         return(df)
@@ -282,7 +302,7 @@ reddit = praw.Reddit(client_id = os.environ.get('reddit_accesskey'),
                      password = os.environ.get('reddit_pw'))
             
 stats = get_player_stats()
-boxscores = get_boxscores(month = month, day = yesterday, year = year)
+boxscores = get_boxscores()
 injury_data = get_injuries()
 transactions = get_transactions()
 adv_stats = get_advanced_stats()
