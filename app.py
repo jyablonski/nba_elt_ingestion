@@ -1,15 +1,14 @@
 import os
 import logging
 from urllib.request import urlopen
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timezone, timedelta
 import pandas as pd
 import praw
 from bs4 import BeautifulSoup
 from sqlalchemy import exc, create_engine
 import pymysql
+import boto3
+from botocore.exceptions import ClientError
 
 logging.basicConfig(filename='example.log', level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 logging.info('Starting Logging Function')
@@ -259,32 +258,53 @@ def write_to_sql(data, table_type):
         print("Writing aws_" + data_name + "_table to SQL")
         logging.info("Writing aws_" + data_name + "_table to SQL")
 
-def sendEmail():
-    email = os.environ.get("USER_EMAIL") # the email where you sent the email
-    password = os.environ.get("USER_PW")
-    send_to_email = os.environ.get("USER_EMAIL") # for whom
-    message = '''\
+def send_aws_email():
+    sender = os.environ.get("USER_EMAIL")
+    recipient = os.environ.get("USER_EMAIL")
+    aws_region = 'us-east-1'
+    subject = str(len(logs)) +" Alert Fails for " + str(today) + ' Python NBA Web Scrape'
+    body_html = message = '''\
 <h3>sup hoe here are the errors.</h3>
                    {}'''.format(logs.to_html())
 
-    msg = MIMEMultipart()
-    msg["From"] = email
-    msg["To"] = send_to_email
-    msg["Subject"] = str(len(logs)) +" Alert Fails for " + str(today) + ' Python NBA Web Scrape'
-    msg.attach(MIMEText(message, 'html'))
-
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-    server.login(email, password)
-    text = msg.as_string()
-    server.sendmail(email, send_to_email, text)
-    server.quit()
+    charset = "UTF-8"
+    client = boto3.client('ses',region_name=aws_region)
+    try:
+        response = client.send_email(
+            Destination={
+                'ToAddresses': [
+                    recipient,
+                ],
+            },
+            Message={
+                'Body': {
+                    'Html': {
+                        'Charset': charset,
+                        'Data': body_html,
+                    },
+                    'Text': {
+                        'Charset': charset,
+                        'Data': body_html,
+                    },
+                },
+                'Subject': {
+                    'Charset': charset,
+                    'Data': subject,
+                },
+            },
+            Source = sender
+    )
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+    else:
+        print("Email sent! Message ID:"),
+        print(response['MessageId'])
 
 def send_email_function():
     try:
         if len(logs) > 0:
             print('Sending Email')
-            sendEmail()
+            send_aws_email()
         elif len(logs) == 0:
             print('No Errors!')
             ## DONT SEND EMAIL
