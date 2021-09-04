@@ -181,6 +181,41 @@ def scrape_subreddit(sub):
     logging.info('Grabbing 27 Recent popular posts from r/' + sub + ' subreddit')
     return(posts)
 
+
+def get_pbp_data(df):
+    if (len(df) > 0):
+        yesterday_hometeams = df.query('Location == "H"')[['Team']].drop_duplicates().dropna()
+        yesterday_hometeams['Team'] = yesterday_hometeams['Team'].str.replace("PHX", "PHO")
+        yesterday_hometeams['Team'] = yesterday_hometeams['Team'].str.replace("CHA", "CHO")
+        yesterday_hometeams['Team'] = yesterday_hometeams['Team'].str.replace("BKN", "BRK")
+    else:
+        yesterday_hometeams = []
+
+    if (len(yesterday_hometeams) > 0):
+        try:
+            # pracdate = '20201223' # use this for url format 1 for prac.
+            newdate = yesterday.strftime("%Y%m%d")
+            pbp_list = pd.DataFrame()
+            for i in yesterday_hometeams['Team']:
+                url = "https://www.basketball-reference.com/boxscores/pbp/{}0{}.html".format(newdate, i)
+                df = pd.read_html(url)[0]
+                df = df.droplevel(0, axis = 'columns')
+                df = df.rename(columns={df.columns[1]: 'Away', df.columns[2]: 'AwayScore', df.columns[4]: 'HomeScore', df.columns[5]: 'Home'})
+                pbp_list = pbp_list.append(df)
+                df = pd.DataFrame()
+            return(pbp_list)
+        except ValueError:
+            logging.info("PBP Function Failed for Yesterday's Games")
+            print("PBP Function Failed for Yesterday's Games")
+            df = []
+            return(df)
+    else:
+        df = []
+        logging.info("PBP Function No Data Yesterday")
+        print("PBP Function No Data Yesterday")
+        return(df)
+
+
 def sql_connection():
     try:
         connection = create_engine('mysql+pymysql://' + os.environ.get('RDS_USER') + ':' + os.environ.get('RDS_PW') + '@' + os.environ.get('IP') + ':' + '3306' + '/' + os.environ.get('RDS_DB'),
@@ -195,14 +230,14 @@ def sql_connection():
 
 def write_to_sql(data, table_type):
     data_name = [ k for k,v in globals().items() if v is data][0]
+    ## ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
     if len(data) == 0:
         print(data_name + " Failed, not writing to SQL")
         logging.info(data_name + " Failed, not writing to SQL")
     else:
-        # ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
         data.to_sql(con = conn, name = ("aws_" + data_name + "_table"), index = False, if_exists = table_type)
-        print("Writing " + data_name + " table to SQL")
-        logging.info("Writing " + data_name + " table to SQL")
+        print("Writing aws_" + data_name + "_table to SQL")
+        logging.info("Writing aws_" + data_name + "_table to SQL")
 
 def sendEmail():
     email = os.environ.get("USER_EMAIL") # the email where you sent the email
@@ -253,6 +288,7 @@ transactions = get_transactions()
 adv_stats = get_advanced_stats()
 odds = get_odds()
 reddit_data = scrape_subreddit('nba')
+pbp_data = get_pbp_data(boxscores)
 
 print('FINISHED WEB SCRAPE')
 logging.info('FINISHED WEB SCRAPE')
@@ -268,6 +304,7 @@ write_to_sql(transactions, "replace")
 write_to_sql(adv_stats, "replace")
 write_to_sql(odds, "append")
 write_to_sql(reddit_data, "append")
+write_to_sql(pbp_data, "append")
 
 logs = pd.read_csv('example.log', sep=r'\\t', engine='python', header = None)
 logs = logs.rename(columns = {0 : "errors"})
