@@ -2,6 +2,7 @@ import os
 import logging
 from urllib.request import urlopen
 from datetime import datetime, timezone, timedelta
+import numpy as np
 import pandas as pd
 import praw
 from bs4 import BeautifulSoup
@@ -207,19 +208,50 @@ def get_pbp_data(df):
         yesterday_hometeams['Team'] = yesterday_hometeams['Team'].str.replace("PHX", "PHO")
         yesterday_hometeams['Team'] = yesterday_hometeams['Team'].str.replace("CHA", "CHO")
         yesterday_hometeams['Team'] = yesterday_hometeams['Team'].str.replace("BKN", "BRK")
+
+        away_teams = df.query('Location == "A"')[['Team', 'Opponent']].drop_duplicates().dropna()
+        away_teams = away_teams.rename(columns = {away_teams.columns[0]: 'AwayTeam', away_teams.columns[1]: 'HomeTeam'})
     else:
         yesterday_hometeams = []
 
     if (len(yesterday_hometeams) > 0):
         try:
-            # pracdate = '20201223' # use this for url format 1 for prac.
+            # pracdate = '20210601' # use this for url format 1 for prac.
             newdate = yesterday.strftime("%Y%m%d")
             pbp_list = pd.DataFrame()
             for i in yesterday_hometeams['Team']:
                 url = "https://www.basketball-reference.com/boxscores/pbp/{}0{}.html".format(newdate, i)
                 df = pd.read_html(url)[0]
-                df = df.droplevel(0, axis = 'columns')
-                df = df.rename(columns={df.columns[1]: 'Away', df.columns[2]: 'AwayScore', df.columns[4]: 'HomeScore', df.columns[5]: 'Home'})
+                df.columns = df.columns.map(''.join)
+                df = df.rename(columns={df.columns[0]: 'Time', df.columns[1]: 'descriptionPlayVisitor', df.columns[2]: 'AwayScore', df.columns[3]: 'Score', df.columns[4]: 'HomeScore', df.columns[5]: 'descriptionPlayHome'})
+                conditions = [
+                    (df['HomeScore'].str.contains('Jump ball:', na = False) & df['Time'].str.contains('12:00.0')),
+                    (df['HomeScore'].str.contains('Start of 2nd quarter', na = False)),
+                    (df['HomeScore'].str.contains('Start of 3rd quarter', na = False)),
+                    (df['HomeScore'].str.contains('Start of 4th quarter', na = False)),
+                    (df['HomeScore'].str.contains('Start of 1st overtime', na = False)),
+                    (df['HomeScore'].str.contains('Start of 2nd overtime', na = False)),
+                    (df['HomeScore'].str.contains('Start of 3rd overtime', na = False)),
+                    (df['HomeScore'].str.contains('Start of 4th overtime', na = False))]
+                values = ['1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter', '1st OT', '2nd OT', '3rd OT', '4th OT']
+                df['Quarter'] = np.select(conditions, values, default = None)
+                df['Quarter'] = df['Quarter'].fillna(method = 'ffill')
+                df = df.query('Time != "Time" & Time != "2nd Q" & Time != "3rd Q" & Time != "4th Q" & Time != "1st OT" & Time != "2nd OT" & Time != "3rd OT" & Time != "4th OT"')
+                df['HomeTeam'] = i
+                df['HomeTeam'] = df['HomeTeam'].str.replace("PHO", "PHX")
+                df['HomeTeam'] = df['HomeTeam'].str.replace("CHO", "CHA")
+                df['HomeTeam'] = df['HomeTeam'].str.replace("BRK", "BKN")
+                df = df.merge(away_teams)
+                df[['scoreAway', 'scoreHome']] = df['Score'].str.split('-', expand = True)
+                df['scoreAway'] = pd.to_numeric(df['scoreAway'], errors = 'coerce')
+                df['scoreAway'] = df['scoreAway'].fillna(method = 'ffill')
+                df['scoreAway'] = df['scoreAway'].fillna(0)
+                df['scoreHome'] = pd.to_numeric(df['scoreHome'], errors = 'coerce')
+                df['scoreHome'] = df['scoreHome'].fillna(method = 'ffill')
+                df['scoreHome'] = df['scoreHome'].fillna(0)
+                df['marginScore'] = df['scoreHome'] - df['scoreAway']
+                df['Date'] = yesterday
+                df = df.rename(columns = {df.columns[0]: 'timeQuarter', df.columns[6]: 'numberPeriod'})
                 pbp_list = pbp_list.append(df)
                 df = pd.DataFrame()
             return(pbp_list)
