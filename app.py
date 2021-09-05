@@ -112,10 +112,10 @@ def get_injuries():
         return(df)
 
 def get_transactions():
-    url = "https://www.basketball-reference.com/leagues/NBA_2021_transactions.html"
+    url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
     html = urlopen(url)
     soup = BeautifulSoup(html, "html.parser")
-    trs = soup.findAll('li')[71:] # theres a bunch of garbage in the first 71 rows - no matter what 
+    trs = soup.findAll('li')[50:] # theres a bunch of garbage in the first 50 rows - no matter what 
     rows = []
     mylist = []
     for tr in trs:
