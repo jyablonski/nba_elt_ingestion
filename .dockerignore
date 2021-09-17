@@ -2,4 +2,9 @@ requirements.txt
 .gitignore
 *.env
 .env
+.github
+.github/**
 example.log
+tests
+tests/
+tests/**
