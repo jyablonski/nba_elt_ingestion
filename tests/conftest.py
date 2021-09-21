@@ -1,15 +1,16 @@
 import pytest
 
 @pytest.fixture(scope = "session")
-def http_service(docker_ip, docker_services):
-    """Ensure that HTTP service is up and responsive."""
-
-    # `port_for` takes a container port and returns the corresponding host port
-    port = docker_services.port_for("httpbin", 80)
-    url = "http://{}:{}".format(docker_ip, port)
-    docker_services.wait_until_responsive(
-        timeout=30.0, pause=0.1, check=lambda: is_responsive(url)
-    )
-    return url
+def input_value():
+    input = 35
+    return(input)
 
 @pytest.fixture(scope = "session")
+def bbref_url():
+    url_sample = "https://www.basketball-reference.com/"
+    return(url_sample)
+
+@pytest.fixture(scope = "session")
+def draftkings_url():
+    url_sample = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
+    return(url_sample)

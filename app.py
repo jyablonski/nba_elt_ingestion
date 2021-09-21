@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import praw
 from bs4 import BeautifulSoup
+import psycopg2
 from sqlalchemy import exc, create_engine
-import pymysql
 import boto3
 from botocore.exceptions import ClientError
 
@@ -269,7 +269,7 @@ def get_pbp_data(df):
 
 def sql_connection():
     try:
-        connection = create_engine('mysql+pymysql://' + os.environ.get('RDS_USER') + ':' + os.environ.get('RDS_PW') + '@' + os.environ.get('IP') + ':' + '3306' + '/' + os.environ.get('RDS_DB'),
+        connection = create_engine('postgresql+psycopg2://' + os.environ.get('RDS_USER') + ':' + os.environ.get('RDS_PW') + '@' + os.environ.get('IP') + ':' + '5432' + '/' + os.environ.get('RDS_DB'),
                      echo = False)
         logging.info('SQL Connection Successful')
         print('SQL Connection Successful')

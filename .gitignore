@@ -1,3 +1,5 @@
 .env
 .log
 *.log
+**pycache**
+.coverage
