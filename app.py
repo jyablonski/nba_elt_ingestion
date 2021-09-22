@@ -53,7 +53,7 @@ def get_player_stats():
 def get_boxscores(month = month, day = day, year = year):
     url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(month, day, year)
     html = urlopen(url)
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, "html.parser")
 
     try: 
         headers = [th.getText() for th in soup.findAll('tr', limit=2)[0].findAll('th')]
@@ -193,10 +193,10 @@ def scrape_subreddit(sub):
     subreddit = reddit.subreddit(sub)
     posts = []
     for post in subreddit.hot(limit=27):
-        posts.append([post.title, post.score, post.id, post.subreddit, post.url, post.num_comments, post.selftext,
+        posts.append([post.title, post.score, post.id, post.url, post.num_comments, post.selftext,
                     today, todaytime
         ])
-    posts = pd.DataFrame(posts,columns=['title', 'score', 'id', 'subreddit', 'url', 'num_comments', 'body', 'scrape_date', 'scrape_time'])
+    posts = pd.DataFrame(posts,columns=['title', 'score', 'id', 'url', 'num_comments', 'body', 'scrape_date', 'scrape_time'])
     print('Grabbing 27 Recent popular posts from r/' + sub + ' subreddit')
     logging.info('Grabbing 27 Recent popular posts from r/' + sub + ' subreddit')
     return(posts)
