@@ -266,10 +266,10 @@ def get_pbp_data(df):
         print("PBP Function No Data Yesterday")
         return(df)
 
-
 def sql_connection():
     try:
         connection = create_engine('postgresql+psycopg2://' + os.environ.get('RDS_USER') + ':' + os.environ.get('RDS_PW') + '@' + os.environ.get('IP') + ':' + '5432' + '/' + os.environ.get('RDS_DB'),
+                                    connect_args = {'options': '-csearch_path=nba_prod'}, # defining schema to connect to
                      echo = False)
         logging.info('SQL Connection Successful')
         print('SQL Connection Successful')

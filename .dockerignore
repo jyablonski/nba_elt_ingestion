@@ -7,3 +7,7 @@ example.log
 tests
 tests/
 tests/**
+pytest.ini
+README.md
+.coverage
+.pytest_cache
