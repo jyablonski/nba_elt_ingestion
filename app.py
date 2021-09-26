@@ -41,6 +41,7 @@ def get_player_stats():
 
         stats = pd.DataFrame(player_stats, columns = headers)
         stats['PTS'] = pd.to_numeric(stats['PTS'])
+        stats.columns = stats.columns.str.lower()
         logging.info(f'General Stats Function Successful, retrieving {len(stats)} updated rows')
         print(f'General Stats Function Successful, retrieving {len(stats)} updated rows')
         return(stats)
@@ -88,6 +89,7 @@ def get_boxscores(month = month, day = day, year = year):
         df['Opponent'] = df['Opponent'].str.replace("PHO", "PHX")
         df['Opponent'] = df['Opponent'].str.replace("CHO", "CHA")
         df['Opponent'] = df['Opponent'].str.replace("BRK", "BKN")
+        df.columns = df.columns.str.lower()
         logging.info(f'Box Score Function Successful, retrieving {len(df)} rows for {yesterday}')
         print(f'Box Score Function Successful, retrieving {len(df)} rows for {yesterday}')
         return(df)
@@ -102,6 +104,7 @@ def get_injuries():
         url = "https://www.basketball-reference.com/friv/injuries.fcgi"
         df = pd.read_html(url)[0]
         df = df.rename(columns = {"Update": "Date"})
+        df.columns = df.columns.str.lower()
         logging.info(f'Injury Function Successful, retrieving {len(df)} rows')
         print(f'Injury Function Successful, retrieving {len(df)} rows')
         return(df)
@@ -134,7 +137,7 @@ def get_transactions():
     transactions = transactions.explode('Transaction')
     transactions['Date'] = pd.to_datetime(transactions['Date'])
     transactions = transactions.query('Date != "NaN"')
-    transactions
+    transactions.columns = transactions.columns.str.lower()
     logging.info(f'Transactions Function Successful, retrieving {len(transactions)} rows')
     print(f'Transactions Function Successful, retrieving {len(transactions)} rows')
     return(transactions)
@@ -151,6 +154,7 @@ def get_advanced_stats():
         df.columns = ['Team', 'Age', 'W', 'L', 'PW', 'PL', 'MOV', 'SOS', 'SRS', 'ORTG', 'DRTG', 'NRTG', 'Pace', 'FTr', '3PAr', 'TS%', 'bby1', 'eFG%', 'TOV%', 'ORB%', 'FT/FGA', 'bby2', 'eFG%_opp', 'TOV%_opp', 'DRB%_opp', 'FT/FGA_opp', 'bby3', 'Arena', 'Attendance', 'Att/Game']
         df.drop(['bby1', 'bby2', 'bby3'], axis = 1, inplace = True)
         df = df.query('Team != "League Average"')
+        df.columns = df.columns.str.lower()
         logging.info(f'Advanced Stats Function Successful, retrieving updated data for 30 Teams')
         print(f'Advanced Stats Function Successful, retrieving updated data for 30 Teams')
         return(df)
@@ -179,6 +183,7 @@ def get_odds():
         data['Today'] = data['Today'].str.split().str[1:2]
         data['Today'] = pd.DataFrame([str(line).strip('[').strip(']').replace("'","") for line in data['Today']])
         data = data.rename(columns = {"Today": "team", "SPREAD": "spread", "TOTAL": "total_pts", "MONEYLINE": "moneyline"})
+        data.columns = data.columns.str.lower()
         logging.info(f'Odds Function Successful, retrieving {len(data)} rows')
         print(f'Odds Function Successful, retrieving {len(data)} rows')
         return(data)
@@ -197,6 +202,7 @@ def scrape_subreddit(sub):
                     today, todaytime
         ])
     posts = pd.DataFrame(posts,columns=['title', 'score', 'id', 'url', 'num_comments', 'body', 'scrape_date', 'scrape_time'])
+    posts.columns = posts.columns.str.lower()
     print('Grabbing 27 Recent popular posts from r/' + sub + ' subreddit')
     logging.info('Grabbing 27 Recent popular posts from r/' + sub + ' subreddit')
     return(posts)
@@ -254,6 +260,7 @@ def get_pbp_data(df):
                 df = df.rename(columns = {df.columns[0]: 'timeQuarter', df.columns[6]: 'numberPeriod'})
                 pbp_list = pbp_list.append(df)
                 df = pd.DataFrame()
+            pbp_list.columns = pbp_list.columns.str.lower()
             return(pbp_list)
         except ValueError:
             logging.info("PBP Function Failed for Yesterday's Games")
