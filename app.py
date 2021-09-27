@@ -154,6 +154,7 @@ def get_advanced_stats():
         df.columns = ['Team', 'Age', 'W', 'L', 'PW', 'PL', 'MOV', 'SOS', 'SRS', 'ORTG', 'DRTG', 'NRTG', 'Pace', 'FTr', '3PAr', 'TS%', 'bby1', 'eFG%', 'TOV%', 'ORB%', 'FT/FGA', 'bby2', 'eFG%_opp', 'TOV%_opp', 'DRB%_opp', 'FT/FGA_opp', 'bby3', 'Arena', 'Attendance', 'Att/Game']
         df.drop(['bby1', 'bby2', 'bby3'], axis = 1, inplace = True)
         df = df.query('Team != "League Average"')
+        df['Team'] = df['Team'].str.replace("*", "")
         df.columns = df.columns.str.lower()
         logging.info(f'Advanced Stats Function Successful, retrieving updated data for 30 Teams')
         print(f'Advanced Stats Function Successful, retrieving updated data for 30 Teams')
@@ -388,5 +389,8 @@ write_to_sql(pbp_data, "append")
 logs = pd.read_csv('example.log', sep=r'\\t', engine='python', header = None)
 logs = logs.rename(columns = {0 : "errors"})
 logs = logs.query("errors.str.contains('Failed')", engine = "python")
-send_email_function()
+
+if __name__ == '__main__':
+    send_email_function()
+    
 print('WOOT FINISHED')
