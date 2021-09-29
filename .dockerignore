@@ -11,3 +11,5 @@ pytest.ini
 README.md
 .coverage
 .pytest_cache
+great_expectations
+great_expectations/
