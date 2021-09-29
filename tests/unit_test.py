@@ -7,15 +7,6 @@ import pandas as pd
 import numpy as np
 import praw
 from bs4 import BeautifulSoup
-import sentry_sdk
-sentry_sdk.init(
-    "https://ee92d52cdc45489782e42b86bda280e8@o1007718.ingest.sentry.io/5970788",
-
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    # We recommend adjusting this value in production.
-    traces_sample_rate=1.0,
-)
 from requests.exceptions import ConnectionError
 
 
