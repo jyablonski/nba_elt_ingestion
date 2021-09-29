@@ -129,5 +129,4 @@ def test_get_advanced_stats():
       df.columns = df.columns.str.lower()
       assert len(df) > 0
 
-
 # no pbp test, no odds test
