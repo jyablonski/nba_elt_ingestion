@@ -26,6 +26,9 @@ year = (datetime.now() - timedelta(1)).year
 season_type = 'Regular Season'
 
 def get_player_stats():
+    """
+    Web Scrape function w/ BS4 that grabs aggregate season stats
+    """
     try:
         year = 2021
         url = "https://www.basketball-reference.com/leagues/NBA_{}_per_game.html".format(year)
@@ -52,6 +55,9 @@ def get_player_stats():
         return(df)
 
 def get_boxscores(month = month, day = day, year = year):
+    """
+    Web Scrape function w/ BS4 that grabs box scores for certain day.
+    """
     url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(month, day, year)
     html = urlopen(url)
     soup = BeautifulSoup(html, "html.parser")
@@ -100,6 +106,9 @@ def get_boxscores(month = month, day = day, year = year):
         return(df)
 
 def get_injuries():
+    """
+    Web Scrape function w/ pandas read_html that grabs all current injuries
+    """
     try:
         url = "https://www.basketball-reference.com/friv/injuries.fcgi"
         df = pd.read_html(url)[0]
@@ -115,6 +124,9 @@ def get_injuries():
         return(df)
 
 def get_transactions():
+    """
+    Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
+    """
     url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
     html = urlopen(url)
     soup = BeautifulSoup(html, "html.parser")
@@ -143,6 +155,9 @@ def get_transactions():
     return(transactions)
 
 def get_advanced_stats():
+    """
+    Web Scrape function w/ pandas read_html that grabs all team advanced stats
+    """
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2021.html"
         df = pd.read_html(url)
@@ -166,6 +181,9 @@ def get_advanced_stats():
         return(df)
 
 def get_odds():
+    """
+    Web Scrape function w/ pandas read_html that grabs current day's nba odds
+    """
     try:
         url = "https://sportsbook.draftkings.com/leagues/basketball/88673861?category=game-lines&subcategory=game"
         df = pd.read_html(url)
@@ -196,6 +214,9 @@ def get_odds():
 
 
 def scrape_subreddit(sub):
+    """
+    Web Scrape function w/ PRAW that grabs top ~27 top posts from r/nba
+    """
     subreddit = reddit.subreddit(sub)
     posts = []
     for post in subreddit.hot(limit=27):
@@ -210,6 +231,9 @@ def scrape_subreddit(sub):
 
 
 def get_pbp_data(df):
+    """
+    Web Scrape function w/ pandas read_html that uses boxscore team aliases to scrape the pbp data interactively for each game played the previous day
+    """
     if (len(df) > 0):
         yesterday_hometeams = df.query('Location == "H"')[['Team']].drop_duplicates().dropna()
         yesterday_hometeams['Team'] = yesterday_hometeams['Team'].str.replace("PHX", "PHO")
@@ -275,6 +299,9 @@ def get_pbp_data(df):
         return(df)
 
 def sql_connection():
+    """
+    SQL Connection function connecting to my postgres db with schema = nba_source where initial data in ELT lands
+    """
     try:
         connection = create_engine('postgresql+psycopg2://' + os.environ.get('RDS_USER') + ':' + os.environ.get('RDS_PW') + '@' + os.environ.get('IP') + ':' + '5432' + '/' + os.environ.get('RDS_DB'),
                                     connect_args = {'options': '-csearch_path=nba_source'}, # defining schema to connect to
@@ -288,6 +315,11 @@ def sql_connection():
         return(e)
 
 def write_to_sql(data, table_type):
+    """
+    SQL Table function to write a pandas data frame in aws_dfname_table format
+    Parameter: table_type.
+    potential values: replace or append
+    """
     data_name = [ k for k,v in globals().items() if v is data][0]
     ## ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
     if len(data) == 0:
@@ -299,6 +331,9 @@ def write_to_sql(data, table_type):
         logging.info("Writing aws_" + data_name + "_table to SQL")
 
 def send_aws_email():
+    """
+    Email function utilizing boto3, has to be set up with SES in AWS and env variables passed in via Terraform.
+    """
     sender = os.environ.get("USER_EMAIL")
     recipient = os.environ.get("USER_EMAIL")
     aws_region = 'us-east-1'
@@ -341,6 +376,9 @@ def send_aws_email():
         print(response['MessageId'])
 
 def send_email_function():
+    """
+    Email function that only executes & sends an email if there were errors for the run.
+    """
     try:
         if len(logs) > 0:
             print('Sending Email')
