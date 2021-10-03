@@ -11,9 +11,9 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
-      - name: Create and populate .Renviron file
+      - name: Create and populate .coveralls.yml file
         env:
-          AWS_HOST: ${{ secrets.repo_token }}
+          repo_token: ${{ secrets.repo_token }}
         run: |
           touch .coveralls.yml
           echo repo_token: "$repo_token" >> .coveralls.yml
