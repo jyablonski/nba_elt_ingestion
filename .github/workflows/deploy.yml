@@ -18,7 +18,7 @@ jobs:
           pip install pytest==6.2.3
           pip install pytest-cov==2.12.1
       - name: Run tests with pytest
-        run: pytest --cov-report xml:coverage.xml
+        run: pytest --cov --cov-report xml
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
