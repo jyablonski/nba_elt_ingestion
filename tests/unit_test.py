@@ -20,6 +20,15 @@ def test_draftkings_responsive(draftkings_url):
 
 
 def test_get_player_stats():
+      """
+      Web Scrape function w/ BS4 that grabs aggregate season stats
+
+      Args:
+         None
+      
+      Returns:
+         Pandas DataFrame of Player Aggregate Season stats
+      """
       year = 2021
       url = "https://www.basketball-reference.com/leagues/NBA_{}_per_game.html".format(year)
       html = urlopen(url)
@@ -39,6 +48,17 @@ def test_get_player_stats():
 
 
 def test_get_boxscores(month = 12, day = 23, year = 2020):
+      """
+      Web Scrape function w/ BS4 that grabs box scores for certain day.
+
+      Args:
+         month (integer) - the month the game was played
+         day (integer) - the day the game was played
+         year (integer) - the year the game was played
+
+      Returns:
+         Pandas DataFrame of every player's boxscores for games played that day.
+      """
       url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(month, day, year)
       html = urlopen(url)
       soup = BeautifulSoup(html, "html.parser")
@@ -81,6 +101,15 @@ def test_get_boxscores(month = 12, day = 23, year = 2020):
 
 
 def test_get_injuries():
+      """
+      Web Scrape function w/ pandas read_html that grabs all current injuries
+
+      Args:
+         None
+
+      Returns:
+         Pandas DataFrame of all current player injuries & their associated team
+      """
       url = "https://www.basketball-reference.com/friv/injuries.fcgi"
       df = pd.read_html(url)[0]
       df = df.rename(columns = {"Update": "Date"})
@@ -88,6 +117,15 @@ def test_get_injuries():
       assert len(df) > 0
 
 def test_get_transactions():
+    """
+    Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
+
+    Args: 
+        None
+
+    Returns:
+        Pandas DataFrame of all season transactions, trades, player waives etc.
+    """
     url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
     html = urlopen(url)
     soup = BeautifulSoup(html, "html.parser")
@@ -114,6 +152,15 @@ def test_get_transactions():
     assert len(transactions) > 0
 
 def test_get_advanced_stats():
+      """
+      Web Scrape function w/ pandas read_html that grabs all team advanced stats
+
+      Args:
+         None
+      
+      Returns:
+         Pandas DataFrame of all current Team Advanced Stats
+      """
       url = "https://www.basketball-reference.com/leagues/NBA_2021.html"
       df = pd.read_html(url)
       df = pd.DataFrame(df[10])
@@ -127,5 +174,54 @@ def test_get_advanced_stats():
       df['Team'] = df['Team'].str.replace("*", "", regex = True)
       df.columns = df.columns.str.lower()
       assert len(df) > 0
+
+def test_get_odds():
+      """
+      Web Scrape function w/ pandas read_html that grabs current day's nba odds
+
+      Args:
+         None
+
+      Returns:
+         Pandas DataFrame of NBA moneyline + spread odds for upcoming games for that day
+      """
+      url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
+      df = pd.read_html(url)
+      data1 = df[0]
+      data1.columns.values[0] = "Today"
+      data1.reset_index(drop = True)
+      data1['Today'] = data1['Today'].str.replace("AM", "AM ", regex = True)
+      data1['Today'] = data1['Today'].str.replace("PM", "PM ", regex = True)
+      data1['Time'] = data1['Today'].str.split().str[0] 
+      data1['date'] = str(datetime.now().date())
+      data1['datetime1'] = data1['date'] + ' ' + data1['Time']
+      data1['datetime1'] = pd.to_datetime(data1['datetime1'], format = "%Y-%m-%d %I:%M%p") - timedelta(hours = 5)
+      data1['new_date'] = data1['datetime1'].dt.date
+      data1
+
+      data2 = df[1]
+      data2.columns.values[0] = "Today"
+      data2.reset_index(drop = True)
+      data2['Today'] = data2['Today'].str.replace("AM", "AM ", regex = True)
+      data2['Today'] = data2['Today'].str.replace("PM", "PM ", regex = True)
+      data2['Time'] = data2['Today'].str.split().str[0]
+      data2['date'] = str(datetime.now().date() + timedelta(days = 1)) 
+      data2['datetime1'] = data2['date'] + ' ' + data2['Time']
+      data2['datetime1'] = pd.to_datetime(data2['datetime1'], format = "%Y-%m-%d %I:%M%p") - timedelta(hours = 5)
+      data2['new_date'] = data2['datetime1'].dt.date
+      data2
+
+      data = data1.append(data2).reset_index(drop = True)
+      data['SPREAD'] = data['SPREAD'].str[:-4]
+      data['TOTAL'] = data['TOTAL'].str[:-4]
+      data['TOTAL'] = data['TOTAL'].str[2:]
+      data['Today'] = data['Today'].str.split().str[1:2]
+      data['Today'] = pd.DataFrame([str(line).strip('[').strip(']').replace("'","") for line in data['Today']])
+      data['SPREAD'] = data['SPREAD'].str.replace("pk", "-1", regex = True)
+      data['SPREAD'] = data['SPREAD'].str.replace("+", "", regex = True)
+      data.columns = data.columns.str.lower()
+      data = data[['today', 'spread', 'total', 'moneyline', 'datetime1', 'new_date']]
+      data = data.rename(columns={data.columns[0]: 'team', data.columns[4]: 'time', data.columns[5]: 'date'})
+      assert len(data) > 0
 
 # no pbp test, no odds test

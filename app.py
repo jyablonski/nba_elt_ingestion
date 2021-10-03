@@ -11,6 +11,12 @@ from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
 
+### GENERAL NOTES
+# ValueError should capture any read_html failures
+# logging is for identifying failures and sending an email out documenting them
+# Cloudwatch logs are also enabled in ECS so all the print statements will get recorded there too.
+# python:slim-3.8 provides everything i need and has the sql drivers and compilers to install pandas/numpy/sqlalchemy etc.
+
 logging.basicConfig(filename='example.log', level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 logging.info('Starting Logging Function')
 
@@ -28,6 +34,12 @@ season_type = 'Regular Season'
 def get_player_stats():
     """
     Web Scrape function w/ BS4 that grabs aggregate season stats
+
+    Args:
+        None
+    
+    Returns:
+        Pandas DataFrame of Player Aggregate Season stats
     """
     try:
         year = 2021
@@ -57,6 +69,14 @@ def get_player_stats():
 def get_boxscores(month = month, day = day, year = year):
     """
     Web Scrape function w/ BS4 that grabs box scores for certain day.
+
+    Args:
+        month (integer) - the month the game was played
+        day (integer) - the day the game was played
+        year (integer) - the year the game was played
+
+    Returns:
+        Pandas DataFrame of every player's boxscores for games played that day.
     """
     url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(month, day, year)
     html = urlopen(url)
@@ -108,6 +128,12 @@ def get_boxscores(month = month, day = day, year = year):
 def get_injuries():
     """
     Web Scrape function w/ pandas read_html that grabs all current injuries
+
+    Args:
+        None
+
+    Returns:
+        Pandas DataFrame of all current player injuries & their associated team
     """
     try:
         url = "https://www.basketball-reference.com/friv/injuries.fcgi"
@@ -126,6 +152,12 @@ def get_injuries():
 def get_transactions():
     """
     Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
+
+    Args: 
+        None
+
+    Returns:
+        Pandas DataFrame of all season transactions, trades, player waives etc.
     """
     url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
     html = urlopen(url)
@@ -157,6 +189,12 @@ def get_transactions():
 def get_advanced_stats():
     """
     Web Scrape function w/ pandas read_html that grabs all team advanced stats
+
+    Args:
+        None
+    
+    Returns:
+        Pandas DataFrame of all current Team Advanced Stats
     """
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2021.html"
@@ -169,7 +207,7 @@ def get_advanced_stats():
         df.columns = ['Team', 'Age', 'W', 'L', 'PW', 'PL', 'MOV', 'SOS', 'SRS', 'ORTG', 'DRTG', 'NRTG', 'Pace', 'FTr', '3PAr', 'TS%', 'bby1', 'eFG%', 'TOV%', 'ORB%', 'FT/FGA', 'bby2', 'eFG%_opp', 'TOV%_opp', 'DRB%_opp', 'FT/FGA_opp', 'bby3', 'Arena', 'Attendance', 'Att/Game']
         df.drop(['bby1', 'bby2', 'bby3'], axis = 1, inplace = True)
         df = df.query('Team != "League Average"')
-        df['Team'] = df['Team'].str.replace("*", "")
+        df['Team'] = df['Team'].str.replace("*", "") # Playoff teams get a * next to them ??  fkn stupid, filter it out.
         df.columns = df.columns.str.lower()
         logging.info(f'Advanced Stats Function Successful, retrieving updated data for 30 Teams')
         print(f'Advanced Stats Function Successful, retrieving updated data for 30 Teams')
@@ -183,26 +221,51 @@ def get_advanced_stats():
 def get_odds():
     """
     Web Scrape function w/ pandas read_html that grabs current day's nba odds
+
+    Args:
+        None
+
+    Returns:
+        Pandas DataFrame of NBA moneyline + spread odds for upcoming games for that day
     """
     try:
-        url = "https://sportsbook.draftkings.com/leagues/basketball/88673861?category=game-lines&subcategory=game"
+        url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
         df = pd.read_html(url)
         data1 = df[0]
+        data1.columns.values[0] = "Today"
+        data1.reset_index(drop = True)
+        data1['Today'] = data1['Today'].str.replace("AM", "AM ", regex = True)
+        data1['Today'] = data1['Today'].str.replace("PM", "PM ", regex = True)
+        data1['Time'] = data1['Today'].str.split().str[0] 
+        data1['date'] = str(datetime.now().date())
+        data1['datetime1'] = data1['date'] + ' ' + data1['Time']
+        data1['datetime1'] = pd.to_datetime(data1['datetime1'], format = "%Y-%m-%d %I:%M%p") - timedelta(hours = 5)
+        data1['new_date'] = data1['datetime1'].dt.date
+        data1
+
         data2 = df[1]
-        data2 = data2.rename(columns = {"Tomorrow": "Today"})
-        data = data1.append(data2)
-        data
+        data2.columns.values[0] = "Today"
+        data2.reset_index(drop = True)
+        data2['Today'] = data2['Today'].str.replace("AM", "AM ", regex = True)
+        data2['Today'] = data2['Today'].str.replace("PM", "PM ", regex = True)
+        data2['Time'] = data2['Today'].str.split().str[0]
+        data2['date'] = str(datetime.now().date() + timedelta(days = 1)) 
+        data2['datetime1'] = data2['date'] + ' ' + data2['Time']
+        data2['datetime1'] = pd.to_datetime(data2['datetime1'], format = "%Y-%m-%d %I:%M%p") - timedelta(hours = 5)
+        data2['new_date'] = data2['datetime1'].dt.date
+        data2
+
+        data = data1.append(data2).reset_index(drop = True)
         data['SPREAD'] = data['SPREAD'].str[:-4]
         data['TOTAL'] = data['TOTAL'].str[:-4]
         data['TOTAL'] = data['TOTAL'].str[2:]
-        data.reset_index(drop = True)
-        data
-
-        data['Today'] = data['Today'].str.replace("AM|PM", " ")
         data['Today'] = data['Today'].str.split().str[1:2]
         data['Today'] = pd.DataFrame([str(line).strip('[').strip(']').replace("'","") for line in data['Today']])
-        data = data.rename(columns = {"Today": "team", "SPREAD": "spread", "TOTAL": "total_pts", "MONEYLINE": "moneyline"})
+        data['SPREAD'] = data['SPREAD'].str.replace("pk", "-1", regex = True)
+        data['SPREAD'] = data['SPREAD'].str.replace("+", "", regex = True)
         data.columns = data.columns.str.lower()
+        data = data[['today', 'spread', 'total', 'moneyline', 'datetime1', 'new_date']]
+        data = data.rename(columns={data.columns[0]: 'team', data.columns[4]: 'time', data.columns[5]: 'date'})
         logging.info(f'Odds Function Successful, retrieving {len(data)} rows')
         print(f'Odds Function Successful, retrieving {len(data)} rows')
         return(data)
@@ -211,11 +274,20 @@ def get_odds():
         print("Odds Function Failed for Today's Games")
         data = []
         return(data)
-
+# NOTES ON ODD FUNCTION
+# read_html scrapes the website and returns UTC data which makes that day's games come in 2 different date / time formats.
+# grabbing both data frames and manually subtracting 5 hrs to get into CST time and making them the right day, then appending them together.
+# also stripping out some text in the team name column, formatting is fully complete in DBT (GS -> GSW)
 
 def scrape_subreddit(sub):
     """
     Web Scrape function w/ PRAW that grabs top ~27 top posts from r/nba
+
+    Args:
+        None
+
+    Returns:
+        Pandas DataFrame of all current top posts on r/nba
     """
     subreddit = reddit.subreddit(sub)
     posts = []
@@ -233,6 +305,13 @@ def scrape_subreddit(sub):
 def get_pbp_data(df):
     """
     Web Scrape function w/ pandas read_html that uses boxscore team aliases to scrape the pbp data interactively for each game played the previous day
+
+    Args:
+        None
+
+    Returns:
+        All PBP Data for the games returned in the Box Scores functions
+    
     """
     if (len(df) > 0):
         yesterday_hometeams = df.query('Location == "H"')[['Team']].drop_duplicates().dropna()
@@ -297,10 +376,19 @@ def get_pbp_data(df):
         logging.info("PBP Function No Data Yesterday")
         print("PBP Function No Data Yesterday")
         return(df)
+#### PBP NOTES
+# Grabbing all current games from the Box Scores function, and then it uses the home teams to generate urls to the endpoints that hold the pbp data.
+# Also creating custom 1st/2nd/3rd quarter objects here, renaming some columns, and doing some basic filtering to get the data in a manageable form for SQL
 
 def sql_connection():
     """
     SQL Connection function connecting to my postgres db with schema = nba_source where initial data in ELT lands
+
+    Args:
+        None
+    
+    Returns:
+        SQL Connection variable to schema: nba_source in my PostgreSQL DB
     """
     try:
         connection = create_engine('postgresql+psycopg2://' + os.environ.get('RDS_USER') + ':' + os.environ.get('RDS_PW') + '@' + os.environ.get('IP') + ':' + '5432' + '/' + os.environ.get('RDS_DB'),
@@ -317,14 +405,21 @@ def sql_connection():
 def write_to_sql(data, table_type):
     """
     SQL Table function to write a pandas data frame in aws_dfname_table format
-    Parameter: table_type.
-    potential values: replace or append
+
+    Args:
+        data: The Pandas DataFrame to store in SQL
+
+        table_type: Whether the table should replace or append to an existing SQL Table under that name
+
+    Returns:
+        Writes the Pandas DataFrame to a Table in Snowflake in the {nba_source} Schema we connected to.
+
     """
     data_name = [ k for k,v in globals().items() if v is data][0]
     ## ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
     if len(data) == 0:
-        print(data_name + " Failed, not writing to SQL")
-        logging.info(data_name + " Failed, not writing to SQL")
+        print(data_name + " is empty, not writing to SQL")
+        logging.info(data_name + " is empty, not writing to SQL")
     else:
         data.to_sql(con = conn, name = ("aws_" + data_name + "_table"), index = False, if_exists = table_type)
         print("Writing aws_" + data_name + "_table to SQL")
@@ -333,6 +428,12 @@ def write_to_sql(data, table_type):
 def send_aws_email():
     """
     Email function utilizing boto3, has to be set up with SES in AWS and env variables passed in via Terraform.
+
+    Args:   
+        None
+
+    Returns:
+        Sends an email out if errors for the run were greater than 0.
     """
     sender = os.environ.get("USER_EMAIL")
     recipient = os.environ.get("USER_EMAIL")
@@ -378,6 +479,12 @@ def send_aws_email():
 def send_email_function():
     """
     Email function that only executes & sends an email if there were errors for the run.
+
+    Args:   
+        None
+
+    Returns:
+        Holds the actual send_email logic and executes if 1) __name__ = '__main__' and 2) if there were errors
     """
     try:
         if len(logs) > 0:
