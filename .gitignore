@@ -3,3 +3,4 @@
 *.log
 **pycache**
 .coverage
+.coveralls.yml
