@@ -421,9 +421,9 @@ def write_to_sql(data, table_type):
         print(data_name + " is empty, not writing to SQL")
         logging.info(data_name + " is empty, not writing to SQL")
     else:
-        data.to_sql(con = conn, name = ("aws_" + data_name + "_table"), index = False, if_exists = table_type)
-        print("Writing aws_" + data_name + "_table to SQL")
-        logging.info("Writing aws_" + data_name + "_table to SQL")
+        data.to_sql(con = conn, name = ("aws_" + data_name + "_source"), index = False, if_exists = table_type)
+        print("Writing aws_" + data_name + "_source to SQL")
+        logging.info("Writing aws_" + data_name + "_source to SQL")
 
 def send_aws_email():
     """
