@@ -1,0 +1,7 @@
+[flake8]
+ignore = E231, E501, F541, F841
+exclude =
+    .git,
+    __pycache__,
+    tests/**,
+    great_expectations/**
