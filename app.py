@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import praw
 from bs4 import BeautifulSoup
-# import psycopg2
 from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
@@ -340,22 +339,31 @@ def get_odds():
         url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
         df = pd.read_html(url)
         data1 = df[0]
-        date_try = str(year) + " " + data1.columns[0]  # the column value is the DATE (TUE OCT 19TH) - pass that format into datetime
+        date_try = str(year) + " " + data1.columns[0]
         date_try = pd.to_datetime(date_try, errors="coerce", format="%Y %a %b %dth")
         data1["date"] = date_try
-        data1.columns.values[0] = "Today"  # changing the name of the first column to today bc whatever.
+        data1.columns.values[0] = "Today"
         data1.reset_index(drop=True)
         data1["Today"] = data1["Today"].str.replace("AM", "AM ", regex=True)
         data1["Today"] = data1["Today"].str.replace("PM", "PM ", regex=True)
         data1["Time"] = data1["Today"].str.split().str[0]
+        data1["datetime1"] = pd.to_datetime(
+            date_try.strftime("%Y-%m-%d") + " " + data1["Time"]
+        ) - timedelta(hours=5)
 
+        # could maybe filter out only that days games for the odds
         data2 = df[1]
         data2.columns.values[0] = "Today"
         data2.reset_index(drop=True)
-        data2["date"] = date_try + timedelta(days=1)
         data2["Today"] = data2["Today"].str.replace("AM", "AM ", regex=True)
         data2["Today"] = data2["Today"].str.replace("PM", "PM ", regex=True)
         data2["Time"] = data2["Today"].str.split().str[0]
+        data2["datetime1"] = (
+            pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data2["Time"])
+            - timedelta(hours=5)
+            + timedelta(days=1)
+        )
+        data2["date"] = data2["datetime1"].dt.date
 
         data = data1.append(data2).reset_index(drop=True)
         data["SPREAD"] = data["SPREAD"].str[:-4]
@@ -368,8 +376,9 @@ def get_odds():
         data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
         data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
         data.columns = data.columns.str.lower()
-        data = data[["today", "spread", "total", "moneyline", "time", "date"]]
+        data = data[["today", "spread", "total", "moneyline", "date", "datetime1"]]
         data = data.rename(columns={data.columns[0]: "team"})
+        data = data.query("date == date.min()")  # only grab games from upcoming day
         logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
         print(f"Odds Function Successful, retrieving {len(data)} rows")
         return data

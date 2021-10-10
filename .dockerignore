@@ -15,6 +15,4 @@ great_expectations
 great_expectations/
 great_expectations/*
 .flake8
-Pipfile
-Pipfile.lock
 .coveralls.yml
