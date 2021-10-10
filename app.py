@@ -177,15 +177,17 @@ def get_boxscores(month=month, day=day, year=year):
         df["Opponent"] = df["Opponent"].str.replace("BRK", "BKN")
         df.columns = df.columns.str.lower()
         logging.info(
-            f"Box Score Function Successful, retrieving {len(df)} rows for {yesterday}"
+            f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
         print(
-            f"Box Score Function Successful, retrieving {len(df)} rows for {yesterday}"
+            f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
         return df
     except IndexError:
-        logging.info(f"Box Score Function Failed, no data available for {yesterday}")
-        print(f"Box Score Function Failed, no data available for {yesterday}")
+        logging.info(
+            f"Box Score Function Failed, no data available for {year}-{month}-{day}"
+        )
+        print(f"Box Score Function Failed, no data available for {year}-{month}-{day}")
         df = []
         return df
 
@@ -290,7 +292,7 @@ def get_advanced_stats():
             "FTr",
             "3PAr",
             "TS%",
-            "bby1",
+            "bby1",  # the bby columns are because of hierarchical html formatting - they're just blank columns
             "eFG%",
             "TOV%",
             "ORB%",
@@ -308,7 +310,7 @@ def get_advanced_stats():
         df.drop(["bby1", "bby2", "bby3"], axis=1, inplace=True)
         df = df.query('Team != "League Average"')
         # Playoff teams get a * next to them ??  fkn stupid, filter it out.
-        df["Team"] = df["Team"].str.replace("*", "")
+        df["Team"] = df["Team"].str.replace("*", "", regex=True)
         df.columns = df.columns.str.lower()
         logging.info(
             f"Advanced Stats Function Successful, retrieving updated data for 30 Teams"
@@ -338,32 +340,22 @@ def get_odds():
         url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
         df = pd.read_html(url)
         data1 = df[0]
-        data1.columns.values[0] = "Today"
+        date_try = str(year) + " " + data1.columns[0]  # the column value is the DATE (TUE OCT 19TH) - pass that format into datetime
+        date_try = pd.to_datetime(date_try, errors="coerce", format="%Y %a %b %dth")
+        data1["date"] = date_try
+        data1.columns.values[0] = "Today"  # changing the name of the first column to today bc whatever.
         data1.reset_index(drop=True)
         data1["Today"] = data1["Today"].str.replace("AM", "AM ", regex=True)
         data1["Today"] = data1["Today"].str.replace("PM", "PM ", regex=True)
         data1["Time"] = data1["Today"].str.split().str[0]
-        data1["date"] = str(datetime.now().date())
-        data1["datetime1"] = data1["date"] + " " + data1["Time"]
-        data1["datetime1"] = pd.to_datetime(
-            data1["datetime1"], format="%Y-%m-%d %I:%M%p"
-        ) - timedelta(hours=5)
-        data1["new_date"] = data1["datetime1"].dt.date
-        data1
 
         data2 = df[1]
         data2.columns.values[0] = "Today"
         data2.reset_index(drop=True)
+        data2["date"] = date_try + timedelta(days=1)
         data2["Today"] = data2["Today"].str.replace("AM", "AM ", regex=True)
         data2["Today"] = data2["Today"].str.replace("PM", "PM ", regex=True)
         data2["Time"] = data2["Today"].str.split().str[0]
-        data2["date"] = str(datetime.now().date() + timedelta(days=1))
-        data2["datetime1"] = data2["date"] + " " + data2["Time"]
-        data2["datetime1"] = pd.to_datetime(
-            data2["datetime1"], format="%Y-%m-%d %I:%M%p"
-        ) - timedelta(hours=5)
-        data2["new_date"] = data2["datetime1"].dt.date
-        data2
 
         data = data1.append(data2).reset_index(drop=True)
         data["SPREAD"] = data["SPREAD"].str[:-4]
@@ -376,14 +368,8 @@ def get_odds():
         data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
         data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
         data.columns = data.columns.str.lower()
-        data = data[["today", "spread", "total", "moneyline", "datetime1", "new_date"]]
-        data = data.rename(
-            columns={
-                data.columns[0]: "team",
-                data.columns[4]: "time",
-                data.columns[5]: "date",
-            }
-        )
+        data = data[["today", "spread", "total", "moneyline", "time", "date"]]
+        data = data.rename(columns={data.columns[0]: "team"})
         logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
         print(f"Odds Function Successful, retrieving {len(data)} rows")
         return data
