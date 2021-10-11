@@ -4,3 +4,4 @@
 **pycache**
 .coverage
 .coveralls.yml
+.vscode

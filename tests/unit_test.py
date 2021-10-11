@@ -9,6 +9,13 @@ import praw
 from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError
 
+today = datetime.now().date()
+todaytime = datetime.now()
+yesterday = today - timedelta(1)
+day = (datetime.now() - timedelta(1)).day
+month = (datetime.now() - timedelta(1)).month
+year = (datetime.now() - timedelta(1)).year
+season_type = "Regular Season"
 
 def test_basketball_reference_responsive(bbref_url):
    response = requests.get(bbref_url)
@@ -29,20 +36,22 @@ def test_get_player_stats():
       Returns:
          Pandas DataFrame of Player Aggregate Season stats
       """
-      year = 2021
-      url = "https://www.basketball-reference.com/leagues/NBA_{}_per_game.html".format(year)
+      url = "https://www.basketball-reference.com/leagues/NBA_{}_per_game.html".format(
+         year
+      )
       html = urlopen(url)
       soup = BeautifulSoup(html, "html.parser")
 
-      headers = [th.getText() for th in soup.findAll('tr', limit=2)[0].findAll('th')]
+      headers = [th.getText() for th in soup.findAll("tr", limit=2)[0].findAll("th")]
       headers = headers[1:]
 
-      rows = soup.findAll('tr')[1:]
-      player_stats = [[td.getText() for td in rows[i].findAll('td')]
-         for i in range(len(rows))]
+      rows = soup.findAll("tr")[1:]
+      player_stats = [
+         [td.getText() for td in rows[i].findAll("td")] for i in range(len(rows))
+      ]
 
-      stats = pd.DataFrame(player_stats, columns = headers)
-      stats['PTS'] = pd.to_numeric(stats['PTS'])
+      stats = pd.DataFrame(player_stats, columns=headers)
+      stats["PTS"] = pd.to_numeric(stats["PTS"])
       stats.columns = stats.columns.str.lower()
       assert len(stats) > 0
 
@@ -59,16 +68,17 @@ def test_get_boxscores(month = 12, day = 23, year = 2020):
       Returns:
          Pandas DataFrame of every player's boxscores for games played that day.
       """
-      url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(month, day, year)
+      url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(
+         month, day, year
+      )
       html = urlopen(url)
       soup = BeautifulSoup(html, "html.parser")
 
-
-      headers = [th.getText() for th in soup.findAll('tr', limit=2)[0].findAll('th')]
+      headers = [th.getText() for th in soup.findAll("tr", limit=2)[0].findAll("th")]
       headers = headers[1:]
-      headers[1] = 'Team'
+      headers[1] = "Team"
       headers[2] = "Location"
-      headers[3] = 'Opponent'
+      headers[3] = "Opponent"
       headers[4] = "Outcome"
       headers[6] = "FGM"
       headers[8] = "FGPercent"
@@ -78,24 +88,67 @@ def test_get_boxscores(month = 12, day = 23, year = 2020):
       headers[14] = "FTPercent"
       headers[15] = "OREB"
       headers[16] = "DREB"
-      headers[24] = 'PlusMinus'
+      headers[24] = "PlusMinus"
 
-      rows = soup.findAll('tr')[1:]
-      player_stats = [[td.getText() for td in rows[i].findAll('td')]
-         for i in range(len(rows))]
+      rows = soup.findAll("tr")[1:]
+      player_stats = [
+            [td.getText() for td in rows[i].findAll("td")] for i in range(len(rows))
+      ]
 
-      df = pd.DataFrame(player_stats, columns = headers)
-      df[['FGM', 'FGA', 'FGPercent', 'threePFGMade', 'threePAttempted', 'threePointPercent', 'OREB', 'DREB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'PlusMinus', 'GmSc']] = df[['FGM', 'FGA', 'FGPercent', 'threePFGMade', 'threePAttempted', 'threePointPercent','OREB', 'DREB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'PlusMinus', 'GmSc']].apply(pd.to_numeric)
-      df['Date'] = datetime.now()
-      df['Type'] = 'Regular Season'
-      df['Season'] = 2022
-      df['Location'] = df['Location'].apply(lambda x: 'A' if x == '@' else 'H')
-      df['Team'] = df['Team'].str.replace("PHO", "PHX")
-      df['Team'] = df['Team'].str.replace("CHO", "CHA")
-      df['Team'] = df['Team'].str.replace("BRK", "BKN")
-      df['Opponent'] = df['Opponent'].str.replace("PHO", "PHX")
-      df['Opponent'] = df['Opponent'].str.replace("CHO", "CHA")
-      df['Opponent'] = df['Opponent'].str.replace("BRK", "BKN")
+      df = pd.DataFrame(player_stats, columns=headers)
+      df[
+            [
+               "FGM",
+               "FGA",
+               "FGPercent",
+               "threePFGMade",
+               "threePAttempted",
+               "threePointPercent",
+               "OREB",
+               "DREB",
+               "TRB",
+               "AST",
+               "STL",
+               "BLK",
+               "TOV",
+               "PF",
+               "PTS",
+               "PlusMinus",
+               "GmSc",
+            ]
+      ] = df[
+            [
+               "FGM",
+               "FGA",
+               "FGPercent",
+               "threePFGMade",
+               "threePAttempted",
+               "threePointPercent",
+               "OREB",
+               "DREB",
+               "TRB",
+               "AST",
+               "STL",
+               "BLK",
+               "TOV",
+               "PF",
+               "PTS",
+               "PlusMinus",
+               "GmSc",
+            ]
+      ].apply(
+            pd.to_numeric
+      )
+      df["Date"] = yesterday
+      df["Type"] = season_type
+      df["Season"] = 2022
+      df["Location"] = df["Location"].apply(lambda x: "A" if x == "@" else "H")
+      df["Team"] = df["Team"].str.replace("PHO", "PHX")
+      df["Team"] = df["Team"].str.replace("CHO", "CHA")
+      df["Team"] = df["Team"].str.replace("BRK", "BKN")
+      df["Opponent"] = df["Opponent"].str.replace("PHO", "PHX")
+      df["Opponent"] = df["Opponent"].str.replace("CHO", "CHA")
+      df["Opponent"] = df["Opponent"].str.replace("BRK", "BKN")
       df.columns = df.columns.str.lower()
       assert len(df) > 0
 
@@ -112,7 +165,7 @@ def test_get_injuries():
       """
       url = "https://www.basketball-reference.com/friv/injuries.fcgi"
       df = pd.read_html(url)[0]
-      df = df.rename(columns = {"Update": "Date"})
+      df = df.rename(columns={"Update": "Date"})
       df.columns = df.columns.str.lower()
       assert len(df) > 0
 
@@ -129,14 +182,16 @@ def test_get_transactions():
     url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
     html = urlopen(url)
     soup = BeautifulSoup(html, "html.parser")
-    trs = soup.findAll('li')[50:] # theres a bunch of garbage in the first 50 rows - no matter what 
+    # theres a bunch of garbage in the first 50 rows - no matter what
+    trs = soup.findAll("li")[50:]
     rows = []
     mylist = []
     for tr in trs:
-        date = tr.find('span')
-        if date is not None: # needed bc span can be null (multi <p> elements per span)
+        date = tr.find("span")
+        # needed bc span can be null (multi <p> elements per span)
+        if date is not None:
             date = date.text
-        data = tr.findAll('p')
+        data = tr.findAll("p")
         for p in data:
             mylist.append(p.text)
         data3 = [date] + [mylist]
@@ -144,9 +199,9 @@ def test_get_transactions():
         mylist = []
 
     transactions = pd.DataFrame(rows)
-    transactions.columns = ['Date', 'Transaction']
-    transactions = transactions.explode('Transaction')
-    transactions['Date'] = pd.to_datetime(transactions['Date'])
+    transactions.columns = ["Date", "Transaction"]
+    transactions = transactions.explode("Transaction")
+    transactions["Date"] = pd.to_datetime(transactions["Date"])
     transactions = transactions.query('Date != "NaN"')
     transactions.columns = transactions.columns.str.lower()
     assert len(transactions) > 0
@@ -164,14 +219,44 @@ def test_get_advanced_stats():
       url = "https://www.basketball-reference.com/leagues/NBA_2021.html"
       df = pd.read_html(url)
       df = pd.DataFrame(df[10])
-      df.drop(columns = df.columns[0], 
-         axis=1, 
-         inplace=True)
+      df.drop(columns=df.columns[0], axis=1, inplace=True)
 
-      df.columns = ['Team', 'Age', 'W', 'L', 'PW', 'PL', 'MOV', 'SOS', 'SRS', 'ORTG', 'DRTG', 'NRTG', 'Pace', 'FTr', '3PAr', 'TS%', 'bby1', 'eFG%', 'TOV%', 'ORB%', 'FT/FGA', 'bby2', 'eFG%_opp', 'TOV%_opp', 'DRB%_opp', 'FT/FGA_opp', 'bby3', 'Arena', 'Attendance', 'Att/Game']
-      df.drop(['bby1', 'bby2', 'bby3'], axis = 1, inplace = True)
-      df = df.query('Team != "League Average"')
-      df['Team'] = df['Team'].str.replace("*", "", regex = True)
+      df.columns = [
+         "Team",
+         "Age",
+         "W",
+         "L",
+         "PW",
+         "PL",
+         "MOV",
+         "SOS",
+         "SRS",
+         "ORTG",
+         "DRTG",
+         "NRTG",
+         "Pace",
+         "FTr",
+         "3PAr",
+         "TS%",
+         "bby1",  # the bby columns are because of hierarchical html formatting - they're just blank columns
+         "eFG%",
+         "TOV%",
+         "ORB%",
+         "FT/FGA",
+         "bby2",
+         "eFG%_opp",
+         "TOV%_opp",
+         "DRB%_opp",
+         "FT/FGA_opp",
+         "bby3",
+         "Arena",
+         "Attendance",
+         "Att/Game",
+      ]
+      df.drop(["bby1", "bby2", "bby3"], axis=1, inplace=True)
+      df = df.query('Team != "League Average"').reset_index()
+      # Playoff teams get a * next to them ??  fkn stupid, filter it out.
+      df["Team"] = df["Team"].str.replace("*", "", regex=True)
       df.columns = df.columns.str.lower()
       assert len(df) > 0
 
@@ -188,40 +273,46 @@ def test_get_odds():
       url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
       df = pd.read_html(url)
       data1 = df[0]
+      date_try = str(year) + " " + data1.columns[0]
+      date_try = pd.to_datetime(date_try, errors="coerce", format="%Y %a %b %dth")
+      data1["date"] = date_try
       data1.columns.values[0] = "Today"
-      data1.reset_index(drop = True)
-      data1['Today'] = data1['Today'].str.replace("AM", "AM ", regex = True)
-      data1['Today'] = data1['Today'].str.replace("PM", "PM ", regex = True)
-      data1['Time'] = data1['Today'].str.split().str[0] 
-      data1['date'] = str(datetime.now().date())
-      data1['datetime1'] = data1['date'] + ' ' + data1['Time']
-      data1['datetime1'] = pd.to_datetime(data1['datetime1'], format = "%Y-%m-%d %I:%M%p") - timedelta(hours = 5)
-      data1['new_date'] = data1['datetime1'].dt.date
-      data1
+      data1.reset_index(drop=True)
+      data1["Today"] = data1["Today"].str.replace("AM", "AM ", regex=True)
+      data1["Today"] = data1["Today"].str.replace("PM", "PM ", regex=True)
+      data1["Time"] = data1["Today"].str.split().str[0]
+      data1["datetime1"] = pd.to_datetime(
+         date_try.strftime("%Y-%m-%d") + " " + data1["Time"]
+      ) - timedelta(hours=5)
 
+      # could maybe filter out only that days games for the odds
       data2 = df[1]
       data2.columns.values[0] = "Today"
-      data2.reset_index(drop = True)
-      data2['Today'] = data2['Today'].str.replace("AM", "AM ", regex = True)
-      data2['Today'] = data2['Today'].str.replace("PM", "PM ", regex = True)
-      data2['Time'] = data2['Today'].str.split().str[0]
-      data2['date'] = str(datetime.now().date() + timedelta(days = 1)) 
-      data2['datetime1'] = data2['date'] + ' ' + data2['Time']
-      data2['datetime1'] = pd.to_datetime(data2['datetime1'], format = "%Y-%m-%d %I:%M%p") - timedelta(hours = 5)
-      data2['new_date'] = data2['datetime1'].dt.date
-      data2
+      data2.reset_index(drop=True)
+      data2["Today"] = data2["Today"].str.replace("AM", "AM ", regex=True)
+      data2["Today"] = data2["Today"].str.replace("PM", "PM ", regex=True)
+      data2["Time"] = data2["Today"].str.split().str[0]
+      data2["datetime1"] = (
+         pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data2["Time"])
+         - timedelta(hours=5)
+         + timedelta(days=1)
+      )
+      data2["date"] = data2["datetime1"].dt.date
 
-      data = data1.append(data2).reset_index(drop = True)
-      data['SPREAD'] = data['SPREAD'].str[:-4]
-      data['TOTAL'] = data['TOTAL'].str[:-4]
-      data['TOTAL'] = data['TOTAL'].str[2:]
-      data['Today'] = data['Today'].str.split().str[1:2]
-      data['Today'] = pd.DataFrame([str(line).strip('[').strip(']').replace("'","") for line in data['Today']])
-      data['SPREAD'] = data['SPREAD'].str.replace("pk", "-1", regex = True)
-      data['SPREAD'] = data['SPREAD'].str.replace("+", "", regex = True)
+      data = data1.append(data2).reset_index(drop=True)
+      data["SPREAD"] = data["SPREAD"].str[:-4]
+      data["TOTAL"] = data["TOTAL"].str[:-4]
+      data["TOTAL"] = data["TOTAL"].str[2:]
+      data["Today"] = data["Today"].str.split().str[1:2]
+      data["Today"] = pd.DataFrame(
+         [str(line).strip("[").strip("]").replace("'", "") for line in data["Today"]]
+      )
+      data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
+      data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
       data.columns = data.columns.str.lower()
-      data = data[['today', 'spread', 'total', 'moneyline', 'datetime1', 'new_date']]
-      data = data.rename(columns={data.columns[0]: 'team', data.columns[4]: 'time', data.columns[5]: 'date'})
+      data = data[["today", "spread", "total", "moneyline", "date", "datetime1"]]
+      data = data.rename(columns={data.columns[0]: "team"})
+      data = data.query("date == date.min()")  # only grab games from upcoming day
       assert len(data) > 0
 
-# no pbp test, no odds test
+# no pbp test

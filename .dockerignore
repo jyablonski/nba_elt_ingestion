@@ -16,3 +16,4 @@ great_expectations/
 great_expectations/*
 .flake8
 .coveralls.yml
+.vscode

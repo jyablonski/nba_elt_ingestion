@@ -85,8 +85,8 @@ def get_boxscores(month=month, day=day, year=year):
     Web Scrape function w/ BS4 that grabs box scores for certain day.
 
     Args:
-        month (integer) - the month the game was played
-        day (integer) - the day the game was played
+        month (integer) - the month the game was played - can be 1 or 01 for ex. january
+        day (integer) - the day the game was played - can be 1 or 01 for ex. 1st of month
         year (integer) - the year the game was played
 
     Returns:
@@ -307,7 +307,7 @@ def get_advanced_stats():
             "Att/Game",
         ]
         df.drop(["bby1", "bby2", "bby3"], axis=1, inplace=True)
-        df = df.query('Team != "League Average"')
+        df = df.query('Team != "League Average"').reset_index()
         # Playoff teams get a * next to them ??  fkn stupid, filter it out.
         df["Team"] = df["Team"].str.replace("*", "", regex=True)
         df.columns = df.columns.str.lower()
