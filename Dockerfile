@@ -21,17 +21,16 @@ RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
 
 FROM base AS runtime
 
-# Copy virtual env from python-deps stage
+# only copy the env, not what we used to build it
 COPY --from=python-deps /.venv /.venv
 ENV PATH="/.venv/bin:$PATH"
 
-# Create and switch to a new user
+# Create and switch to a new user for ,,, security reasons
 RUN useradd --create-home appuser
 WORKDIR /home/appuser
 USER appuser
 
-# Install application into container
+# copy everything over
 COPY . .
 
-# Run the application
 CMD ["python3", "app.py"]

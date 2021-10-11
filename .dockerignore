@@ -17,3 +17,4 @@ great_expectations/*
 .flake8
 .coveralls.yml
 .vscode
+.bumpversion.cfg
