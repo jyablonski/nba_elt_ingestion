@@ -1,5 +1,5 @@
 # Version: 0.1.3-dev0
-## Python Docker Image for AWS ECS ETL script
+## Python Docker Image for AWS ECS ELT script
 
 # ![Tests](https://github.com/jyablonski/python_docker/actions/workflows/deploy.yml/badge.svg)
 
