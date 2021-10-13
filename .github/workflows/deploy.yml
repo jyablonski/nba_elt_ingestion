@@ -59,7 +59,7 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-  build:
+  bumpversionnn:
     needs: deploy_image
     name: bumpversionnnn
     runs-on: ubuntu-latest
