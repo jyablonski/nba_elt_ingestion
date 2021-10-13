@@ -4,6 +4,7 @@ on:
     branches: [ master ]
 jobs:
   pytest_build:
+    name: Run Pytest & Deploy to coveralls.io
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -30,9 +31,9 @@ jobs:
         run: pytest --cov --cov-report xml
       - name: Coveralls
         run: coveralls
-  build:
+  build_image:
     needs: pytest_build
-    name: Deploy Image
+    name: Deploy Docker Image to ECR
     runs-on: ubuntu-latest
 
     steps:
@@ -60,8 +61,8 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   bumpversion:
-    needs: build
-    name: bumpversionnn
+    needs: build_image
+    name: Bumpversion
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
