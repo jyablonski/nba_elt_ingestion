@@ -32,7 +32,7 @@ jobs:
         run: coveralls
   build:
     needs: pytest_build
-    name: deploy_image
+    name: Deploy Image
     runs-on: ubuntu-latest
 
     steps:
@@ -59,9 +59,9 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-  bumpversionnn:
-    needs: deploy_image
-    name: bumpversionnnn
+  bumpversion:
+    needs: build
+    name: bumpversionnn
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
