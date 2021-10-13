@@ -1,4 +1,4 @@
-# Version: 0.1.3-dev0
+# Version: 0.1.4-dev0
 ## Python Docker Image for AWS ECS ELT script
 
 # ![Tests](https://github.com/jyablonski/python_docker/actions/workflows/deploy.yml/badge.svg)
