@@ -202,6 +202,7 @@ def test_get_transactions():
     transactions = pd.DataFrame(rows)
     transactions.columns = ["Date", "Transaction"]
     transactions = transactions.explode("Transaction")
+    transactions['Date'] = transactions['Date'].str.replace("?", "Jan 1, 2021", regex = True)
     transactions["Date"] = pd.to_datetime(transactions["Date"])
     transactions = transactions.query('Date != "NaN"')
     transactions.columns = transactions.columns.str.lower()
