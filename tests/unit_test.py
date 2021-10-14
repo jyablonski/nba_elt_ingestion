@@ -92,12 +92,12 @@ def test_get_boxscores(month = 12, day = 23, year = 2020):
 
       rows = soup.findAll("tr")[1:]
       player_stats = [
-            [td.getText() for td in rows[i].findAll("td")] for i in range(len(rows))
+         [td.getText() for td in rows[i].findAll("td")] for i in range(len(rows))
       ]
 
       df = pd.DataFrame(player_stats, columns=headers)
       df[
-            [
+         [
                "FGM",
                "FGA",
                "FGPercent",
@@ -115,9 +115,9 @@ def test_get_boxscores(month = 12, day = 23, year = 2020):
                "PTS",
                "PlusMinus",
                "GmSc",
-            ]
+         ]
       ] = df[
-            [
+         [
                "FGM",
                "FGA",
                "FGPercent",
@@ -135,11 +135,12 @@ def test_get_boxscores(month = 12, day = 23, year = 2020):
                "PTS",
                "PlusMinus",
                "GmSc",
-            ]
+         ]
       ].apply(
-            pd.to_numeric
+         pd.to_numeric
       )
-      df["Date"] = yesterday
+      df["date"] = str(year) + "-" + str(month) + "-" + str(day)
+      df["date"] = pd.to_datetime(df["date"])
       df["Type"] = season_type
       df["Season"] = 2022
       df["Location"] = df["Location"].apply(lambda x: "A" if x == "@" else "H")

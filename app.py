@@ -81,17 +81,6 @@ def get_player_stats():
 
 
 def get_boxscores(month=month, day=day, year=year):
-    """
-    Web Scrape function w/ BS4 that grabs box scores for certain day.
-
-    Args:
-        month (integer) - the month the game was played - can be 1 or 01 for ex. january
-        day (integer) - the day the game was played - can be 1 or 01 for ex. 1st of month
-        year (integer) - the year the game was played
-
-    Returns:
-        Pandas DataFrame of every player's boxscores for games played that day.
-    """
     url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(
         month, day, year
     )
@@ -164,7 +153,8 @@ def get_boxscores(month=month, day=day, year=year):
         ].apply(
             pd.to_numeric
         )
-        df["Date"] = yesterday
+        df["date"] = str(year) + "-" + str(month) + "-" + str(day)
+        df["date"] = pd.to_datetime(df["date"])
         df["Type"] = season_type
         df["Season"] = 2022
         df["Location"] = df["Location"].apply(lambda x: "A" if x == "@" else "H")
@@ -453,20 +443,20 @@ def get_pbp_data(df):
     """
     if len(df) > 0:
         yesterday_hometeams = (
-            df.query('Location == "H"')[["Team"]].drop_duplicates().dropna()
+            df.query('location == "H"')[["team"]].drop_duplicates().dropna()
         )
-        yesterday_hometeams["Team"] = yesterday_hometeams["Team"].str.replace(
+        yesterday_hometeams["team"] = yesterday_hometeams["team"].str.replace(
             "PHX", "PHO"
         )
-        yesterday_hometeams["Team"] = yesterday_hometeams["Team"].str.replace(
+        yesterday_hometeams["team"] = yesterday_hometeams["team"].str.replace(
             "CHA", "CHO"
         )
-        yesterday_hometeams["Team"] = yesterday_hometeams["Team"].str.replace(
+        yesterday_hometeams["team"] = yesterday_hometeams["team"].str.replace(
             "BKN", "BRK"
         )
 
         away_teams = (
-            df.query('Location == "A"')[["Team", "Opponent"]].drop_duplicates().dropna()
+            df.query('location == "A"')[["team", "opponent"]].drop_duplicates().dropna()
         )
         away_teams = away_teams.rename(
             columns={
@@ -479,10 +469,14 @@ def get_pbp_data(df):
 
     if len(yesterday_hometeams) > 0:
         try:
-            # pracdate = '20210601' # use this for url format 1 for prac.
-            newdate = yesterday.strftime("%Y%m%d")
+            newdate = str(
+                df["date"].drop_duplicates()[0].date()
+            )  # this assumes all games in the boxscores df are 1 date
+            newdate = pd.to_datetime(newdate).strftime(
+                "%Y%m%d"
+            )  # formatting into url format.
             pbp_list = pd.DataFrame()
-            for i in yesterday_hometeams["Team"]:
+            for i in yesterday_hometeams["team"]:
                 url = "https://www.basketball-reference.com/boxscores/pbp/{}0{}.html".format(
                     newdate, i
                 )
@@ -509,7 +503,9 @@ def get_pbp_data(df):
                     (df["HomeScore"].str.contains("Start of 1st overtime", na=False)),
                     (df["HomeScore"].str.contains("Start of 2nd overtime", na=False)),
                     (df["HomeScore"].str.contains("Start of 3rd overtime", na=False)),
-                    (df["HomeScore"].str.contains("Start of 4th overtime", na=False)),
+                    (
+                        df["HomeScore"].str.contains("Start of 4th overtime", na=False)
+                    ),  # if more than 4 ots then rip
                 ]
                 values = [
                     "1st Quarter",
@@ -525,7 +521,8 @@ def get_pbp_data(df):
                 df["Quarter"] = df["Quarter"].fillna(method="ffill")
                 df = df.query(
                     'Time != "Time" & Time != "2nd Q" & Time != "3rd Q" & Time != "4th Q" & Time != "1st OT" & Time != "2nd OT" & Time != "3rd OT" & Time != "4th OT"'
-                )
+                ).copy()  # use COPY to get rid of the fucking goddamn warning bc we filtered stuf out
+                # anytime you filter out values w/o copying and run code like the lines below it'll throw a warning.
                 df["HomeTeam"] = i
                 df["HomeTeam"] = df["HomeTeam"].str.replace("PHO", "PHX")
                 df["HomeTeam"] = df["HomeTeam"].str.replace("CHO", "CHA")
@@ -549,6 +546,10 @@ def get_pbp_data(df):
                 pbp_list = pbp_list.append(df)
                 df = pd.DataFrame()
             pbp_list.columns = pbp_list.columns.str.lower()
+            pbp_list = pbp_list.query(
+                "(awayscore.notnull()) | (homescore.notnull())", engine="python"
+            )
+            # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
             return pbp_list
         except ValueError:
             logging.info("PBP Function Failed for Yesterday's Games")
@@ -684,7 +685,7 @@ def send_email_function():
         None
 
     Returns:
-        Holds the actual send_email logic and executes if 1) __name__ = '__main__' and 2) if there were errors
+        Holds the actual send_email logic and executes if 1) there were errors and 2) if invoked as a script (aka on ECS)
     """
     try:
         if len(logs) > 0:
