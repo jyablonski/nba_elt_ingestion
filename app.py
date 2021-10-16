@@ -10,7 +10,7 @@ from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
 
-print('Loading Python ELT Script Version: 0.1.5-dev0')
+print("Loading Python ELT Script Version: 0.1.5-dev0")
 # GENERAL NOTES
 # ValueError should capture any read_html failures
 # logging is for identifying failures and sending an email out documenting them
@@ -221,7 +221,7 @@ def get_transactions():
     html = urlopen(url)
     soup = BeautifulSoup(html, "html.parser")
     # theres a bunch of garbage in the first 50 rows - no matter what
-    trs = soup.findAll("li")[50:]
+    trs = soup.findAll("li")[70:]
     rows = []
     mylist = []
     for tr in trs:
@@ -238,12 +238,14 @@ def get_transactions():
 
     transactions = pd.DataFrame(rows)
     transactions.columns = ["Date", "Transaction"]
+    transactions = transactions.query(
+        'Date == Date & Date != ""'
+    ).reset_index()  # filters out nulls and empty values
     transactions = transactions.explode("Transaction")
     transactions["Date"] = transactions["Date"].str.replace(
         "?", "Jan 1, 2021", regex=True  # bad data 10-14-21
     )
     transactions["Date"] = pd.to_datetime(transactions["Date"])
-    transactions = transactions.query('Date != "NaN"')
     transactions.columns = transactions.columns.str.lower()
     logging.info(
         f"Transactions Function Successful, retrieving {len(transactions)} rows"

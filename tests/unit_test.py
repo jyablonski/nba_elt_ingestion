@@ -171,42 +171,38 @@ def test_get_injuries():
       assert len(df) > 0
 
 def test_get_transactions():
-    """
-    Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
+      """
+      Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
 
-    Args: 
-        None
+      Args: 
+         None
 
-    Returns:
-        Pandas DataFrame of all season transactions, trades, player waives etc.
-    """
-    url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
-    html = urlopen(url)
-    soup = BeautifulSoup(html, "html.parser")
-    # theres a bunch of garbage in the first 50 rows - no matter what
-    trs = soup.findAll("li")[50:]
-    rows = []
-    mylist = []
-    for tr in trs:
-        date = tr.find("span")
-        # needed bc span can be null (multi <p> elements per span)
-        if date is not None:
-            date = date.text
-        data = tr.findAll("p")
-        for p in data:
-            mylist.append(p.text)
-        data3 = [date] + [mylist]
-        rows.append(data3)
-        mylist = []
-
-    transactions = pd.DataFrame(rows)
-    transactions.columns = ["Date", "Transaction"]
-    transactions = transactions.explode("Transaction")
-    transactions['Date'] = transactions['Date'].str.replace("?", "Jan 1, 2021", regex = True)
-    transactions["Date"] = pd.to_datetime(transactions["Date"])
-    transactions = transactions.query('Date != "NaN"')
-    transactions.columns = transactions.columns.str.lower()
-    assert len(transactions) > 0
+      Returns:
+         Pandas DataFrame of all season transactions, trades, player waives etc.
+      """
+      url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
+      html = urlopen(url)
+      soup = BeautifulSoup(html, "html.parser")
+      trs = soup.findAll('li')[70:] # theres a bunch of garbage in the first 71 rows - no matter what 
+      rows = []
+      mylist = []
+      for tr in trs:
+            date = tr.find('span')
+            if date is not None: # needed bc span can be null (multi <p> elements per span)
+                  date = date.text
+            data = tr.findAll('p')
+            for p in data:
+                  mylist.append(p.text)
+            data3 = [date] + [mylist]
+            rows.append(data3)
+            mylist = []
+      transactions = pd.DataFrame(rows)
+      transactions.columns = ['Date', 'Transaction']
+      transactions = transactions.query('Date == Date & Date != ""').reset_index()
+      transactions = transactions.explode('Transaction')
+      transactions['Date'] = pd.to_datetime(transactions['Date'])
+      transactions
+      assert len(transactions) > 0
 
 def test_get_advanced_stats():
       """
