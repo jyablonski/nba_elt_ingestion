@@ -66,6 +66,14 @@ def get_player_stats():
 
         stats = pd.DataFrame(player_stats, columns=headers)
         stats["PTS"] = pd.to_numeric(stats["PTS"])
+
+        stats = stats.query("Player == Player").reset_index()
+        stats["Player"] = (
+            stats["Player"]
+            .str.normalize("NFKD")
+            .str.encode("ascii", errors="ignore")
+            .str.decode("utf-8")
+        )
         stats.columns = stats.columns.str.lower()
         logging.info(
             f"General Stats Function Successful, retrieving {len(stats)} updated rows"
@@ -165,6 +173,13 @@ def get_boxscores(month=month, day=day, year=year):
         df["Opponent"] = df["Opponent"].str.replace("PHO", "PHX")
         df["Opponent"] = df["Opponent"].str.replace("CHO", "CHA")
         df["Opponent"] = df["Opponent"].str.replace("BRK", "BKN")
+        df = df.query("Player == Player").reset_index()
+        df["Player"] = (
+            df["Player"]
+            .str.normalize("NFKD")
+            .str.encode("ascii", errors="ignore")
+            .str.decode("utf-8")
+        )
         df.columns = df.columns.str.lower()
         logging.info(
             f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
