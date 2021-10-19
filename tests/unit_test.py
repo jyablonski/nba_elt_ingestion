@@ -292,10 +292,16 @@ def test_get_odds():
       """
     url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
     df = pd.read_html(url)
-    data1 = df[0]
+
+    data1 = df[0].copy()
     date_try = str(year) + " " + data1.columns[0]
-    date_try = pd.to_datetime(date_try, errors="coerce", format="%Y %a %b %dth")
-    data1["date"] = date_try
+    data1["date"] = np.where(
+        date_try == "2021 Today",
+        datetime.now().date(),
+        str(year) + " " + data1.columns[0],
+    )  # if else to grab current date.
+    # date_try = pd.to_datetime(date_try, errors="coerce", format="%Y %a %b %dth")
+    date_try = data1["date"].iloc[0]
     data1.columns.values[0] = "Today"
     data1.reset_index(drop=True)
     data1["Today"] = data1["Today"].str.replace("AM", "AM ", regex=True)
@@ -305,8 +311,7 @@ def test_get_odds():
         date_try.strftime("%Y-%m-%d") + " " + data1["Time"]
     ) - timedelta(hours=5)
 
-    # could maybe filter out only that days games for the odds
-    data2 = df[1]
+    data2 = df[1].copy()
     data2.columns.values[0] = "Today"
     data2.reset_index(drop=True)
     data2["Today"] = data2["Today"].str.replace("AM", "AM ", regex=True)
