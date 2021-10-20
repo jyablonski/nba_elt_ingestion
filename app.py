@@ -49,9 +49,9 @@ def get_player_stats():
         Pandas DataFrame of Player Aggregate Season stats
     """
     try:
-        year = 2021
+        year_stats = 2022
         url = "https://www.basketball-reference.com/leagues/NBA_{}_per_game.html".format(
-            year
+            year_stats
         )
         html = urlopen(url)
         soup = BeautifulSoup(html, "html.parser")
@@ -280,7 +280,7 @@ def get_advanced_stats():
         Pandas DataFrame of all current Team Advanced Stats
     """
     try:
-        url = "https://www.basketball-reference.com/leagues/NBA_2021.html"
+        url = "https://www.basketball-reference.com/leagues/NBA_2022.html"
         df = pd.read_html(url)
         df = pd.DataFrame(df[10])
         df.drop(columns=df.columns[0], axis=1, inplace=True)
@@ -354,9 +354,9 @@ def get_odds():
         date_try = str(year) + " " + data1.columns[0]
         data1["date"] = np.where(
             date_try == "2021 Today",
-            datetime.now().date(),
-            str(year) + " " + data1.columns[0],
-        )  # if else to grab current date.
+            datetime.now().date(),  # if the above is true, then return this
+            str(year) + " " + data1.columns[0],  # if false then return this
+        )
         # date_try = pd.to_datetime(date_try, errors="coerce", format="%Y %a %b %dth")
         date_try = data1["date"].iloc[0]
         data1.columns.values[0] = "Today"
