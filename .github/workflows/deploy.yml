@@ -3,36 +3,36 @@ on:
   push:
     branches: [ master ]
 jobs:
-  # pytest_build:
-  #   name: Run Pytest & Deploy to coveralls.io
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Install Python 3
-  #       uses: actions/setup-python@v1
-  #       with:
-  #         python-version: 3.8
-  #     - name: Create and populate .coveralls.yml file
-  #       env:
-  #         repo_token: ${{ secrets.repo_token }}
-  #       run: |
-  #         touch .coveralls.yml
-  #         echo repo_token: "$repo_token" >> .coveralls.yml
-  #       shell: bash
-  #     - name: Install dependencies
-  #       run: |
-  #         python -m pip install --upgrade pip
-  #         pip install -r requirements.txt
-  #         pip install pyyaml==5.4.1
-  #         pip install pytest==6.2.3
-  #         pip install pytest-cov==2.12.1
-  #         pip install coveralls==3.2.0
-  #     - name: Run tests with pytest
-  #       run: pytest --cov --cov-report xml
-  #     - name: Coveralls
-  #       run: coveralls
+  pytest_build:
+    name: Run Pytest & Deploy to coveralls.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Python 3
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Create and populate .coveralls.yml file
+        env:
+          repo_token: ${{ secrets.repo_token }}
+        run: |
+          touch .coveralls.yml
+          echo repo_token: "$repo_token" >> .coveralls.yml
+        shell: bash
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyyaml==5.4.1
+          pip install pytest==6.2.3
+          pip install pytest-cov==2.12.1
+          pip install coveralls==3.2.0
+      - name: Run tests with pytest
+        run: pytest --cov --cov-report xml
+      - name: Coveralls
+        run: coveralls
   bumpversion:
-    # needs: pytest_build
+    needs: pytest_build
     name: Bumpversion
     runs-on: ubuntu-latest
     steps:

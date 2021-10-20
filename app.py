@@ -82,7 +82,7 @@ def get_player_stats():
             f"General Stats Function Successful, retrieving {len(stats)} updated rows"
         )
         return stats
-    except ValueError:
+    except IndexError:
         logging.info("General Stats Function Failed for Today's Games")
         print("General Stats Function Failed for Today's Games")
         df = []
@@ -754,7 +754,7 @@ conn = sql_connection()
 write_to_sql(stats, "replace")
 write_to_sql(boxscores, "append")
 write_to_sql(injury_data, "append")
-write_to_sql(transactions, "replace")
+write_to_sql(transactions, "append")  # fix this replace thing 
 write_to_sql(adv_stats, "replace")
 write_to_sql(odds, "append")
 write_to_sql(reddit_data, "append")
