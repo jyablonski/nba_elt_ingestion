@@ -181,6 +181,7 @@ def get_boxscores(month=month, day=day, year=year):
             .str.decode("utf-8")
         )
         df.columns = df.columns.str.lower()
+        df['scrape_date'] = datetime.now().date()
         logging.info(
             f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
@@ -212,6 +213,7 @@ def get_injuries():
         df = pd.read_html(url)[0]
         df = df.rename(columns={"Update": "Date"})
         df.columns = df.columns.str.lower()
+        df['scrape_date'] = datetime.now().date()
         logging.info(f"Injury Function Successful, retrieving {len(df)} rows")
         print(f"Injury Function Successful, retrieving {len(df)} rows")
         return df
@@ -263,6 +265,7 @@ def get_transactions():
     transactions["Date"] = pd.to_datetime(transactions["Date"])
     transactions.columns = transactions.columns.str.lower()
     transactions = transactions[['date', 'transaction']]
+    transactions['scrape_date'] = datetime.now().date()
     logging.info(
         f"Transactions Function Successful, retrieving {len(transactions)} rows"
     )
@@ -322,6 +325,7 @@ def get_advanced_stats():
         df = df.query('Team != "League Average"').reset_index()
         # Playoff teams get a * next to them ??  fkn stupid, filter it out.
         df["Team"] = df["Team"].str.replace("*", "", regex=True)
+        df['scrape_date'] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
             f"Advanced Stats Function Successful, retrieving updated data for 30 Teams"
@@ -736,7 +740,7 @@ reddit = praw.Reddit(
     password=os.environ.get("reddit_pw"),
 )
 
-# stats = get_player_stats()
+stats = get_player_stats()
 boxscores = get_boxscores()
 injury_data = get_injuries()
 transactions = get_transactions()
@@ -752,7 +756,7 @@ print("STARTING SQL STORING")
 logging.info("STARTING SQL STORING")
 # storing all data to SQL
 conn = sql_connection()
-# write_to_sql(stats, "replace")
+write_to_sql(stats, "append")
 write_to_sql(boxscores, "append")
 write_to_sql(injury_data, "append")
 write_to_sql(transactions, "append")  # fix this replace thing 
