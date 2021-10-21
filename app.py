@@ -10,7 +10,7 @@ from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
 
-print("Loading Python ELT Script Version: 0.1.12-dev0")
+print("Loading Python ELT Script Version: 0.1.13-dev0")
 # GENERAL NOTES
 # ValueError should capture any read_html failures
 # logging is for identifying failures and sending an email out documenting them
