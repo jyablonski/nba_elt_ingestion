@@ -368,6 +368,7 @@ def get_odds():
         date_try = data1["date"].iloc[0]
         data1.columns.values[0] = "Today"
         data1.reset_index(drop=True)
+        data1['Today'] = data1['Today'].str.replace("LA Clippers", "LAC Clippers", regex = True)
         data1["Today"] = data1["Today"].str.replace("AM", "AM ", regex=True)
         data1["Today"] = data1["Today"].str.replace("PM", "PM ", regex=True)
         data1["Time"] = data1["Today"].str.split().str[0]
@@ -378,6 +379,7 @@ def get_odds():
         data2 = df[1].copy()
         data2.columns.values[0] = "Today"
         data2.reset_index(drop=True)
+        data2['Today'] = data2['Today'].str.replace("LA Clippers", "LAC Clippers", regex = True)
         data2["Today"] = data2["Today"].str.replace("AM", "AM ", regex=True)
         data2["Today"] = data2["Today"].str.replace("PM", "PM ", regex=True)
         data2["Time"] = data2["Today"].str.split().str[0]
