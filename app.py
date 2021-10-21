@@ -262,6 +262,7 @@ def get_transactions():
     )
     transactions["Date"] = pd.to_datetime(transactions["Date"])
     transactions.columns = transactions.columns.str.lower()
+    transactions = transactions[['date', 'transaction']]
     logging.info(
         f"Transactions Function Successful, retrieving {len(transactions)} rows"
     )
@@ -735,7 +736,7 @@ reddit = praw.Reddit(
     password=os.environ.get("reddit_pw"),
 )
 
-stats = get_player_stats()
+# stats = get_player_stats()
 boxscores = get_boxscores()
 injury_data = get_injuries()
 transactions = get_transactions()
@@ -751,11 +752,11 @@ print("STARTING SQL STORING")
 logging.info("STARTING SQL STORING")
 # storing all data to SQL
 conn = sql_connection()
-write_to_sql(stats, "replace")
+# write_to_sql(stats, "replace")
 write_to_sql(boxscores, "append")
 write_to_sql(injury_data, "append")
 write_to_sql(transactions, "append")  # fix this replace thing 
-write_to_sql(adv_stats, "replace")
+write_to_sql(adv_stats, "append")
 write_to_sql(odds, "append")
 write_to_sql(reddit_data, "append")
 write_to_sql(pbp_data, "append")
