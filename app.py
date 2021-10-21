@@ -75,6 +75,8 @@ def get_player_stats():
             .str.decode("utf-8")
         )
         stats.columns = stats.columns.str.lower()
+        stats['scrape_date'] = datetime.now().date()
+        stats = stats.drop('index', axis = 1)
         logging.info(
             f"General Stats Function Successful, retrieving {len(stats)} updated rows"
         )
@@ -456,8 +458,8 @@ def scrape_subreddit(sub):
         ],
     )
     posts.columns = posts.columns.str.lower()
-    print("Grabbing 27 Recent popular posts from r/" + sub + " subreddit")
-    logging.info("Grabbing 27 Recent popular posts from r/" + sub + " subreddit")
+    print("Reddit Scrape Successful, grabbing 27 Recent popular posts from r/" + sub + " subreddit")
+    logging.info("Reddit Scrape Successful, grabbing 27 Recent popular posts from r/" + sub + " subreddit")
     return posts
 
 
@@ -754,12 +756,13 @@ logging.info("FINISHED WEB SCRAPE")
 
 print("STARTING SQL STORING")
 logging.info("STARTING SQL STORING")
+
 # storing all data to SQL
 conn = sql_connection()
 write_to_sql(stats, "append")
 write_to_sql(boxscores, "append")
 write_to_sql(injury_data, "append")
-write_to_sql(transactions, "append")  # fix this replace thing 
+write_to_sql(transactions, "append")
 write_to_sql(adv_stats, "append")
 write_to_sql(odds, "append")
 write_to_sql(reddit_data, "append")
