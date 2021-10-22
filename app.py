@@ -75,8 +75,8 @@ def get_player_stats():
             .str.decode("utf-8")
         )
         stats.columns = stats.columns.str.lower()
-        stats['scrape_date'] = datetime.now().date()
-        stats = stats.drop('index', axis = 1)
+        stats["scrape_date"] = datetime.now().date()
+        stats = stats.drop("index", axis=1)
         logging.info(
             f"General Stats Function Successful, retrieving {len(stats)} updated rows"
         )
@@ -183,7 +183,7 @@ def get_boxscores(month=month, day=day, year=year):
             .str.decode("utf-8")
         )
         df.columns = df.columns.str.lower()
-        df['scrape_date'] = datetime.now().date()
+        df["scrape_date"] = datetime.now().date()
         logging.info(
             f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
@@ -196,6 +196,31 @@ def get_boxscores(month=month, day=day, year=year):
             f"Box Score Function Failed, no data available for {year}-{month}-{day}"
         )
         print(f"Box Score Function Failed, no data available for {year}-{month}-{day}")
+        df = []
+        return df
+
+
+def get_opp_stats():
+    try:
+        url = "https://www.basketball-reference.com/leagues/NBA_2022.html"
+        df = pd.read_html(url)[5]
+        df = df[["Team", "FG%", "3P%", "3P", "PTS"]]
+        df = df.rename(
+            columns={
+                df.columns[0]: "team",
+                df.columns[1]: "fg_percent_opp",
+                df.columns[2]: "threep_percent_opp",
+                df.columns[3]: "threep_made_opp",
+                df.columns[4]: "ppg_opp",
+            }
+        )
+        df = df.query('team != "League Average"')
+        df = df.reset_index(drop=True)
+        df["scrape_date"] = datetime.now().date()
+        return df
+    except IndexError:
+        logging.info("Opp Stats Function Failed for Today's Games")
+        print("Opp Stats Function Failed for Today's Games")
         df = []
         return df
 
@@ -215,7 +240,7 @@ def get_injuries():
         df = pd.read_html(url)[0]
         df = df.rename(columns={"Update": "Date"})
         df.columns = df.columns.str.lower()
-        df['scrape_date'] = datetime.now().date()
+        df["scrape_date"] = datetime.now().date()
         logging.info(f"Injury Function Successful, retrieving {len(df)} rows")
         print(f"Injury Function Successful, retrieving {len(df)} rows")
         return df
@@ -266,8 +291,8 @@ def get_transactions():
     )
     transactions["Date"] = pd.to_datetime(transactions["Date"])
     transactions.columns = transactions.columns.str.lower()
-    transactions = transactions[['date', 'transaction']]
-    transactions['scrape_date'] = datetime.now().date()
+    transactions = transactions[["date", "transaction"]]
+    transactions["scrape_date"] = datetime.now().date()
     logging.info(
         f"Transactions Function Successful, retrieving {len(transactions)} rows"
     )
@@ -327,7 +352,7 @@ def get_advanced_stats():
         df = df.query('Team != "League Average"').reset_index()
         # Playoff teams get a * next to them ??  fkn stupid, filter it out.
         df["Team"] = df["Team"].str.replace("*", "", regex=True)
-        df['scrape_date'] = datetime.now().date()
+        df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
             f"Advanced Stats Function Successful, retrieving updated data for 30 Teams"
@@ -368,7 +393,9 @@ def get_odds():
         date_try = data1["date"].iloc[0]
         data1.columns.values[0] = "Today"
         data1.reset_index(drop=True)
-        data1['Today'] = data1['Today'].str.replace("LA Clippers", "LAC Clippers", regex = True)
+        data1["Today"] = data1["Today"].str.replace(
+            "LA Clippers", "LAC Clippers", regex=True
+        )
         data1["Today"] = data1["Today"].str.replace("AM", "AM ", regex=True)
         data1["Today"] = data1["Today"].str.replace("PM", "PM ", regex=True)
         data1["Time"] = data1["Today"].str.split().str[0]
@@ -379,7 +406,9 @@ def get_odds():
         data2 = df[1].copy()
         data2.columns.values[0] = "Today"
         data2.reset_index(drop=True)
-        data2['Today'] = data2['Today'].str.replace("LA Clippers", "LAC Clippers", regex = True)
+        data2["Today"] = data2["Today"].str.replace(
+            "LA Clippers", "LAC Clippers", regex=True
+        )
         data2["Today"] = data2["Today"].str.replace("AM", "AM ", regex=True)
         data2["Today"] = data2["Today"].str.replace("PM", "PM ", regex=True)
         data2["Time"] = data2["Today"].str.split().str[0]
@@ -460,8 +489,16 @@ def scrape_subreddit(sub):
         ],
     )
     posts.columns = posts.columns.str.lower()
-    print("Reddit Scrape Successful, grabbing 27 Recent popular posts from r/" + sub + " subreddit")
-    logging.info("Reddit Scrape Successful, grabbing 27 Recent popular posts from r/" + sub + " subreddit")
+    print(
+        "Reddit Scrape Successful, grabbing 27 Recent popular posts from r/"
+        + sub
+        + " subreddit"
+    )
+    logging.info(
+        "Reddit Scrape Successful, grabbing 27 Recent popular posts from r/"
+        + sub
+        + " subreddit"
+    )
     return posts
 
 
@@ -752,6 +789,7 @@ adv_stats = get_advanced_stats()
 odds = get_odds()
 reddit_data = scrape_subreddit("nba")
 pbp_data = get_pbp_data(boxscores)
+opp_stats = get_opp_stats()
 
 print("FINISHED WEB SCRAPE")
 logging.info("FINISHED WEB SCRAPE")
@@ -769,6 +807,7 @@ write_to_sql(adv_stats, "append")
 write_to_sql(odds, "append")
 write_to_sql(reddit_data, "append")
 write_to_sql(pbp_data, "append")
+write_to_sql(opp_stats, "append")
 
 logs = pd.read_csv("example.log", sep=r"\\t", engine="python", header=None)
 logs = logs.rename(columns={0: "errors"})
