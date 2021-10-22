@@ -175,7 +175,7 @@ def get_boxscores(month=month, day=day, year=year):
         df["Opponent"] = df["Opponent"].str.replace("PHO", "PHX")
         df["Opponent"] = df["Opponent"].str.replace("CHO", "CHA")
         df["Opponent"] = df["Opponent"].str.replace("BRK", "BKN")
-        df = df.query("Player == Player").reset_index()
+        df = df.query("Player == Player").reset_index(drop=True)
         df["Player"] = (
             df["Player"]
             .str.normalize("NFKD")
@@ -183,7 +183,6 @@ def get_boxscores(month=month, day=day, year=year):
             .str.decode("utf-8")
         )
         df.columns = df.columns.str.lower()
-        df["scrape_date"] = datetime.now().date()
         logging.info(
             f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
