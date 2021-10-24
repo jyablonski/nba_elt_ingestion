@@ -17,6 +17,7 @@ SQLAlchemy = "==1.4.22"
 black = "==19.10b0"
 pytest = "==6.2.3"
 pytest-mock = "==3.6.1"
+flake8-black = "==0.2.3"
 
 [requires]
 python_version = "3.8"
