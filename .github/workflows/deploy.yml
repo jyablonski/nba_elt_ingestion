@@ -27,6 +27,7 @@ jobs:
           pip install pytest==6.2.3
           pip install pytest-cov==2.12.1
           pip install coveralls==3.2.0
+          pip install pytest-mock==3.6.1
       - name: Run tests with pytest
         run: pytest --cov --cov-report xml
       - name: Coveralls
@@ -46,31 +47,31 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tags: true
-  build_image:
-    needs: bumpversion
-    name: Deploy Docker Image to ECR
-    runs-on: ubuntu-latest
+  # build_image:
+  #   needs: bumpversion
+  #   name: Deploy Docker Image to ECR
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - name: Check out code
-      uses: actions/checkout@v2
+  #   steps:
+  #   - name: Check out code
+  #     uses: actions/checkout@v2
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+  #   - name: Configure AWS credentials
+  #     uses: aws-actions/configure-aws-credentials@v1
+  #     with:
+  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #       aws-region: us-east-1
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+  #   - name: Login to Amazon ECR
+  #     id: login-ecr
+  #     uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: jacobs_repo
-        IMAGE_TAG: latest
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+  #   - name: Build, tag, and push image to Amazon ECR
+  #     env:
+  #       ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+  #       ECR_REPOSITORY: jacobs_repo
+  #       IMAGE_TAG: latest
+  #     run: |
+  #       docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+  #       docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
