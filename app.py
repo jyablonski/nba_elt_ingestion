@@ -748,15 +748,15 @@ def send_aws_email():
         print(response["MessageId"])
 
 
-def send_email_function():
+def execute_email_function():
     """
-    Email function that only executes & sends an email if there were errors for the run.
+    Email function that executes the email function upon script finishing.
 
     Args:
         None
 
     Returns:
-        Holds the actual send_email logic and executes if 1) there were errors and 2) if invoked as a script (aka on ECS)
+        Holds the actual send_email logic and executes if invoked as a script (aka on ECS)
     """
     try:
         if len(logs) > 0:
@@ -764,7 +764,7 @@ def send_email_function():
             send_aws_email()
         elif len(logs) == 0:
             print("No Errors!")
-            # DONT SEND EMAIL
+            send_aws_email()
     except ValueError:
         print("oof")
 
@@ -813,6 +813,6 @@ logs = logs.rename(columns={0: "errors"})
 logs = logs.query("errors.str.contains('Failed')", engine="python")
 
 if __name__ == "__main__":
-    send_email_function()
+    execute_email_function()
 
 print("WOOT FINISHED")
