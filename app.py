@@ -1,6 +1,7 @@
 import os
 import logging
 from urllib.request import urlopen
+from urllib.error import HTTPError
 from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
@@ -9,6 +10,8 @@ from bs4 import BeautifulSoup
 from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
+
+# from sqlalchemy.engine.base import ExceptionContextImpl
 
 print("Loading Python ELT Script Version: 0.1.21")
 # GENERAL NOTES
@@ -84,9 +87,9 @@ def get_player_stats():
             f"General Stats Function Successful, retrieving {len(stats)} updated rows"
         )
         return stats
-    except IndexError:
-        logging.info("General Stats Function Failed for Today's Games")
-        print("General Stats Function Failed for Today's Games")
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
+        logging.info(f"General Stats Function Failed, {error}")
+        print(f"General Stats Function Failed, {error}")
         df = []
         return df
 
@@ -95,10 +98,10 @@ def get_boxscores(month=month, day=day, year=year):
     url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(
         month, day, year
     )
-    html = urlopen(url)
-    soup = BeautifulSoup(html, "html.parser")
 
     try:
+        html = urlopen(url)
+        soup = BeautifulSoup(html, "html.parser")
         headers = [th.getText() for th in soup.findAll("tr", limit=2)[0].findAll("th")]
         headers = headers[1:]
         headers[1] = "Team"
@@ -190,11 +193,13 @@ def get_boxscores(month=month, day=day, year=year):
             f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
         return df
-    except IndexError:
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
         logging.info(
-            f"Box Score Function Failed, no data available for {year}-{month}-{day}"
+            f"Box Score Function Failed, {error}, no data available for {year}-{month}-{day}"
         )
-        print(f"Box Score Function Failed, no data available for {year}-{month}-{day}")
+        print(
+            f"Box Score Function Failed, {error}, no data available for {year}-{month}-{day}"
+        )
         df = []
         return df
 
@@ -217,9 +222,9 @@ def get_opp_stats():
         df = df.reset_index(drop=True)
         df["scrape_date"] = datetime.now().date()
         return df
-    except IndexError:
-        logging.info("Opp Stats Function Failed for Today's Games")
-        print("Opp Stats Function Failed for Today's Games")
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
+        logging.info(f"Opp Stats Function Failed, {error}")
+        print(f"Opp Stats Function Failed, {error}")
         df = []
         return df
 
@@ -243,9 +248,9 @@ def get_injuries():
         logging.info(f"Injury Function Successful, retrieving {len(df)} rows")
         print(f"Injury Function Successful, retrieving {len(df)} rows")
         return df
-    except ValueError:
-        logging.info("Injury Function Failed for Today's Games")
-        print("Injury Function Failed for Today's Games")
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
+        logging.info(f"Injury Function Failed, {error}")
+        print(f"Injury Function Failed, {error}")
         df = []
         return df
 
@@ -260,43 +265,49 @@ def get_transactions():
     Returns:
         Pandas DataFrame of all season transactions, trades, player waives etc.
     """
-    url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
-    html = urlopen(url)
-    soup = BeautifulSoup(html, "html.parser")
-    # theres a bunch of garbage in the first 50 rows - no matter what
-    trs = soup.findAll("li")[70:]
-    rows = []
-    mylist = []
-    for tr in trs:
-        date = tr.find("span")
-        # needed bc span can be null (multi <p> elements per span)
-        if date is not None:
-            date = date.text
-        data = tr.findAll("p")
-        for p in data:
-            mylist.append(p.text)
-        data3 = [date] + [mylist]
-        rows.append(data3)
+    try:
+        url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
+        html = urlopen(url)
+        soup = BeautifulSoup(html, "html.parser")
+        # theres a bunch of garbage in the first 50 rows - no matter what
+        trs = soup.findAll("li")[70:]
+        rows = []
         mylist = []
+        for tr in trs:
+            date = tr.find("span")
+            # needed bc span can be null (multi <p> elements per span)
+            if date is not None:
+                date = date.text
+            data = tr.findAll("p")
+            for p in data:
+                mylist.append(p.text)
+            data3 = [date] + [mylist]
+            rows.append(data3)
+            mylist = []
 
-    transactions = pd.DataFrame(rows)
-    transactions.columns = ["Date", "Transaction"]
-    transactions = transactions.query(
-        'Date == Date & Date != ""'
-    ).reset_index()  # filters out nulls and empty values
-    transactions = transactions.explode("Transaction")
-    transactions["Date"] = transactions["Date"].str.replace(
-        "?", "Jan 1, 2021", regex=True  # bad data 10-14-21
-    )
-    transactions["Date"] = pd.to_datetime(transactions["Date"])
-    transactions.columns = transactions.columns.str.lower()
-    transactions = transactions[["date", "transaction"]]
-    transactions["scrape_date"] = datetime.now().date()
-    logging.info(
-        f"Transactions Function Successful, retrieving {len(transactions)} rows"
-    )
-    print(f"Transactions Function Successful, retrieving {len(transactions)} rows")
-    return transactions
+        transactions = pd.DataFrame(rows)
+        transactions.columns = ["Date", "Transaction"]
+        transactions = transactions.query(
+            'Date == Date & Date != ""'
+        ).reset_index()  # filters out nulls and empty values
+        transactions = transactions.explode("Transaction")
+        transactions["Date"] = transactions["Date"].str.replace(
+            "?", "Jan 1, 2021", regex=True  # bad data 10-14-21
+        )
+        transactions["Date"] = pd.to_datetime(transactions["Date"])
+        transactions.columns = transactions.columns.str.lower()
+        transactions = transactions[["date", "transaction"]]
+        transactions["scrape_date"] = datetime.now().date()
+        logging.info(
+            f"Transactions Function Successful, retrieving {len(transactions)} rows"
+        )
+        print(f"Transactions Function Successful, retrieving {len(transactions)} rows")
+        return transactions
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
+        logging.info(f"Transaction Function Failed, {error}")
+        print(f"Transactions Failed, {error}")
+        df = []
+        return df
 
 
 def get_advanced_stats():
@@ -360,9 +371,9 @@ def get_advanced_stats():
             f"Advanced Stats Function Successful, retrieving updated data for 30 Teams"
         )
         return df
-    except ValueError:
-        logging.info("Advanced Stats Function Failed for Today's Games")
-        print("Advanced Stats Function Failed for Today's Games")
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
+        logging.info(f"Advanced Stats Function Failed, {error}")
+        print(f"Advanced Stats Function Failed, {error}")
         df = []
         return df
 
@@ -435,9 +446,9 @@ def get_odds():
         logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
         print(f"Odds Function Successful, retrieving {len(data)} rows")
         return data
-    except ValueError:
-        logging.info("Odds Function Failed for Today's Games")
-        print("Odds Function Failed for Today's Games")
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
+        logging.info(f"Odds Function Failed, {error}")
+        print(f"Odds Function Failed, {error}")
         data = []
         return data
 
@@ -459,46 +470,52 @@ def scrape_subreddit(sub):
     Returns:
         Pandas DataFrame of all current top posts on r/nba
     """
-    subreddit = reddit.subreddit(sub)
-    posts = []
-    for post in subreddit.hot(limit=27):
-        posts.append(
-            [
-                post.title,
-                post.score,
-                post.id,
-                post.url,
-                post.num_comments,
-                post.selftext,
-                today,
-                todaytime,
-            ]
+    try:
+        subreddit = reddit.subreddit(sub)
+        posts = []
+        for post in subreddit.hot(limit=27):
+            posts.append(
+                [
+                    post.title,
+                    post.score,
+                    post.id,
+                    post.url,
+                    post.num_comments,
+                    post.selftext,
+                    today,
+                    todaytime,
+                ]
+            )
+        posts = pd.DataFrame(
+            posts,
+            columns=[
+                "title",
+                "score",
+                "id",
+                "url",
+                "num_comments",
+                "body",
+                "scrape_date",
+                "scrape_time",
+            ],
         )
-    posts = pd.DataFrame(
-        posts,
-        columns=[
-            "title",
-            "score",
-            "id",
-            "url",
-            "num_comments",
-            "body",
-            "scrape_date",
-            "scrape_time",
-        ],
-    )
-    posts.columns = posts.columns.str.lower()
-    print(
-        "Reddit Scrape Successful, grabbing 27 Recent popular posts from r/"
-        + sub
-        + " subreddit"
-    )
-    logging.info(
-        "Reddit Scrape Successful, grabbing 27 Recent popular posts from r/"
-        + sub
-        + " subreddit"
-    )
-    return posts
+        posts.columns = posts.columns.str.lower()
+        print(
+            "Reddit Scrape Successful, grabbing 27 Recent popular posts from r/"
+            + sub
+            + " subreddit"
+        )
+        logging.info(
+            "Reddit Scrape Successful, grabbing 27 Recent popular posts from r/"
+            + sub
+            + " subreddit"
+        )
+        return posts
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
+        logging.info(f"Reddit Scrape Function Failed, {error}")
+        print(f"Reddit Scrape Function Failed, {error}")
+        data = []
+        return data
 
 
 def get_pbp_data(df):
@@ -512,126 +529,162 @@ def get_pbp_data(df):
         All PBP Data for the games returned in the Box Scores functions
 
     """
-    if len(df) > 0:
-        yesterday_hometeams = (
-            df.query('location == "H"')[["team"]].drop_duplicates().dropna()
-        )
-        yesterday_hometeams["team"] = yesterday_hometeams["team"].str.replace(
-            "PHX", "PHO"
-        )
-        yesterday_hometeams["team"] = yesterday_hometeams["team"].str.replace(
-            "CHA", "CHO"
-        )
-        yesterday_hometeams["team"] = yesterday_hometeams["team"].str.replace(
-            "BKN", "BRK"
-        )
-
-        away_teams = (
-            df.query('location == "A"')[["team", "opponent"]].drop_duplicates().dropna()
-        )
-        away_teams = away_teams.rename(
-            columns={
-                away_teams.columns[0]: "AwayTeam",
-                away_teams.columns[1]: "HomeTeam",
-            }
-        )
-    else:
-        yesterday_hometeams = []
-
-    if len(yesterday_hometeams) > 0:
-        try:
-            newdate = str(
-                df["date"].drop_duplicates()[0].date()
-            )  # this assumes all games in the boxscores df are 1 date
-            newdate = pd.to_datetime(newdate).strftime(
-                "%Y%m%d"
-            )  # formatting into url format.
-            pbp_list = pd.DataFrame()
-            for i in yesterday_hometeams["team"]:
-                url = "https://www.basketball-reference.com/boxscores/pbp/{}0{}.html".format(
-                    newdate, i
-                )
-                df = pd.read_html(url)[0]
-                df.columns = df.columns.map("".join)
-                df = df.rename(
-                    columns={
-                        df.columns[0]: "Time",
-                        df.columns[1]: "descriptionPlayVisitor",
-                        df.columns[2]: "AwayScore",
-                        df.columns[3]: "Score",
-                        df.columns[4]: "HomeScore",
-                        df.columns[5]: "descriptionPlayHome",
-                    }
-                )
-                conditions = [
-                    (
-                        df["HomeScore"].str.contains("Jump ball:", na=False)
-                        & df["Time"].str.contains("12:00.0")
-                    ),
-                    (df["HomeScore"].str.contains("Start of 2nd quarter", na=False)),
-                    (df["HomeScore"].str.contains("Start of 3rd quarter", na=False)),
-                    (df["HomeScore"].str.contains("Start of 4th quarter", na=False)),
-                    (df["HomeScore"].str.contains("Start of 1st overtime", na=False)),
-                    (df["HomeScore"].str.contains("Start of 2nd overtime", na=False)),
-                    (df["HomeScore"].str.contains("Start of 3rd overtime", na=False)),
-                    (
-                        df["HomeScore"].str.contains("Start of 4th overtime", na=False)
-                    ),  # if more than 4 ots then rip
-                ]
-                values = [
-                    "1st Quarter",
-                    "2nd Quarter",
-                    "3rd Quarter",
-                    "4th Quarter",
-                    "1st OT",
-                    "2nd OT",
-                    "3rd OT",
-                    "4th OT",
-                ]
-                df["Quarter"] = np.select(conditions, values, default=None)
-                df["Quarter"] = df["Quarter"].fillna(method="ffill")
-                df = df.query(
-                    'Time != "Time" & Time != "2nd Q" & Time != "3rd Q" & Time != "4th Q" & Time != "1st OT" & Time != "2nd OT" & Time != "3rd OT" & Time != "4th OT"'
-                ).copy()  # use COPY to get rid of the fucking goddamn warning bc we filtered stuf out
-                # anytime you filter out values w/o copying and run code like the lines below it'll throw a warning.
-                df["HomeTeam"] = i
-                df["HomeTeam"] = df["HomeTeam"].str.replace("PHO", "PHX")
-                df["HomeTeam"] = df["HomeTeam"].str.replace("CHO", "CHA")
-                df["HomeTeam"] = df["HomeTeam"].str.replace("BRK", "BKN")
-                df = df.merge(away_teams)
-                df[["scoreAway", "scoreHome"]] = df["Score"].str.split("-", expand=True)
-                df["scoreAway"] = pd.to_numeric(df["scoreAway"], errors="coerce")
-                df["scoreAway"] = df["scoreAway"].fillna(method="ffill")
-                df["scoreAway"] = df["scoreAway"].fillna(0)
-                df["scoreHome"] = pd.to_numeric(df["scoreHome"], errors="coerce")
-                df["scoreHome"] = df["scoreHome"].fillna(method="ffill")
-                df["scoreHome"] = df["scoreHome"].fillna(0)
-                df["marginScore"] = df["scoreHome"] - df["scoreAway"]
-                df["Date"] = yesterday
-                df = df.rename(
-                    columns={
-                        df.columns[0]: "timeQuarter",
-                        df.columns[6]: "numberPeriod",
-                    }
-                )
-                pbp_list = pbp_list.append(df)
-                df = pd.DataFrame()
-            pbp_list.columns = pbp_list.columns.str.lower()
-            pbp_list = pbp_list.query(
-                "(awayscore.notnull()) | (homescore.notnull())", engine="python"
+    try:
+        if len(df) > 0:
+            yesterday_hometeams = (
+                df.query('location == "H"')[["team"]].drop_duplicates().dropna()
             )
-            # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
-            return pbp_list
-        except ValueError:
-            logging.info("PBP Function Failed for Yesterday's Games")
-            print("PBP Function Failed for Yesterday's Games")
+            yesterday_hometeams["team"] = yesterday_hometeams["team"].str.replace(
+                "PHX", "PHO"
+            )
+            yesterday_hometeams["team"] = yesterday_hometeams["team"].str.replace(
+                "CHA", "CHO"
+            )
+            yesterday_hometeams["team"] = yesterday_hometeams["team"].str.replace(
+                "BKN", "BRK"
+            )
+
+            away_teams = (
+                df.query('location == "A"')[["team", "opponent"]]
+                .drop_duplicates()
+                .dropna()
+            )
+            away_teams = away_teams.rename(
+                columns={
+                    away_teams.columns[0]: "AwayTeam",
+                    away_teams.columns[1]: "HomeTeam",
+                }
+            )
+        else:
+            yesterday_hometeams = []
+
+        if len(yesterday_hometeams) > 0:
+            try:
+                newdate = str(
+                    df["date"].drop_duplicates()[0].date()
+                )  # this assumes all games in the boxscores df are 1 date
+                newdate = pd.to_datetime(newdate).strftime(
+                    "%Y%m%d"
+                )  # formatting into url format.
+                pbp_list = pd.DataFrame()
+                for i in yesterday_hometeams["team"]:
+                    url = "https://www.basketball-reference.com/boxscores/pbp/{}0{}.html".format(
+                        newdate, i
+                    )
+                    df = pd.read_html(url)[0]
+                    df.columns = df.columns.map("".join)
+                    df = df.rename(
+                        columns={
+                            df.columns[0]: "Time",
+                            df.columns[1]: "descriptionPlayVisitor",
+                            df.columns[2]: "AwayScore",
+                            df.columns[3]: "Score",
+                            df.columns[4]: "HomeScore",
+                            df.columns[5]: "descriptionPlayHome",
+                        }
+                    )
+                    conditions = [
+                        (
+                            df["HomeScore"].str.contains("Jump ball:", na=False)
+                            & df["Time"].str.contains("12:00.0")
+                        ),
+                        (
+                            df["HomeScore"].str.contains(
+                                "Start of 2nd quarter", na=False
+                            )
+                        ),
+                        (
+                            df["HomeScore"].str.contains(
+                                "Start of 3rd quarter", na=False
+                            )
+                        ),
+                        (
+                            df["HomeScore"].str.contains(
+                                "Start of 4th quarter", na=False
+                            )
+                        ),
+                        (
+                            df["HomeScore"].str.contains(
+                                "Start of 1st overtime", na=False
+                            )
+                        ),
+                        (
+                            df["HomeScore"].str.contains(
+                                "Start of 2nd overtime", na=False
+                            )
+                        ),
+                        (
+                            df["HomeScore"].str.contains(
+                                "Start of 3rd overtime", na=False
+                            )
+                        ),
+                        (
+                            df["HomeScore"].str.contains(
+                                "Start of 4th overtime", na=False
+                            )
+                        ),  # if more than 4 ots then rip
+                    ]
+                    values = [
+                        "1st Quarter",
+                        "2nd Quarter",
+                        "3rd Quarter",
+                        "4th Quarter",
+                        "1st OT",
+                        "2nd OT",
+                        "3rd OT",
+                        "4th OT",
+                    ]
+                    df["Quarter"] = np.select(conditions, values, default=None)
+                    df["Quarter"] = df["Quarter"].fillna(method="ffill")
+                    df = df.query(
+                        'Time != "Time" & Time != "2nd Q" & Time != "3rd Q" & Time != "4th Q" & Time != "1st OT" & Time != "2nd OT" & Time != "3rd OT" & Time != "4th OT"'
+                    ).copy()  # use COPY to get rid of the fucking goddamn warning bc we filtered stuf out
+                    # anytime you filter out values w/o copying and run code like the lines below it'll throw a warning.
+                    df["HomeTeam"] = i
+                    df["HomeTeam"] = df["HomeTeam"].str.replace("PHO", "PHX")
+                    df["HomeTeam"] = df["HomeTeam"].str.replace("CHO", "CHA")
+                    df["HomeTeam"] = df["HomeTeam"].str.replace("BRK", "BKN")
+                    df = df.merge(away_teams)
+                    df[["scoreAway", "scoreHome"]] = df["Score"].str.split(
+                        "-", expand=True
+                    )
+                    df["scoreAway"] = pd.to_numeric(df["scoreAway"], errors="coerce")
+                    df["scoreAway"] = df["scoreAway"].fillna(method="ffill")
+                    df["scoreAway"] = df["scoreAway"].fillna(0)
+                    df["scoreHome"] = pd.to_numeric(df["scoreHome"], errors="coerce")
+                    df["scoreHome"] = df["scoreHome"].fillna(method="ffill")
+                    df["scoreHome"] = df["scoreHome"].fillna(0)
+                    df["marginScore"] = df["scoreHome"] - df["scoreAway"]
+                    df["Date"] = yesterday
+                    df = df.rename(
+                        columns={
+                            df.columns[0]: "timeQuarter",
+                            df.columns[6]: "numberPeriod",
+                        }
+                    )
+                    pbp_list = pbp_list.append(df)
+                    df = pd.DataFrame()
+                pbp_list.columns = pbp_list.columns.str.lower()
+                pbp_list = pbp_list.query(
+                    "(awayscore.notnull()) | (homescore.notnull())", engine="python"
+                )
+                # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
+                return pbp_list
+            except (ValueError, IndexError, HTTPError, KeyError) as error:
+                logging.info(f"PBP Transformation Logic Failed, {error}")
+                print(f"PBP Transformation Logic Failed, {error}")
+                df = []
+                return df
+        else:
             df = []
+            logging.info("PBP Function No Data Yesterday")
+            print("PBP Function No Data Yesterday")
             return df
-    else:
-        df = []
-        logging.info("PBP Function No Data Yesterday")
-        print("PBP Function No Data Yesterday")
-        return df
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
+        logging.info(f"PBP Function Failed, {error}")
+        print(f"PBP Function Failed, {error}")
+        data = []
+        return data
 
 
 # PBP NOTES
@@ -689,20 +742,25 @@ def write_to_sql(data, table_type):
         Writes the Pandas DataFrame to a Table in Snowflake in the {nba_source} Schema we connected to.
 
     """
-    data_name = [k for k, v in globals().items() if v is data][0]
-    # ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
-    if len(data) == 0:
-        print(data_name + " is empty, not writing to SQL")
-        logging.info(data_name + " is empty, not writing to SQL")
-    else:
-        data.to_sql(
-            con=conn,
-            name=("aws_" + data_name + "_source"),
-            index=False,
-            if_exists=table_type,
-        )
-        print("Writing aws_" + data_name + "_source to SQL")
-        logging.info("Writing aws_" + data_name + "_source to SQL")
+    try:
+        data_name = [k for k, v in globals().items() if v is data][0]
+        # ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
+        if len(data) == 0:
+            print(data_name + " is empty, not writing to SQL")
+            logging.info(data_name + " is empty, not writing to SQL")
+        else:
+            data.to_sql(
+                con=conn,
+                name=("aws_" + data_name + "_source"),
+                index=False,
+                if_exists=table_type,
+            )
+            print("Writing aws_" + data_name + "_source to SQL")
+            logging.info("Writing aws_" + data_name + "_source to SQL")
+    except exc.SQLAlchemyError as error:
+        logging.info(f"SQL Write Script Failed, {error}")
+        print(f"SQL Write Script Failed, {error}")
+        return error
 
 
 def send_aws_email():
@@ -765,8 +823,8 @@ def execute_email_function():
         elif len(logs) == 0:
             print("No Errors!")
             send_aws_email()
-    except ValueError:
-        print("oof")
+    except (ValueError, IndexError, HTTPError, KeyError) as error:
+        print(f"oof {error}")
 
 
 print("STARTING WEB SCRAPE")
