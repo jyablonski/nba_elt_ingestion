@@ -95,6 +95,19 @@ def get_player_stats():
 
 
 def get_boxscores(month=month, day=day, year=year):
+    """
+    Function that grabs box scores from a given date in mmddyyyy format - defaults to yesterday.  values can be ex. 1 or 01
+
+    Args:
+        month (string) - month value of the game played (0 - 12)
+
+        day (string) - day value of the game played (1 - 31)
+
+        year (string) - year value of the game played (2021)
+
+    Returns:
+        Pandas DataFrame of Player Aggregate Season stats
+    """
     url = "https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={}&day={}&year={}&type=all".format(
         month, day, year
     )
@@ -221,6 +234,12 @@ def get_opp_stats():
         df = df.query('team != "League Average"')
         df = df.reset_index(drop=True)
         df["scrape_date"] = datetime.now().date()
+        logging.info(
+            f"Opp Stats Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
+        )
+        print(
+            f"Opp Stats Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
+        )
         return df
     except (ValueError, IndexError, HTTPError, KeyError) as error:
         logging.info(f"Opp Stats Function Failed, {error}")
@@ -462,10 +481,11 @@ def get_odds():
 
 def scrape_subreddit(sub):
     """
-    Web Scrape function w/ PRAW that grabs top ~27 top posts from r/nba
+    Web Scrape function w/ PRAW that grabs top ~27 top posts from a given subreddit.
+    Left sub as an argument in case I want to scrape multi subreddits in the future (r/nba, r/nbadiscussion, r/sportsbook etc)
 
     Args:
-        None
+        sub (string) - subreddit to query
 
     Returns:
         Pandas DataFrame of all current top posts on r/nba
@@ -520,13 +540,14 @@ def scrape_subreddit(sub):
 
 def get_pbp_data(df):
     """
-    Web Scrape function w/ pandas read_html that uses boxscore team aliases to scrape the pbp data interactively for each game played the previous day
+    Web Scrape function w/ pandas read_html that uses aliases via boxscores function
+    to scrape the pbp data interactively for each game played the previous day
 
     Args:
-        None
+        df (Pandas DataFrame) - the DataFrame result from running the boxscores function.
 
     Returns:
-        All PBP Data for the games returned in the Box Scores functions
+        All PBP Data for the games in the input df
 
     """
     try:
@@ -668,6 +689,12 @@ def get_pbp_data(df):
                 pbp_list = pbp_list.query(
                     "(awayscore.notnull()) | (homescore.notnull())", engine="python"
                 )
+                logging.info(
+                    f"PBP Function Successful, retrieving {len(pbp_list)} rows for {year}-{month}-{day}"
+                )
+                print(
+                    f"Box Score Function Successful, retrieving {len(pbp_list)} rows for {year}-{month}-{day}"
+                )
                 # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
                 return pbp_list
             except (ValueError, IndexError, HTTPError, KeyError) as error:
@@ -731,7 +758,7 @@ def sql_connection():
 
 def write_to_sql(data, table_type):
     """
-    SQL Table function to write a pandas data frame in aws_dfname_table format
+    SQL Table function to write a pandas data frame in aws_dfname_source format
 
     Args:
         data: The Pandas DataFrame to store in SQL
@@ -771,7 +798,7 @@ def send_aws_email():
         None
 
     Returns:
-        Sends an email out if errors for the run were greater than 0.
+        Sends an email out upon every script execution, including errors (if any)
     """
     sender = os.environ.get("USER_EMAIL")
     recipient = os.environ.get("USER_EMAIL")
