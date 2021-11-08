@@ -1,7 +1,6 @@
 import os
 import logging
 from urllib.request import urlopen
-from urllib.error import HTTPError
 from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
@@ -87,7 +86,7 @@ def get_player_stats():
             f"General Stats Function Successful, retrieving {len(stats)} updated rows"
         )
         return stats
-    except (ValueError, IndexError, HTTPError, KeyError) as error:
+    except BaseException as error:
         logging.info(f"General Stats Function Failed, {error}")
         print(f"General Stats Function Failed, {error}")
         df = []
@@ -206,7 +205,7 @@ def get_boxscores(month=month, day=day, year=year):
             f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
         return df
-    except (ValueError, IndexError, HTTPError, KeyError) as error:
+    except BaseException as error:
         logging.info(
             f"Box Score Function Failed, {error}, no data available for {year}-{month}-{day}"
         )
@@ -241,7 +240,7 @@ def get_opp_stats():
             f"Opp Stats Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
         return df
-    except (ValueError, IndexError, HTTPError, KeyError) as error:
+    except BaseException as error:
         logging.info(f"Opp Stats Function Failed, {error}")
         print(f"Opp Stats Function Failed, {error}")
         df = []
@@ -267,7 +266,7 @@ def get_injuries():
         logging.info(f"Injury Function Successful, retrieving {len(df)} rows")
         print(f"Injury Function Successful, retrieving {len(df)} rows")
         return df
-    except (ValueError, IndexError, HTTPError, KeyError) as error:
+    except BaseException as error:
         logging.info(f"Injury Function Failed, {error}")
         print(f"Injury Function Failed, {error}")
         df = []
@@ -322,7 +321,7 @@ def get_transactions():
         )
         print(f"Transactions Function Successful, retrieving {len(transactions)} rows")
         return transactions
-    except (ValueError, IndexError, HTTPError, KeyError) as error:
+    except BaseException as error:
         logging.info(f"Transaction Function Failed, {error}")
         print(f"Transactions Failed, {error}")
         df = []
@@ -390,7 +389,7 @@ def get_advanced_stats():
             f"Advanced Stats Function Successful, retrieving updated data for 30 Teams"
         )
         return df
-    except (ValueError, IndexError, HTTPError, KeyError) as error:
+    except BaseException as error:
         logging.info(f"Advanced Stats Function Failed, {error}")
         print(f"Advanced Stats Function Failed, {error}")
         df = []
@@ -412,6 +411,7 @@ def get_odds():
         df = pd.read_html(url)
 
         data1 = df[0].copy()
+        data1.columns.values[0] = "Tomorrow"
         date_try = str(year) + " " + data1.columns[0]
         data1["date"] = np.where(
             date_try == "2021 Tomorrow",
@@ -420,7 +420,6 @@ def get_odds():
         )
         # )
         date_try = data1["date"].iloc[0]
-        data1.columns.values[0] = "Tomorrow"
         data1.reset_index(drop=True)
         data1["Tomorrow"] = data1["Tomorrow"].str.replace(
             "LA Clippers", "LAC Clippers", regex=True
@@ -429,9 +428,11 @@ def get_odds():
         data1["Tomorrow"] = data1["Tomorrow"].str.replace("AM", "AM ", regex=True)
         data1["Tomorrow"] = data1["Tomorrow"].str.replace("PM", "PM ", regex=True)
         data1["Time"] = data1["Tomorrow"].str.split().str[0]
-        data1["datetime1"] = pd.to_datetime(
-            date_try.strftime("%Y-%m-%d") + " " + data1["Time"]
-        ) - timedelta(hours=6) + timedelta(days = 1)
+        data1["datetime1"] = (
+            pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data1["Time"])
+            - timedelta(hours=6)
+            + timedelta(days=1)
+        )
 
         data2 = df[1].copy()
         data2.columns.values[0] = "Tomorrow"
@@ -455,7 +456,10 @@ def get_odds():
         data["TOTAL"] = data["TOTAL"].str[2:]
         data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
         data["Tomorrow"] = pd.DataFrame(
-            [str(line).strip("[").strip("]").replace("'", "") for line in data["Tomorrow"]]
+            [
+                str(line).strip("[").strip("]").replace("'", "")
+                for line in data["Tomorrow"]
+            ]
         )
         data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
         data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
@@ -530,7 +534,7 @@ def scrape_subreddit(sub):
             + " subreddit"
         )
         return posts
-    except (ValueError, IndexError, HTTPError, KeyError) as error:
+    except BaseException as error:
         logging.info(f"Reddit Scrape Function Failed, {error}")
         print(f"Reddit Scrape Function Failed, {error}")
         data = []
@@ -696,7 +700,7 @@ def get_pbp_data(df):
                 )
                 # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
                 return pbp_list
-            except (ValueError, IndexError, HTTPError, KeyError) as error:
+            except BaseException as error:
                 logging.info(f"PBP Transformation Logic Failed, {error}")
                 print(f"PBP Transformation Logic Failed, {error}")
                 df = []
@@ -706,7 +710,7 @@ def get_pbp_data(df):
             logging.info("PBP Function No Data Yesterday")
             print("PBP Function No Data Yesterday")
             return df
-    except (ValueError, IndexError, HTTPError, KeyError) as error:
+    except BaseException as error:
         logging.info(f"PBP Function Failed, {error}")
         print(f"PBP Function Failed, {error}")
         data = []
@@ -849,7 +853,7 @@ def execute_email_function():
         elif len(logs) == 0:
             print("No Errors!")
             send_aws_email()
-    except (ValueError, IndexError, HTTPError, KeyError) as error:
+    except BaseException as error:
         print(f"oof {error}")
 
 
