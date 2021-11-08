@@ -407,16 +407,15 @@ def get_odds():
     Returns:
         Pandas DataFrame of NBA moneyline + spread odds for upcoming games for that day
     """
-    url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
-
     try:
+        url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
         df = pd.read_html(url)
 
         data1 = df[0].copy()
         date_try = str(year) + " " + data1.columns[0]
         data1["date"] = np.where(
             date_try == "2021 Tomorrow",
-            datetime.now().date() + timedelta(days = 1),  # if the above is true, then return this
+            datetime.now().date(),  # if the above is true, then return this
             str(year) + " " + data1.columns[0],  # if false then return this
         )
         # )
@@ -432,7 +431,7 @@ def get_odds():
         data1["Time"] = data1["Tomorrow"].str.split().str[0]
         data1["datetime1"] = pd.to_datetime(
             date_try.strftime("%Y-%m-%d") + " " + data1["Time"]
-        ) - timedelta(hours=5)
+        ) - timedelta(hours=6) + timedelta(days = 1)
 
         data2 = df[1].copy()
         data2.columns.values[0] = "Tomorrow"
@@ -445,7 +444,7 @@ def get_odds():
         data2["Time"] = data2["Tomorrow"].str.split().str[0]
         data2["datetime1"] = (
             pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data2["Time"])
-            - timedelta(hours=5)
+            - timedelta(hours=6)
             + timedelta(days=1)
         )
         data2["date"] = data2["datetime1"].dt.date
@@ -464,11 +463,9 @@ def get_odds():
         data = data[["tomorrow", "spread", "total", "moneyline", "date", "datetime1"]]
         data = data.rename(columns={data.columns[0]: "team"})
         data = data.query("date == date.min()")  # only grab games from upcoming day
-        logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
         print(f"Odds Function Successful, retrieving {len(data)} rows")
         return data
     except BaseException as error:
-        logging.info(f"Odds Function Failed, {error}")
         print(f"Odds Function Failed, {error}")
         data = []
         return data
