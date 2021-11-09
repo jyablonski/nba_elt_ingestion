@@ -222,37 +222,41 @@ def odds_data():
     month = (datetime.now() - timedelta(1)).month
     year = (datetime.now() - timedelta(1)).year
     data1 = df[0].copy()
+    data1.columns.values[0] = "Tomorrow"
     date_try = str(year) + " " + data1.columns[0]
     data1["date"] = np.where(
-        date_try == "2021 Today",
+        date_try == "2021 Tomorrow",
         datetime.now().date(),  # if the above is true, then return this
         str(year) + " " + data1.columns[0],  # if false then return this
     )
+    # )
     date_try = data1["date"].iloc[0]
-    data1.columns.values[0] = "Today"
     data1.reset_index(drop=True)
-    data1["Today"] = data1["Today"].str.replace(
+    data1["Tomorrow"] = data1["Tomorrow"].str.replace(
         "LA Clippers", "LAC Clippers", regex=True
     )
-    data1["Today"] = data1["Today"].str.replace("AM", "AM ", regex=True)
-    data1["Today"] = data1["Today"].str.replace("PM", "PM ", regex=True)
-    data1["Time"] = data1["Today"].str.split().str[0]
-    data1["datetime1"] = pd.to_datetime(
-        date_try.strftime("%Y-%m-%d") + " " + data1["Time"]
-    ) - timedelta(hours=5)
+
+    data1["Tomorrow"] = data1["Tomorrow"].str.replace("AM", "AM ", regex=True)
+    data1["Tomorrow"] = data1["Tomorrow"].str.replace("PM", "PM ", regex=True)
+    data1["Time"] = data1["Tomorrow"].str.split().str[0]
+    data1["datetime1"] = (
+        pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data1["Time"])
+        - timedelta(hours=6)
+        + timedelta(days=1)
+    )
 
     data2 = df[1].copy()
-    data2.columns.values[0] = "Today"
+    data2.columns.values[0] = "Tomorrow"
     data2.reset_index(drop=True)
-    data2["Today"] = data2["Today"].str.replace(
+    data2["Tomorrow"] = data2["Tomorrow"].str.replace(
         "LA Clippers", "LAC Clippers", regex=True
     )
-    data2["Today"] = data2["Today"].str.replace("AM", "AM ", regex=True)
-    data2["Today"] = data2["Today"].str.replace("PM", "PM ", regex=True)
-    data2["Time"] = data2["Today"].str.split().str[0]
+    data2["Tomorrow"] = data2["Tomorrow"].str.replace("AM", "AM ", regex=True)
+    data2["Tomorrow"] = data2["Tomorrow"].str.replace("PM", "PM ", regex=True)
+    data2["Time"] = data2["Tomorrow"].str.split().str[0]
     data2["datetime1"] = (
         pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data2["Time"])
-        - timedelta(hours=5)
+        - timedelta(hours=6)
         + timedelta(days=1)
     )
     data2["date"] = data2["datetime1"].dt.date
@@ -261,14 +265,17 @@ def odds_data():
     data["SPREAD"] = data["SPREAD"].str[:-4]
     data["TOTAL"] = data["TOTAL"].str[:-4]
     data["TOTAL"] = data["TOTAL"].str[2:]
-    data["Today"] = data["Today"].str.split().str[1:2]
-    data["Today"] = pd.DataFrame(
-        [str(line).strip("[").strip("]").replace("'", "") for line in data["Today"]]
+    data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
+    data["Tomorrow"] = pd.DataFrame(
+        [
+            str(line).strip("[").strip("]").replace("'", "")
+            for line in data["Tomorrow"]
+        ]
     )
     data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
     data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
     data.columns = data.columns.str.lower()
-    data = data[["today", "spread", "total", "moneyline", "date", "datetime1"]]
+    data = data[["tomorrow", "spread", "total", "moneyline", "date", "datetime1"]]
     data = data.rename(columns={data.columns[0]: "team"})
     data = data.query("date == date.min()")  # only grab games from upcoming day
     return data
