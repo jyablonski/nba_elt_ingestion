@@ -807,10 +807,13 @@ def send_aws_email():
     recipient = os.environ.get("USER_EMAIL")
     aws_region = "us-east-1"
     subject = (
-        str(len(logs)) + " Alert Fails for " + str(today) + " Python NBA Web Scrape"
+        "NBA ELT PIPELINE - "
+        + str(len(logs))
+        + " Alert Fails for "
+        + str(today)
     )
     body_html = message = """\
-<h3>sup hoe here are the errors.</h3>
+<h3>Errors:</h3>
                    {}""".format(
         logs.to_html()
     )
