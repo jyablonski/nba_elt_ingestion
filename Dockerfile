@@ -30,7 +30,7 @@ RUN useradd --create-home appuser
 WORKDIR /home/appuser
 USER appuser
 
-# copy everything over
+# copy all files in repo over
 COPY . .
 
 CMD ["python3", "app.py"]
