@@ -670,7 +670,7 @@ def get_pbp_data(df):
                     df["HomeTeam"] = df["HomeTeam"].str.replace("BRK", "BKN")
                     df = df.merge(away_teams)
                     df[["scoreAway", "scoreHome"]] = df["Score"].str.split(
-                        "-", expand=True
+                        "-", expand=True, n=1
                     )
                     df["scoreAway"] = pd.to_numeric(df["scoreAway"], errors="coerce")
                     df["scoreAway"] = df["scoreAway"].fillna(method="ffill")
@@ -696,7 +696,7 @@ def get_pbp_data(df):
                     f"PBP Function Successful, retrieving {len(pbp_list)} rows for {year}-{month}-{day}"
                 )
                 print(
-                    f"Box Score Function Successful, retrieving {len(pbp_list)} rows for {year}-{month}-{day}"
+                    f"PBP Function Successful, retrieving {len(pbp_list)} rows for {year}-{month}-{day}"
                 )
                 # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
                 return pbp_list
