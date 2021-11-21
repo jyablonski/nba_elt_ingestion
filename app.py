@@ -734,18 +734,13 @@ def sql_connection():
     Returns:
         SQL Connection variable to schema: nba_source in my PostgreSQL DB
     """
+    RDS_USER = os.environ.get("RDS_USER")
+    RDS_PW = os.environ.get("RDS_PW")
+    RDS_IP = os.environ.get("IP")
+    RDS_DB = os.environ.get("RDS_DB")
     try:
         connection = create_engine(
-            "postgresql+psycopg2://"
-            + os.environ.get("RDS_USER")
-            + ":"
-            + os.environ.get("RDS_PW")
-            + "@"
-            + os.environ.get("IP")
-            + ":"
-            + "5432"
-            + "/"
-            + os.environ.get("RDS_DB"),
+            f"postgresql+psycopg2://{RDS_USER}:{RDS_PW}@{RDS_IP}:5432/{RDS_DB}",
             connect_args={"options": "-csearch_path=nba_source"},
             # defining schema to connect to
             echo=False,
@@ -754,8 +749,8 @@ def sql_connection():
         print("SQL Connection Successful")
         return connection
     except exc.SQLAlchemyError as e:
-        logging.info("SQL Connection Failed, Error:", e)
-        print("SQL Connection Failed, Error:", e)
+        logging.info(f"SQL Connection Failed, Error: {e}")
+        print(f"SQL Connection Failed, Error: {e}")
         return e
 
 
@@ -806,12 +801,7 @@ def send_aws_email():
     sender = os.environ.get("USER_EMAIL")
     recipient = os.environ.get("USER_EMAIL")
     aws_region = "us-east-1"
-    subject = (
-        "NBA ELT PIPELINE - "
-        + str(len(logs))
-        + " Alert Fails for "
-        + str(today)
-    )
+    subject = f"NBA ELT PIPELINE - {str(len(logs))} Alert Fails for {str(today)}"
     body_html = message = """\
 <h3>Errors:</h3>
                    {}""".format(
