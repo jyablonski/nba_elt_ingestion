@@ -94,3 +94,6 @@ def test_advanced_stats_cols(advanced_stats_data):
 
 def test_advanced_stats_rows(advanced_stats_data):
     assert len(advanced_stats_data) == 31
+
+def test_opp_stats_colnames(opp_stats_data):
+    assert list(opp_stats_data.columns) == ['team', 'fg_percent_opp', 'threep_percent_opp', 'threep_made_opp', 'ppg_opp', 'scrape_date']
