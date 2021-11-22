@@ -849,6 +849,7 @@ def execute_email_function():
             print("No Errors!")
             send_aws_email()
     except BaseException as error:
+        logging.info(f"Failed Email Alert, {error}")
         print(f"oof {error}")
 
 
