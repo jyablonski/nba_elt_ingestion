@@ -468,9 +468,11 @@ def get_odds():
         data = data.rename(columns={data.columns[0]: "team"})
         data = data.query("date == date.min()")  # only grab games from upcoming day
         print(f"Odds Function Successful, retrieving {len(data)} rows")
+        logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
         return data
     except BaseException as error:
         print(f"Odds Function Failed, {error}")
+        logging.info(f"Odds Function Failed, {error}")
         data = []
         return data
 
