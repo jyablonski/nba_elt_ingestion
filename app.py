@@ -399,10 +399,8 @@ def get_advanced_stats():
 def get_odds():
     """
     Web Scrape function w/ pandas read_html that grabs current day's nba odds
-
     Args:
         None
-
     Returns:
         Pandas DataFrame of NBA moneyline + spread odds for upcoming games for that day
     """
@@ -433,43 +431,68 @@ def get_odds():
             - timedelta(hours=6)
             + timedelta(days=1)
         )
+        if len(df) > 1:
+            data2 = df[1].copy()
+            data2.columns.values[0] = "Tomorrow"
+            data2.reset_index(drop=True)
+            data2["Tomorrow"] = data2["Tomorrow"].str.replace(
+                "LA Clippers", "LAC Clippers", regex=True
+            )
+            data2["Tomorrow"] = data2["Tomorrow"].str.replace("AM", "AM ", regex=True)
+            data2["Tomorrow"] = data2["Tomorrow"].str.replace("PM", "PM ", regex=True)
+            data2["Time"] = data2["Tomorrow"].str.split().str[0]
+            data2["datetime1"] = (
+                pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data2["Time"])
+                - timedelta(hours=6)
+                + timedelta(days=1)
+            )
+            data2["date"] = data2["datetime1"].dt.date
 
-        data2 = df[1].copy()
-        data2.columns.values[0] = "Tomorrow"
-        data2.reset_index(drop=True)
-        data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-            "LA Clippers", "LAC Clippers", regex=True
-        )
-        data2["Tomorrow"] = data2["Tomorrow"].str.replace("AM", "AM ", regex=True)
-        data2["Tomorrow"] = data2["Tomorrow"].str.replace("PM", "PM ", regex=True)
-        data2["Time"] = data2["Tomorrow"].str.split().str[0]
-        data2["datetime1"] = (
-            pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data2["Time"])
-            - timedelta(hours=6)
-            + timedelta(days=1)
-        )
-        data2["date"] = data2["datetime1"].dt.date
-
-        data = data1.append(data2).reset_index(drop=True)
-        data["SPREAD"] = data["SPREAD"].str[:-4]
-        data["TOTAL"] = data["TOTAL"].str[:-4]
-        data["TOTAL"] = data["TOTAL"].str[2:]
-        data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
-        data["Tomorrow"] = pd.DataFrame(
-            [
-                str(line).strip("[").strip("]").replace("'", "")
-                for line in data["Tomorrow"]
+            data = data1.append(data2).reset_index(drop=True)
+            data["SPREAD"] = data["SPREAD"].str[:-4]
+            data["TOTAL"] = data["TOTAL"].str[:-4]
+            data["TOTAL"] = data["TOTAL"].str[2:]
+            data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
+            data["Tomorrow"] = pd.DataFrame(
+                [
+                    str(line).strip("[").strip("]").replace("'", "")
+                    for line in data["Tomorrow"]
+                ]
+            )
+            data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
+            data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
+            data.columns = data.columns.str.lower()
+            data = data[
+                ["tomorrow", "spread", "total", "moneyline", "date", "datetime1"]
             ]
-        )
-        data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
-        data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
-        data.columns = data.columns.str.lower()
-        data = data[["tomorrow", "spread", "total", "moneyline", "date", "datetime1"]]
-        data = data.rename(columns={data.columns[0]: "team"})
-        data = data.query("date == date.min()")  # only grab games from upcoming day
-        print(f"Odds Function Successful, retrieving {len(data)} rows")
-        logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
-        return data
+            data = data.rename(columns={data.columns[0]: "team"})
+            data = data.query("date == date.min()")  # only grab games from upcoming day
+            print(f"Odds Function Successful, retrieving {len(data)} rows")
+            logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
+            return data
+        else:
+            data = data1.reset_index(drop=True)
+            data["SPREAD"] = data["SPREAD"].str[:-4]
+            data["TOTAL"] = data["TOTAL"].str[:-4]
+            data["TOTAL"] = data["TOTAL"].str[2:]
+            data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
+            data["Tomorrow"] = pd.DataFrame(
+                [
+                    str(line).strip("[").strip("]").replace("'", "")
+                    for line in data["Tomorrow"]
+                ]
+            )
+            data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
+            data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
+            data.columns = data.columns.str.lower()
+            data = data[
+                ["tomorrow", "spread", "total", "moneyline", "date", "datetime1"]
+            ]
+            data = data.rename(columns={data.columns[0]: "team"})
+            data = data.query("date == date.min()")  # only grab games from upcoming day
+            print(f"Odds Function Successful, retrieving {len(data)} rows")
+            logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
+            return data
     except BaseException as error:
         print(f"Odds Function Failed, {error}")
         logging.info(f"Odds Function Failed, {error}")
@@ -525,15 +548,12 @@ def scrape_subreddit(sub):
             ],
         )
         posts.columns = posts.columns.str.lower()
+
         print(
-            "Reddit Scrape Successful, grabbing 27 Recent popular posts from r/"
-            + sub
-            + " subreddit"
+            f"Reddit Scrape Successful, grabbing 27 Recent popular posts from r/{sub} subreddit"
         )
         logging.info(
-            "Reddit Scrape Successful, grabbing 27 Recent popular posts from r/"
-            + sub
-            + " subreddit"
+            f"Reddit Scrape Successful, grabbing 27 Recent popular posts from r/{sub} subreddit"
         )
         return posts
     except BaseException as error:
