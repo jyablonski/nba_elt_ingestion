@@ -10,15 +10,9 @@ from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
 
-# from sqlalchemy.engine.base import ExceptionContextImpl
 
 print("Loading Python ELT Script Version: 0.1.31")
-# GENERAL NOTES
-# ValueError should capture any read_html failures
-# logging is for identifying failures and sending an email out documenting them
-# Cloudwatch logs are also enabled in ECS so all the print statements will get recorded there too.
-# python:slim-3.8 provides everything i need and has the sql drivers and
-# compilers to install pandas/numpy/sqlalchemy etc.
+logging.info("Loading Python ELT Script Version: 0.1.31")
 
 logging.basicConfig(
     filename="example.log",
@@ -26,6 +20,7 @@ logging.basicConfig(
     format="%(asctime)s %(message)s",
     datefmt="%m/%d/%Y %I:%M:%S %p",
 )
+print("Starting Logging Function")
 logging.info("Starting Logging Function")
 
 print("LOADED FUNCTIONS")
@@ -399,6 +394,7 @@ def get_advanced_stats():
 def get_odds():
     """
     Web Scrape function w/ pandas read_html that grabs current day's nba odds
+
     Args:
         None
     Returns:
@@ -431,7 +427,7 @@ def get_odds():
             - timedelta(hours=6)
             + timedelta(days=1)
         )
-        if len(df) > 1:
+        if len(df) > 1:  # if more than 1 day's data appears then do this
             data2 = df[1].copy()
             data2.columns.values[0] = "Tomorrow"
             data2.reset_index(drop=True)
@@ -467,10 +463,14 @@ def get_odds():
             ]
             data = data.rename(columns={data.columns[0]: "team"})
             data = data.query("date == date.min()")  # only grab games from upcoming day
-            print(f"Odds Function Successful, retrieving {len(data)} rows")
-            logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
+            print(
+                f"Odds Function Successful for {len(df)} day, retrieving {len(data)} rows"
+            )
+            logging.info(
+                f"Odds Function Successful {len(df)} day, retrieving {len(data)} rows"
+            )
             return data
-        else:
+        else:  # if there's only 1 day of data then just use that
             data = data1.reset_index(drop=True)
             data["SPREAD"] = data["SPREAD"].str[:-4]
             data["TOTAL"] = data["TOTAL"].str[:-4]
@@ -490,21 +490,25 @@ def get_odds():
             ]
             data = data.rename(columns={data.columns[0]: "team"})
             data = data.query("date == date.min()")  # only grab games from upcoming day
-            print(f"Odds Function Successful, retrieving {len(data)} rows")
-            logging.info(f"Odds Function Successful, retrieving {len(data)} rows")
+            print(
+                f"Odds Function Successful for {len(df)} day, retrieving {len(data)} rows"
+            )
+            logging.info(
+                f"Odds Function Successful {len(df)} day, retrieving {len(data)} rows"
+            )
             return data
     except BaseException as error:
-        print(f"Odds Function Failed, {error}")
-        logging.info(f"Odds Function Failed, {error}")
+        print(f"Odds Function Failed for {len(df)} day, {error}")
+        logging.info(f"Odds Function Failed {len(df)} day, {error}")
         data = []
         return data
 
 
 # NOTES ON ODD FUNCTION
 # read_html scrapes the website and returns UTC data which makes that day's games come in 2 different date / time formats.
-# grabbing both data frames and manually subtracting 5 hrs to get into CST time and making them the right day, then appending them together.
+# grabbing both data frames and manually subtracting 6 hrs to get into CST time and making them the right day, then appending them together.
 # also stripping out some text in the team name column, formatting is
-# fully complete in DBT (GS -> GSW)
+# team formatting is properly transformed in dbt (GS -> GSW)
 
 
 def scrape_subreddit(sub):
@@ -793,8 +797,8 @@ def write_to_sql(data, table_type):
         data_name = [k for k, v in globals().items() if v is data][0]
         # ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
         if len(data) == 0:
-            print(data_name + " is empty, not writing to SQL")
-            logging.info(data_name + " is empty, not writing to SQL")
+            print(f"{data_name} is empty, not writing to SQL")
+            logging.info(f"{data_name} is empty, not writing to SQL")
         else:
             data.to_sql(
                 con=conn,
@@ -802,8 +806,8 @@ def write_to_sql(data, table_type):
                 index=False,
                 if_exists=table_type,
             )
-            print("Writing aws_" + data_name + "_source to SQL")
-            logging.info("Writing aws_" + data_name + "_source to SQL")
+            print(f"Writing aws_{data_name}_source to SQL")
+            logging.info(f"Writing aws_{data_name}_source to SQL")
     except exc.SQLAlchemyError as error:
         logging.info(f"SQL Write Script Failed, {error}")
         print(f"SQL Write Script Failed, {error}")
@@ -901,6 +905,7 @@ print("STARTING SQL STORING")
 logging.info("STARTING SQL STORING")
 
 # storing all data to SQL
+# has to be append bc dbt has cascade rules stopping table deletes
 conn = sql_connection()
 write_to_sql(stats, "append")
 write_to_sql(boxscores, "append")
