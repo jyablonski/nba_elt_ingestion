@@ -10,7 +10,7 @@ from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
 
-print("Loading Python ELT Script Version: 0.1.32")
+print("Loading Python ELT Script Version: 0.1.33")
 
 logging.basicConfig(
     filename="example.log",
