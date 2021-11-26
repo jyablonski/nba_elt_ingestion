@@ -10,9 +10,7 @@ from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
 
-
 print("Loading Python ELT Script Version: 0.1.31")
-logging.info("Loading Python ELT Script Version: 0.1.31")
 
 logging.basicConfig(
     filename="example.log",
@@ -20,6 +18,7 @@ logging.basicConfig(
     format="%(asctime)s %(message)s",
     datefmt="%m/%d/%Y %I:%M:%S %p",
 )
+
 print("Starting Logging Function")
 logging.info("Starting Logging Function")
 
