@@ -1,7 +1,11 @@
 # Lints all python files
 .PHONY: lint
 lint: 
-	black app.py
+	black app.py utils.py tests/conftest.py tests/unit_test.py
+
+.PHONY: create-venv
+create-venv:
+	pipenv install
 
 .PHONY: venv
 venv:
@@ -18,3 +22,9 @@ docker-build:
 .PHONY: docker-run
 docker-run:
 	docker run --rm python_docker_local
+
+# use to untrack all files and subsequently retrack all files, using up to date .gitignore
+.PHONY: git-reset
+git-reset:
+	git rm -r --cached .
+	git add .
