@@ -11,7 +11,7 @@ import boto3
 from botocore.exceptions import ClientError
 from utils import *
 
-print("STARTING NBA ELT PIPELINE SCRIPT Version: 1.0.1")
+print("STARTING NBA ELT PIPELINE SCRIPT Version: 1.0.2")
 
 logging.basicConfig(
     filename="example.log",
@@ -90,4 +90,4 @@ logs = logs.query("errors.str.contains('Failed')", engine="python")
 if __name__ == "__main__":
     execute_email_function()
 
-print("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.0.1")
+print("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.0.2")
