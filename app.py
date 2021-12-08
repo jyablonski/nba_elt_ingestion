@@ -11,7 +11,7 @@ import boto3
 from botocore.exceptions import ClientError
 from utils import *
 
-print("Loading Python ELT Script Version: 0.1.33")
+print("Loading Python ELT Script Version: 0.1.34")
 
 logging.basicConfig(
     filename="example.log",
