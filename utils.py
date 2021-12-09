@@ -927,40 +927,6 @@ def sql_connection(schema="nba_source"):
         return e
 
 
-def write_to_sql(data, table_type):
-    """
-    SQL Table function to write a pandas data frame in aws_dfname_source format
-
-    Args:
-        data: The Pandas DataFrame to store in SQL
-
-        table_type: Whether the table should replace or append to an existing SQL Table under that name
-
-    Returns:
-        Writes the Pandas DataFrame to a Table in Snowflake in the {nba_source} Schema we connected to.
-
-    """
-    try:
-        data_name = [k for k, v in globals().items() if v is data][0]
-        # ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
-        if len(data) == 0:
-            print(f"{data_name} is empty, not writing to SQL")
-            logging.info(f"{data_name} is empty, not writing to SQL")
-        else:
-            data.to_sql(
-                con=conn,
-                name=("aws_" + data_name + "_source"),
-                index=False,
-                if_exists=table_type,
-            )
-            print(f"Writing aws_{data_name}_source to SQL")
-            logging.info(f"Writing aws_{data_name}_source to SQL")
-    except exc.SQLAlchemyError as error:
-        logging.info(f"SQL Write Script Failed, {error}")
-        print(f"SQL Write Script Failed, {error}")
-        return error
-
-
 def send_aws_email():
     """
     Email function utilizing boto3, has to be set up with SES in AWS and env variables passed in via Terraform.
