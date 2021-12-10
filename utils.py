@@ -981,10 +981,10 @@ def execute_email_function(logs):
     try:
         if len(logs) > 0:
             print("Sending Email")
-            send_aws_email()
+            send_aws_email(logs)
         elif len(logs) == 0:
             print("No Errors!")
-            send_aws_email()
+            send_aws_email(logs)
     except BaseException as error:
         logging.info(f"Failed Email Alert, {error}")
         print(f"Failed Email Alert, {error}")
