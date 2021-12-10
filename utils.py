@@ -927,7 +927,7 @@ def sql_connection(schema="nba_source"):
         return e
 
 
-def send_aws_email():
+def send_aws_email(logs):
     """
     Email function utilizing boto3, has to be set up with SES in AWS and env variables passed in via Terraform.
 
@@ -968,7 +968,7 @@ def send_aws_email():
         print(response["MessageId"])
 
 
-def execute_email_function():
+def execute_email_function(logs):
     """
     Email function that executes the email function upon script finishing.
 

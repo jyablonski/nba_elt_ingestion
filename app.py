@@ -36,13 +36,13 @@ def write_to_sql(data, table_type):
         else:
             data.to_sql(
                 con=conn,
-                name=("aws_" + data_name + "_source"),
+                name=f"aws_{data_name}_source",
                 index=False,
                 if_exists=table_type,
             )
             print(f"Writing aws_{data_name}_source to SQL")
             logging.info(f"Writing aws_{data_name}_source to SQL")
-    except exc.SQLAlchemyError as error:
+    except BaseException as error:
         logging.info(f"SQL Write Script Failed, {error}")
         print(f"SQL Write Script Failed, {error}")
         return error
@@ -122,6 +122,6 @@ logs = logs.rename(columns={0: "errors"})
 logs = logs.query("errors.str.contains('Failed')", engine="python")
 
 if __name__ == "__main__":
-    execute_email_function()
+    execute_email_function(logs)
 
 print("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.0.2")
