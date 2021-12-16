@@ -533,7 +533,10 @@ def get_odds_data():
             f"Odds Web Scrape Function Successful {len(df)} day, retrieving {len(df)} day objects"
         )
         return df
-    except BaseException as error:
+    except (
+        BaseException,
+        ValueError,
+    ) as error:  # valueerror fucked shit up apparently idfk
         print(f"Odds Function Failed for {len(df)} day, {error}")
         logging.info(f"Odds Function Failed {len(df)} day, {error}")
         df = []
