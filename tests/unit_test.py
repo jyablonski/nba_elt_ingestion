@@ -1,14 +1,30 @@
 import pytest
+from app import write_to_sql
 
 
 def test_player_stats_sql(setup_database, player_stats_data):
     df = player_stats_data
     print(len(df))
     cursor = setup_database.cursor()
-    df.to_sql(con=setup_database, name="player_stats", index=False, if_exists="replace")
-    df_len = len(list(cursor.execute("SELECT * FROM player_stats")))
+    df.to_sql(
+        con=setup_database,
+        name="aws_player_stats_data_source",
+        index=False,
+        if_exists="replace",
+    )
+    df_len = len(list(cursor.execute("SELECT * FROM aws_player_stats_data_source")))
     cursor.close()
-    assert df_len >= 300
+    assert df_len == 384
+
+
+# table has to get created from ^ first, other wise this will error out.
+def test_write_to_sql(setup_database, player_stats_data):
+    conn = setup_database.cursor()
+    write_to_sql(
+        conn, player_stats_data, "append"
+    )  # remember it creates f"aws_{data_name}_source" table
+    df_len = len(list(conn.execute("SELECT * FROM aws_player_stats_data_source")))
+    assert df_len == 384
 
 
 def test_boxscores_sql(setup_database, boxscores_data):

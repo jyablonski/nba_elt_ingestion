@@ -1,14 +1,19 @@
 import os
+import pickle
 import pytest
 import pytest_mock
 import sqlite3
 import pandas as pd
 import numpy as np
-import pickle
+
+# import moto
 from datetime import datetime, timedelta
 from utils import *
 
-## Testing transformation functions from utils with custom csv fixtures featuring edge cases
+## Testing transformation functions from utils.py with custom csv + pickle object fixtures with edge cases
+
+# mock ses
+
 
 @pytest.fixture(scope="session")
 def setup_database():
@@ -120,3 +125,12 @@ def player_transformed_stats_data():
     stats = pd.read_csv(fname)
     stats_transformed = get_player_stats_transformed(stats)
     return stats_transformed
+
+
+@pytest.fixture(scope="session")
+def logs_data():
+    """
+    Fixture to load dummy error logs for testing
+    """
+    df = pd.DataFrame({"errors": "Test... Failure"})
+    return df
