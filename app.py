@@ -14,7 +14,7 @@ from utils import *
 print("STARTING NBA ELT PIPELINE SCRIPT Version: 1.0.4")
 
 # helper sql function - has to be here & not utils ??
-def write_to_sql(data, table_type):
+def write_to_sql(con, data, table_type):
     """
     SQL Table function to write a pandas data frame in aws_dfname_source format
 
@@ -35,7 +35,7 @@ def write_to_sql(data, table_type):
             logging.info(f"{data_name} is empty, not writing to SQL")
         else:
             data.to_sql(
-                con=conn,
+                con=con,
                 name=f"aws_{data_name}_source",
                 index=False,
                 if_exists=table_type,
@@ -46,6 +46,7 @@ def write_to_sql(data, table_type):
         logging.info(f"SQL Write Script Failed, {error}")
         print(f"SQL Write Script Failed, {error}")
         return error
+
 
 logging.basicConfig(
     filename="example.log",
@@ -71,7 +72,7 @@ season_type = "Regular Season"
 print("STARTING WEB SCRAPE")
 logging.info("STARTING WEB SCRAPE")
 
-# PART 1: Grab Raw Data
+# STEP 1: Grab Raw Data
 stats_raw = get_player_stats_data()
 boxscores_raw = get_boxscores_data()
 injury_data_raw = get_injuries_data()
@@ -85,7 +86,7 @@ print("FINISHED WEB SCRAPE")
 logging.info("FINISHED WEB SCRAPE")
 
 
-# PART 2: Transform data
+# STEP 2: Transform data
 print("STARTING DATA TRANSFORMATIONS")
 logging.info("STARTING DATA TRANSFORMATIONS")
 
@@ -104,19 +105,19 @@ logging.info("FINISHED DATA TRANSFORMATIONS")
 print("STARTING SQL STORING")
 logging.info("STARTING SQL STORING")
 
-# PART 3: Append Transformed Data to SQL
+# STEP 3: Append Transformed Data to SQL
 conn = sql_connection(schema="nba_source")
-write_to_sql(stats, "append")
-write_to_sql(boxscores, "append")
-write_to_sql(injury_data, "append")
-write_to_sql(transactions, "append")
-write_to_sql(adv_stats, "append")
-write_to_sql(odds, "append")
-write_to_sql(reddit_data, "append")
-write_to_sql(pbp_data, "append")
-write_to_sql(opp_stats, "append")
+write_to_sql(conn, stats, "append")
+write_to_sql(conn, boxscores, "append")
+write_to_sql(conn, injury_data, "append")
+write_to_sql(conn, transactions, "append")
+write_to_sql(conn, adv_stats, "append")
+write_to_sql(conn, odds, "append")
+write_to_sql(conn, reddit_data, "append")
+write_to_sql(conn, pbp_data, "append")
+write_to_sql(conn, opp_stats, "append")
 
-# PART 4: Grab Logs from previous steps & send email out detailing events
+# STEP 4: Grab Logs from previous steps & send email out detailing notable events
 logs = pd.read_csv("example.log", sep=r"\\t", engine="python", header=None)
 logs = logs.rename(columns={0: "errors"})
 logs = logs.query("errors.str.contains('Failed')", engine="python")
