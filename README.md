@@ -10,3 +10,4 @@
     * [NBA Dashboard](https://github.com/jyablonski/NBA-Dashboard)
     * [dbt](https://github.com/jyablonski/nba_elt_dbt)
     * [Terraform](https://github.com/jyablonski/aws_terraform)
+    * [Airflow Proof of Concept](https://github.com/jyablonski/nba_elt_airflow)
