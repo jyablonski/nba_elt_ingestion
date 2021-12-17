@@ -7,7 +7,7 @@
 ### Python & Docker Image Resources for [NBA Project](https://github.com/jyablonski/NBA-Dashboard)
 
 1. Links to other Repos providing infrastructure for this Project
-    * [NBA Dashboard](https://github.com/jyablonski/NBA-Dashboard)
+    * [Shiny Server](https://github.com/jyablonski/NBA-Dashboard)
     * [dbt](https://github.com/jyablonski/nba_elt_dbt)
     * [Terraform](https://github.com/jyablonski/aws_terraform)
     * [Airflow Proof of Concept](https://github.com/jyablonski/nba_elt_airflow)
