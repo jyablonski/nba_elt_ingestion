@@ -28,50 +28,53 @@ jobs:
           pip install pytest-cov==2.12.1
           pip install coveralls==3.2.0
           pip install pytest-mock==3.6.1
+          pip install pandas==1.3.2
+          pip install boto3==1.18.27
+          pip install moto==2.2.17
       - name: Run tests with pytest
         run: pytest --cov --cov-report xml
       - name: Coveralls
         run: coveralls
-  bumpversion:
-    needs: pytest_build
-    name: Bumpversion
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Bump version and push tag
-        uses: jaumann/github-bumpversion-action@v0.0.7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tags: true
-  build_image:
-    needs: bumpversion
-    name: Deploy Docker Image to ECR
-    runs-on: ubuntu-latest
+  # bumpversion:
+  #   needs: pytest_build
+  #   name: Bumpversion
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Bump version and push tag
+  #       uses: jaumann/github-bumpversion-action@v0.0.7
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Push changes
+  #       uses: ad-m/github-push-action@master
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         tags: true
+  # build_image:
+  #   needs: bumpversion
+  #   name: Deploy Docker Image to ECR
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - name: Check out code
-      uses: actions/checkout@v2
+  #   steps:
+  #   - name: Check out code
+  #     uses: actions/checkout@v2
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+  #   - name: Configure AWS credentials
+  #     uses: aws-actions/configure-aws-credentials@v1
+  #     with:
+  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #       aws-region: us-east-1
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+  #   - name: Login to Amazon ECR
+  #     id: login-ecr
+  #     uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: jacobs_repo
-        IMAGE_TAG: latest
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+  #   - name: Build, tag, and push image to Amazon ECR
+  #     env:
+  #       ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+  #       ECR_REPOSITORY: jacobs_repo
+  #       IMAGE_TAG: latest
+  #     run: |
+  #       docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+  #       docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
