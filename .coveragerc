@@ -1,4 +1,5 @@
 [run]
 omit = [
-    utils.py
+    utils.py,
+    app.py,
     ]
