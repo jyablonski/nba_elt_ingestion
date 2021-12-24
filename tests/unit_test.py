@@ -2,13 +2,27 @@ import pytest
 from moto import mock_ses
 import boto3
 import pandas as pd
-from app import write_to_sql, send_aws_email
+from app import write_to_sql, send_aws_email, execute_email_function
 
 @mock_ses
 def test_ses_email(aws_credentials):
     ses = boto3.client("ses", region_name="us-east-1")
     logs = pd.DataFrame({'errors': ['ex1', 'ex2', 'ex3']})
     send_aws_email(logs)
+    assert ses.verify_email_identity(EmailAddress="jyablonski9@gmail.com")
+
+@mock_ses
+def test_ses_execution_logs(aws_credentials):
+    ses = boto3.client("ses", region_name="us-east-1")
+    logs = pd.DataFrame({'errors': ['ex1', 'ex2', 'ex3']})
+    execute_email_function(logs)
+    assert ses.verify_email_identity(EmailAddress="jyablonski9@gmail.com")
+
+@mock_ses
+def test_ses_execution_no_logs(aws_credentials):
+    ses = boto3.client("ses", region_name="us-east-1")
+    logs = pd.DataFrame({'errors': []})
+    execute_email_function(logs)
     assert ses.verify_email_identity(EmailAddress="jyablonski9@gmail.com")
 
 def test_player_stats_sql(setup_database, player_stats_data):
