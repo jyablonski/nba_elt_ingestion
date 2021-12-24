@@ -49,6 +49,14 @@ def test_write_to_sql(setup_database, player_stats_data):
     df_len = len(list(conn.execute("SELECT * FROM aws_player_stats_data_source")))
     assert df_len == 384
 
+def test_write_to_sql_no_data(setup_database):
+    conn = setup_database.cursor()
+    player_stats_data = pd.DataFrame({'errors': []})
+    write_to_sql(
+        conn, player_stats_data, "append"
+    )  # remember it creates f"aws_{data_name}_source" table
+    df_len = len(list(conn.execute("SELECT * FROM aws_player_stats_data_source")))
+    assert len(player_stats_data) + df_len == 384
 
 def test_boxscores_sql(setup_database, boxscores_data):
     df = boxscores_data
