@@ -11,7 +11,7 @@ import boto3
 from botocore.exceptions import ClientError
 from utils import *
 
-print("STARTING NBA ELT PIPELINE SCRIPT Version: 1.0.8")
+print("STARTING NBA ELT PIPELINE SCRIPT Version: 1.0.9")
 
 # helper sql function - has to be here & not utils ??
 def write_to_sql(con, data, table_type):
@@ -127,4 +127,4 @@ if __name__ == "__main__":
     logs = logs.query("errors.str.contains('Failed')", engine="python")
     execute_email_function(logs)
 
-print("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.0.8")
+print("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.0.9")
