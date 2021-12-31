@@ -16,7 +16,142 @@ yesterday = today - timedelta(1)
 day = (datetime.now() - timedelta(1)).day
 month = (datetime.now() - timedelta(1)).month
 year = (datetime.now() - timedelta(1)).year
-season_type = "Regular Season"
+if datetime.now().date() < datetime(2022, 4, 11).date():
+    season_type = "Regular Season"
+else:
+    season_type = "Playoffs"
+
+# schemas
+adv_stats_cols = [
+    "index",
+    "team",
+    "age",
+    "w",
+    "l",
+    "pw",
+    "pl",
+    "mov",
+    "sos",
+    "srs",
+    "ortg",
+    "drtg",
+    "nrtg",
+    "pace",
+    "ftr",
+    "3par",
+    "ts%",
+    "efg%",
+    "tov%",
+    "orb%",
+    "ft/fga",
+    "efg%_opp",
+    "tov%_opp",
+    "drb%_opp",
+    "ft/fga_opp",
+    "arena",
+    "attendancesds",
+    "att/game",
+    "scrape_date",
+]
+boxscores_cols = [
+    "player",
+    "team",
+    "location",
+    "opponent",
+    "outcome",
+    "mp",
+    "fgm",
+    "fga",
+    "fgpercent",
+    "threepfgmade",
+    "threepattempted",
+    "threepointpercent",
+    "ft",
+    "fta",
+    "ftpercent",
+    "oreb",
+    "dreb",
+    "trb",
+    "ast",
+    "stl",
+    "blk",
+    "tov",
+    "pf",
+    "pts",
+    "plusminus",
+    "gmsc",
+    "date",
+    "type",
+    "season",
+]
+injury_cols = ["player", "team", "date", "description", "scrape_date"]
+opp_stats_cols = [
+    "team",
+    "fg_percent_opp",
+    "threep_percent_opp",
+    "threep_made_opp",
+    "ppg_opp",
+    "scrape_date",
+]
+pbp_cols = [
+    "timequarter",
+    "descriptionplayvisitor",
+    "awayscore",
+    "score",
+    "homescore",
+    "descriptionplayhome",
+    "numberperiod",
+    "hometeam",
+    "awayteam",
+    "scoreaway",
+    "scorehome",
+    "marginscore",
+    "date",
+]
+reddit_cols = [
+    "title",
+    "score",
+    "id",
+    "url",
+    "num_comments",
+    "body",
+    "scrape_date",
+    "scrape_time",
+]
+odds_cols = ['team', 'spread', 'total', 'moneyline', 'date', 'datetime1']
+stats_cols = [
+    "player",
+    "pos",
+    "age",
+    "tm",
+    "g",
+    "gs",
+    "mp",
+    "fg",
+    "fga",
+    "fg%",
+    "3p",
+    "3pa",
+    "3p%",
+    "2p",
+    "2pa",
+    "2p%",
+    "efg%",
+    "ft",
+    "fta",
+    "ft%",
+    "orb",
+    "drb",
+    "trb",
+    "ast",
+    "stl",
+    "blk",
+    "tov",
+    "pf",
+    "pts",
+    "scrape_date",
+]
+transactions_cols = ["date", "transaction", "scrape_date"]
 
 
 def get_player_stats_data():
@@ -689,6 +824,7 @@ def get_reddit_data(sub):
                     post.score,
                     post.id,
                     post.url,
+                    str(f'https://www.reddit.com{post.permalink}'),
                     post.num_comments,
                     post.selftext,
                     today,
@@ -702,6 +838,7 @@ def get_reddit_data(sub):
                 "score",
                 "id",
                 "url",
+                "reddit_url",
                 "num_comments",
                 "body",
                 "scrape_date",
@@ -722,6 +859,44 @@ def get_reddit_data(sub):
         print(f"Reddit Scrape Function Failed, {error}")
         data = []
         return data
+
+def get_reddit_comments(urls):
+    """
+    Web Scrape function w/ PRAW that extracts comments from recently popular reddit posts
+
+    Args:
+        urls (Pandas Series) - The (reddit) urls to extract comments from
+
+    Returns:
+        Pandas DataFrame of all comments from the provided reddit urls
+    """
+    reddit = praw.Reddit(
+        client_id=os.environ.get("reddit_accesskey"),
+        client_secret=os.environ.get("reddit_secretkey"),
+        user_agent="praw-app",
+        username=os.environ.get("reddit_user"),
+        password=os.environ.get("reddit_pw"),
+    )
+    comment_list = []
+    score_list = []
+    url_list = []
+    try:
+        for i in urls:
+            submission = reddit.submission(url = i)
+            submission.comments.replace_more(limit=0)
+            for comment in submission.comments.list():
+                comment_list.append(comment.body)
+                score_list.append(comment.score)
+                url_list.append(i)
+        df = pd.DataFrame({'comment':comment_list, 'score':score_list, 'url':url_list, 'scrape_date': datetime.now().date(), 'scrape_ts': datetime.now()})
+        print(f'Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls')
+        logging.info(f'Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls')
+        return df
+    except BaseException as e:
+        print(f'Reddit Comment Extraction Failed for url {i}, {e}')
+        logging.info(f'Reddit Comment Extraction Failed for url {i}, {e}')
+        df = []
+        return df
 
 
 def get_pbp_data_transformed(df):

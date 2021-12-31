@@ -86,7 +86,6 @@ if __name__ == "__main__":
     print("FINISHED WEB SCRAPE")
     logging.info("FINISHED WEB SCRAPE")
 
-
     # STEP 2: Transform data
     print("STARTING DATA TRANSFORMATIONS")
     logging.info("STARTING DATA TRANSFORMATIONS")
@@ -97,7 +96,10 @@ if __name__ == "__main__":
     transactions = get_transactions_transformed(transactions_raw)
     adv_stats = get_advanced_stats_transformed(adv_stats_raw)
     odds = get_odds_transformed(odds_raw)
-    pbp_data = get_pbp_data_transformed(boxscores)  # this uses the transformed boxscores
+    reddit_comment_data = get_reddit_comments(reddit_data['reddit_url'])
+    pbp_data = get_pbp_data_transformed(
+        boxscores
+    )  # this uses the transformed boxscores
     opp_stats = get_opp_stats_transformed(opp_stats_raw)
 
     print("FINISHED DATA TRANSFORMATIONS")
@@ -115,6 +117,7 @@ if __name__ == "__main__":
     write_to_sql(conn, adv_stats, "append")
     write_to_sql(conn, odds, "append")
     write_to_sql(conn, reddit_data, "append")
+    write_to_sql(conn, reddit_comment_data, "append")
     write_to_sql(conn, pbp_data, "append")
     write_to_sql(conn, opp_stats, "append")
 
