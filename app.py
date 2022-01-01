@@ -13,7 +13,7 @@ from utils import *
 
 print("STARTING NBA ELT PIPELINE SCRIPT Version: 1.0.9")
 
-# helper sql function - has to be here & not utils ??
+# helper sql function - has to be here & not utils bc of globals().items()
 def write_to_sql(con, data, table_type):
     """
     SQL Table function to write a pandas data frame in aws_dfname_source format
@@ -47,6 +47,34 @@ def write_to_sql(con, data, table_type):
         print(f"SQL Write Script Failed, {error}")
         return error
 
+# helper validation function - has to be here instead of utils bc of globals().items()
+def validate_schema(data_df, schema):
+    """
+    Schema Validation function to check whether table columns are correct before writing to SQL.
+    Errors are written to Logs
+
+    Args:
+        data_df (pd.DataFrame): The Transformed Pandas DataFrame to check
+
+        schema (list):  The corresponding columns of the Pandas DataFrame to be checked
+    Returns:
+        None
+    """
+    data_name = [k for k, v in globals().items() if v is data_df][0]
+    try:
+        if len(data_df) == 0: # this has to be first to deal with both empty lists + valid data frames
+            logging.info(f'Schema Validation Failed for {data_name}, df is empty')
+            return print(f'Schema Validation Failed for {data_name}, df is empty')
+        elif list(data_df.columns) == schema:
+            logging.info(f'Schema Validation Passed for {data_name}')
+            return print(f'Schema Validation Passed for {data_name}')
+        else:
+            logging.info(f'Schema Validation Failed for {data_name}')
+            return print(f'Schema Validation Failed for {data_name}')
+    except BaseException as e:
+        print(f"Schema Validation Failed for {data_name}, {e}")
+        logging.info(f"Schema Validation Failed for {data_name}, {e}")
+        pass
 
 logging.basicConfig(
     filename="example.log",
@@ -67,13 +95,17 @@ yesterday = today - timedelta(1)
 day = (datetime.now() - timedelta(1)).day
 month = (datetime.now() - timedelta(1)).month
 year = (datetime.now() - timedelta(1)).year
-season_type = "Regular Season"
+if datetime.now().date() < datetime(2022, 4, 11).date():
+    season_type = "Regular Season"
+else:
+    season_type = "Playoffs"
+
 
 if __name__ == "__main__":
     print("STARTING WEB SCRAPE")
     logging.info("STARTING WEB SCRAPE")
 
-    # STEP 1: Grab Raw Data
+    # STEP 1: Extract Raw Data
     stats_raw = get_player_stats_data()
     boxscores_raw = get_boxscores_data()
     injury_data_raw = get_injuries_data()
@@ -105,10 +137,28 @@ if __name__ == "__main__":
     print("FINISHED DATA TRANSFORMATIONS")
     logging.info("FINISHED DATA TRANSFORMATIONS")
 
+    print("STARTING SCHEMA VALIDATION")
+    logging.info("STARTING SCHEMA VALIDATION")
+
+    # STEP 3: Validating Schemas - 1 for each SQL Write
+    validate_schema(stats, stats_cols)
+    validate_schema(adv_stats, adv_stats_cols)
+    validate_schema(boxscores, boxscores_cols)
+    validate_schema(injury_data, injury_cols)
+    validate_schema(opp_stats, opp_stats_cols)
+    validate_schema(pbp_data, pbp_cols)
+    validate_schema(reddit_data, reddit_cols)
+    validate_schema(reddit_comment_data, reddit_comment_cols)
+    validate_schema(odds, odds_cols)
+    validate_schema(transactions, transactions_cols)
+
+    print("FINISHED SCHEMA VALIDATION")
+    logging.info("FINISHED SCHEMA VALIDATION")
+
     print("STARTING SQL STORING")
     logging.info("STARTING SQL STORING")
 
-    # STEP 3: Append Transformed Data to SQL
+    # STEP 4: Append Transformed Data to SQL
     conn = sql_connection(schema="nba_source")
     write_to_sql(conn, stats, "append")
     write_to_sql(conn, boxscores, "append")
@@ -121,7 +171,7 @@ if __name__ == "__main__":
     write_to_sql(conn, pbp_data, "append")
     write_to_sql(conn, opp_stats, "append")
 
-    # STEP 4: Grab Logs from previous steps & send email out detailing notable events
+    # STEP 5: Grab Logs from previous steps & send email out detailing notable events
     logs = pd.read_csv("example.log", sep=r"\\t", engine="python", header=None)
     logs = logs.rename(columns={0: "errors"})
     logs = logs.query("errors.str.contains('Failed')", engine="python")

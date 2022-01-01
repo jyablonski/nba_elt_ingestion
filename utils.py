@@ -49,7 +49,7 @@ adv_stats_cols = [
     "drb%_opp",
     "ft/fga_opp",
     "arena",
-    "attendancesds",
+    "attendance",
     "att/game",
     "scrape_date",
 ]
@@ -113,11 +113,13 @@ reddit_cols = [
     "score",
     "id",
     "url",
+    "reddit_url",
     "num_comments",
     "body",
     "scrape_date",
     "scrape_time",
 ]
+reddit_comment_cols = ['comment', 'score', 'url', 'scrape_date', 'scrape_ts']
 odds_cols = ['team', 'spread', 'total', 'moneyline', 'date', 'datetime1']
 stats_cols = [
     "player",
@@ -862,7 +864,7 @@ def get_reddit_data(sub):
 
 def get_reddit_comments(urls):
     """
-    Web Scrape function w/ PRAW that extracts comments from recently popular reddit posts
+    Web Scrape function w/ PRAW that iteratively extracts comments from provided reddit post urls
 
     Args:
         urls (Pandas Series) - The (reddit) urls to extract comments from
@@ -1073,7 +1075,6 @@ def get_pbp_data_transformed(df):
         print(f"PBP Data Transformation Function Failed, {error}")
         data = []
         return data
-
 
 def sql_connection(schema="nba_source"):
     """
