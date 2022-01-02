@@ -700,7 +700,7 @@ def get_odds_transformed(df):
         data1.columns.values[0] = "Tomorrow"
         date_try = str(year) + " " + data1.columns[0]
         data1["date"] = np.where(
-            date_try == "2021 Tomorrow",
+            date_try == "2022 Tomorrow",
             datetime.now().date(),  # if the above is true, then return this
             str(year) + " " + data1.columns[0],  # if false then return this
         )
