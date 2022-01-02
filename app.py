@@ -47,6 +47,7 @@ def write_to_sql(con, data, table_type):
         print(f"SQL Write Script Failed, {error}")
         return error
 
+
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(data_df, schema):
     """
@@ -62,19 +63,22 @@ def validate_schema(data_df, schema):
     """
     data_name = [k for k, v in globals().items() if v is data_df][0]
     try:
-        if len(data_df) == 0: # this has to be first to deal with both empty lists + valid data frames
-            logging.info(f'Schema Validation Failed for {data_name}, df is empty')
-            return print(f'Schema Validation Failed for {data_name}, df is empty')
+        if (
+            len(data_df) == 0
+        ):  # this has to be first to deal with both empty lists + valid data frames
+            logging.info(f"Schema Validation Failed for {data_name}, df is empty")
+            return print(f"Schema Validation Failed for {data_name}, df is empty")
         elif list(data_df.columns) == schema:
-            logging.info(f'Schema Validation Passed for {data_name}')
-            return print(f'Schema Validation Passed for {data_name}')
+            logging.info(f"Schema Validation Passed for {data_name}")
+            return print(f"Schema Validation Passed for {data_name}")
         else:
-            logging.info(f'Schema Validation Failed for {data_name}')
-            return print(f'Schema Validation Failed for {data_name}')
+            logging.info(f"Schema Validation Failed for {data_name}")
+            return print(f"Schema Validation Failed for {data_name}")
     except BaseException as e:
         print(f"Schema Validation Failed for {data_name}, {e}")
         logging.info(f"Schema Validation Failed for {data_name}, {e}")
         pass
+
 
 logging.basicConfig(
     filename="example.log",
@@ -128,7 +132,7 @@ if __name__ == "__main__":
     transactions = get_transactions_transformed(transactions_raw)
     adv_stats = get_advanced_stats_transformed(adv_stats_raw)
     odds = get_odds_transformed(odds_raw)
-    reddit_comment_data = get_reddit_comments(reddit_data['reddit_url'])
+    reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
     pbp_data = get_pbp_data_transformed(
         boxscores
     )  # this uses the transformed boxscores
