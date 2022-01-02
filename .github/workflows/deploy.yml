@@ -1,10 +1,11 @@
 name: Deploy to ECR
-on: 
+
+on:
   push:
     branches:
       - master
-    pull_request:
-
+  pull_request:
+  
 jobs:
   pytest_build:
     name: Run Pytest & Deploy to coveralls.io
