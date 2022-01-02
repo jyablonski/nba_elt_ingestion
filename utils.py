@@ -121,8 +121,19 @@ reddit_cols = [
     "scrape_date",
     "scrape_time",
 ]
-reddit_comment_cols = ['comment', 'score', 'url', 'scrape_date', 'scrape_ts']
-odds_cols = ['team', 'spread', 'total', 'moneyline', 'date', 'datetime1']
+reddit_comment_cols = [
+    "comment",
+    "score",
+    "url",
+    "scrape_date",
+    "scrape_ts",
+    "compound",
+    "neg",
+    "neu",
+    "pos",
+    "sentiment",
+]
+odds_cols = ["team", "spread", "total", "moneyline", "date", "datetime1"]
 stats_cols = [
     "player",
     "pos",
@@ -828,7 +839,7 @@ def get_reddit_data(sub):
                     post.score,
                     post.id,
                     post.url,
-                    str(f'https://www.reddit.com{post.permalink}'),
+                    str(f"https://www.reddit.com{post.permalink}"),
                     post.num_comments,
                     post.selftext,
                     today,
@@ -864,6 +875,7 @@ def get_reddit_data(sub):
         data = []
         return data
 
+
 def get_reddit_comments(urls):
     """
     Web Scrape function w/ PRAW that iteratively extracts comments from provided reddit post urls
@@ -886,28 +898,42 @@ def get_reddit_comments(urls):
     url_list = []
     try:
         for i in urls:
-            submission = reddit.submission(url = i)
+            submission = reddit.submission(url=i)
             submission.comments.replace_more(limit=0)
             for comment in submission.comments.list():
                 comment_list.append(comment.body)
                 score_list.append(comment.score)
                 url_list.append(i)
-        df = pd.DataFrame({'comment':comment_list, 'score':score_list, 'url':url_list, 'scrape_date': datetime.now().date(), 'scrape_ts': datetime.now()})
+        df = pd.DataFrame(
+            {
+                "comment": comment_list,
+                "score": score_list,
+                "url": url_list,
+                "scrape_date": datetime.now().date(),
+                "scrape_ts": datetime.now(),
+            }
+        )
 
         # adding sentiment analysis columns
         analyzer = SentimentIntensityAnalyzer()
-        df['compound'] = [analyzer.polarity_scores(x)['compound'] for x in df['comment']]
-        df['neg'] = [analyzer.polarity_scores(x)['neg'] for x in df['comment']]
-        df['neu'] = [analyzer.polarity_scores(x)['neu'] for x in df['comment']]
-        df['pos'] = [analyzer.polarity_scores(x)['pos'] for x in df['comment']]
-        df['sentiment'] = np.where(df['compound'] > 0, 1, 0)
+        df["compound"] = [
+            analyzer.polarity_scores(x)["compound"] for x in df["comment"]
+        ]
+        df["neg"] = [analyzer.polarity_scores(x)["neg"] for x in df["comment"]]
+        df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["comment"]]
+        df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["comment"]]
+        df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
 
-        print(f'Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls')
-        logging.info(f'Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls')
+        print(
+            f"Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls"
+        )
+        logging.info(
+            f"Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls"
+        )
         return df
     except BaseException as e:
-        print(f'Reddit Comment Extraction Failed for url {i}, {e}')
-        logging.info(f'Reddit Comment Extraction Failed for url {i}, {e}')
+        print(f"Reddit Comment Extraction Failed for url {i}, {e}")
+        logging.info(f"Reddit Comment Extraction Failed for url {i}, {e}")
         df = []
         return df
 
@@ -1086,6 +1112,7 @@ def get_pbp_data_transformed(df):
         print(f"PBP Data Transformation Function Failed, {error}")
         data = []
         return data
+
 
 def sql_connection(schema="nba_source"):
     """
