@@ -6,3 +6,4 @@ praw==7.4.0
 lxml==4.6.3 
 html5lib==1.1 
 boto3==1.18.27
+nltk==3.6.1
