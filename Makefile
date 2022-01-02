@@ -28,3 +28,11 @@ docker-run:
 git-reset:
 	git rm -r --cached .
 	git add .
+
+PHONY: git-rebase
+git-rebase:
+	@git checkout master
+	@git pull
+	@git checkout feature_integration
+	@git rebase master
+	@git push

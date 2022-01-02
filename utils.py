@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
 
 today = datetime.now().date()
 todaytime = datetime.now()
@@ -891,6 +893,15 @@ def get_reddit_comments(urls):
                 score_list.append(comment.score)
                 url_list.append(i)
         df = pd.DataFrame({'comment':comment_list, 'score':score_list, 'url':url_list, 'scrape_date': datetime.now().date(), 'scrape_ts': datetime.now()})
+
+        # adding sentiment analysis columns
+        analyzer = SentimentIntensityAnalyzer()
+        df['compound'] = [analyzer.polarity_scores(x)['compound'] for x in df['comment']]
+        df['neg'] = [analyzer.polarity_scores(x)['neg'] for x in df['comment']]
+        df['neu'] = [analyzer.polarity_scores(x)['neu'] for x in df['comment']]
+        df['pos'] = [analyzer.polarity_scores(x)['pos'] for x in df['comment']]
+        df['sentiment'] = np.where(df['compound'] > 0, 1, 0)
+
         print(f'Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls')
         logging.info(f'Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls')
         return df

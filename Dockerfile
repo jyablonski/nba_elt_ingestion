@@ -32,5 +32,6 @@ USER appuser
 
 # copy all files in repo over
 COPY . .
+RUN [ "python3", "-c", "import nltk; nltk.download('vader_lexicon')" ]
 
 CMD ["python3", "app.py"]
