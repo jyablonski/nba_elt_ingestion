@@ -122,9 +122,13 @@ reddit_cols = [
     "scrape_time",
 ]
 reddit_comment_cols = [
+    "author",
     "comment",
     "score",
     "url",
+    "flair1",
+    "flair2",
+    "edited",
     "scrape_date",
     "scrape_ts",
     "compound",
@@ -893,27 +897,42 @@ def get_reddit_comments(urls):
         username=os.environ.get("reddit_user"),
         password=os.environ.get("reddit_pw"),
     )
+    author_list = []
     comment_list = []
     score_list = []
+    flair_list1 = []
+    flair_list2 = []
+    edited_list = []
     url_list = []
+
     try:
         for i in urls:
             submission = reddit.submission(url=i)
             submission.comments.replace_more(limit=0)
             for comment in submission.comments.list():
+                author_list.append(comment.author)
                 comment_list.append(comment.body)
                 score_list.append(comment.score)
+                flair_list1.append(comment.author_flair_css_class)
+                flair_list2.append(comment.author_flair_text)
+                edited_list.append(comment.edited)
                 url_list.append(i)
+
         df = pd.DataFrame(
             {
+                "author": author_list,
                 "comment": comment_list,
                 "score": score_list,
                 "url": url_list,
+                "flair1": flair_list1,
+                "flair2": flair_list2,
+                "edited": edited_list,
                 "scrape_date": datetime.now().date(),
                 "scrape_ts": datetime.now(),
             }
         )
 
+        df = df.astype({"author": str})
         # adding sentiment analysis columns
         analyzer = SentimentIntensityAnalyzer()
         df["compound"] = [
