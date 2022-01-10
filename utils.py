@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
+# twint = {git = "https://github.com/Museum-Barberini/twint.git"} in pipfile
+# import twint
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 
@@ -956,6 +958,43 @@ def get_reddit_comments(urls):
         df = []
         return df
 
+# cant use it for now, twint is broken, i dont wanna refactor entire dockerfile to install a random PR from git
+# def scrape_tweets(search_term: str):
+#     try:
+#         c = twint.Config()
+#         c.Search = search_term
+#         c.Limit = 2500      # number of Tweets to scrape
+#         c.Store_csv = True       # store tweets in a csv file
+#         c.Output = f"{search_term}_tweets.csv"     # path to csv file
+#         c.Hide_output = True
+
+#         twint.run.Search(c)
+#         df = pd.read_csv(f"{search_term}_tweets.csv")
+#         df = df[['id', 'created_at', 'date', 'username', 'tweet', 'language', 'link', 'likes_count', 'retweets_count', 'replies_count']].drop_duplicates()
+#         df['scrape_date'] = datetime.now().date()
+#         df['scrape_ts'] = datetime.now()
+#         df = df.query('language=="en"').groupby('id').agg('last') 
+
+#         analyzer = SentimentIntensityAnalyzer()
+#         df["compound"] = [
+#             analyzer.polarity_scores(x)["compound"] for x in df["tweet"]
+#         ]
+#         df["neg"] = [analyzer.polarity_scores(x)["neg"] for x in df["tweet"]]
+#         df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["tweet"]]
+#         df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["tweet"]]
+#         df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
+#         print(
+#             f"Twitter Tweet Extraction Success, retrieving {len(df)} total comments"
+#         )
+#         logging.info(
+#             f"Twitter Tweet Extraction Success, retrieving {len(df)} total comments"
+#         )
+#         return df
+#     except BaseException as e:
+#         print(f"Twitter Tweet Extraction Failed, {e}")
+#         logging.info(f"Twitter Tweet Extraction Failed, {e}")
+#         df = []
+#         return df
 
 def get_pbp_data_transformed(df):
     """

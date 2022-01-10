@@ -122,18 +122,17 @@ def odds_data():
     df = get_odds_transformed(df)
     return df
 
-
 @pytest.fixture(scope="session")
-def player_transformed_stats_data():
+def pbp_transformed_data():
     """
-    Fixture to load player stats data from a csv file for testing.
+    Fixture to load boxscores data from a csv file for PBP Transform testing.
     """
     fname = os.path.join(
-        os.path.dirname(__file__), "fixture_csvs/player_stats_data.csv"
+        os.path.dirname(__file__), "fixture_csvs/pbp_data.csv"
     )
-    stats = pd.read_csv(fname)
-    stats_transformed = get_player_stats_transformed(stats)
-    return stats_transformed
+    boxscores = pd.read_csv(fname, parse_dates=['date'])
+    pbp_transformed = get_pbp_data_transformed(boxscores)
+    return pbp_transformed
 
 
 @pytest.fixture(scope="session")
