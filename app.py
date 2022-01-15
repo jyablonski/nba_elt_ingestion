@@ -118,6 +118,7 @@ if __name__ == "__main__":
     odds_raw = get_odds_data()
     reddit_data = get_reddit_data("nba")  # doesnt need transformation
     opp_stats_raw = get_opp_stats_data()
+    twitter_data = scrape_tweets("nba")
 
     print("FINISHED WEB SCRAPE")
     logging.info("FINISHED WEB SCRAPE")
@@ -155,6 +156,7 @@ if __name__ == "__main__":
     validate_schema(reddit_comment_data, reddit_comment_cols)
     validate_schema(odds, odds_cols)
     validate_schema(transactions, transactions_cols)
+    validate_schema(twitter_data, twitter_cols)
 
     print("FINISHED SCHEMA VALIDATION")
     logging.info("FINISHED SCHEMA VALIDATION")
@@ -174,6 +176,7 @@ if __name__ == "__main__":
     write_to_sql(conn, reddit_comment_data, "append")
     write_to_sql(conn, pbp_data, "append")
     write_to_sql(conn, opp_stats, "append")
+    write_to_sql(conn, twitter_data, "append")
 
     # STEP 5: Grab Logs from previous steps & send email out detailing notable events
     logs = pd.read_csv("example.log", sep=r"\\t", engine="python", header=None)

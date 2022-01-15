@@ -13,6 +13,7 @@ html5lib = "==1.1"
 boto3 = "==1.18.27"
 SQLAlchemy = "==1.4.22"
 nltk = "*"
+twint = {ref = "fix/RefreshTokenException", git = "https://github.com/Museum-Barberini/twint.git"}
 
 [dev-packages]
 black = "==19.10b0"
