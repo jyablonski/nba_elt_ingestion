@@ -122,15 +122,14 @@ def odds_data():
     df = get_odds_transformed(df)
     return df
 
+
 @pytest.fixture(scope="session")
 def pbp_transformed_data():
     """
     Fixture to load boxscores data from a csv file for PBP Transform testing.
     """
-    fname = os.path.join(
-        os.path.dirname(__file__), "fixture_csvs/pbp_data.csv"
-    )
-    boxscores = pd.read_csv(fname, parse_dates=['date'])
+    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/pbp_data.csv")
+    boxscores = pd.read_csv(fname, parse_dates=["date"])
     pbp_transformed = get_pbp_data_transformed(boxscores)
     return pbp_transformed
 
@@ -141,4 +140,25 @@ def logs_data():
     Fixture to load dummy error logs for testing
     """
     df = pd.DataFrame({"errors": "Test... Failure"})
+    return df
+
+
+##### NEW TESTS
+@pytest.fixture(scope="session")
+def player_stats_data_raw(monkeypatch):
+    """
+    Fixture to load web scrape html from an html file for testing.
+    """
+    fname = os.path.join(
+        os.path.dirname(__file__), "tests/fixture_csvs/stats_html.html"
+    )
+
+    with open(fname, "rb") as fp:
+        stats = fp.read()
+
+    def mock_urlopen():
+        return stats
+
+    monkeypatch.setattr(urlopen, "url", mock_urlopen)
+    df = get_player_stats_data()
     return df

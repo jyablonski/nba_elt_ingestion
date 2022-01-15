@@ -30,6 +30,7 @@ def test_ses_execution_no_logs(aws_credentials):
     execute_email_function(logs)
     assert ses.verify_email_identity(EmailAddress="jyablonski9@gmail.com")
 
+
 # WRITE TO SQL TESTS
 def test_player_stats_sql(setup_database, player_stats_data):
     df = player_stats_data
@@ -45,6 +46,7 @@ def test_player_stats_sql(setup_database, player_stats_data):
     cursor.close()
     assert df_len == 384
 
+
 # table has to get created from ^ first, other wise this will error out.
 def test_write_to_sql(setup_database, player_stats_data):
     conn = setup_database.cursor()
@@ -53,6 +55,7 @@ def test_write_to_sql(setup_database, player_stats_data):
     )  # remember it creates f"aws_{data_name}_source" table
     df_len = len(list(conn.execute("SELECT * FROM aws_player_stats_data_source")))
     assert df_len == 384
+
 
 def test_write_to_sql_no_data(setup_database):
     conn = setup_database.cursor()
@@ -64,9 +67,11 @@ def test_write_to_sql_no_data(setup_database):
     assert len(player_stats_data) + df_len == 384
     assert len(player_stats_data) == 0
 
+
 # SCHEMA VALIDATION + ROW COUNT TESTS
 def test_player_stats_rows(player_stats_data):
     assert len(player_stats_data) == 384
+
 
 def test_player_stats_schema(player_stats_data):
     assert list(player_stats_data.columns) == stats_cols
@@ -75,12 +80,14 @@ def test_player_stats_schema(player_stats_data):
 def test_boxscores_schema(boxscores_data):
     assert list(boxscores_data.columns) == boxscores_cols
 
+
 def test_boxscores_rows(boxscores_data):
     assert len(boxscores_data) == 171
 
 
 def test_opp_stats_schema(opp_stats_data):
     assert list(opp_stats_data.columns) == opp_stats_cols
+
 
 def test_opp_stats_rows(opp_stats_data):
     assert len(opp_stats_data) == 30
@@ -89,12 +96,14 @@ def test_opp_stats_rows(opp_stats_data):
 def test_odds_schema(odds_data):
     assert list(odds_data.columns) == odds_cols
 
+
 def test_odds_rows(odds_data):
     assert len(odds_data) == 26
 
 
 def test_injuries_schema(injuries_data):
     assert list(injuries_data.columns) == injury_cols
+
 
 def test_injuries_rows(injuries_data):
     assert len(injuries_data) == 65
@@ -103,12 +112,14 @@ def test_injuries_rows(injuries_data):
 def test_transactions_schema(transactions_data):
     assert list(transactions_data.columns) == transactions_cols
 
+
 def test_transactions_rows(transactions_data):
     assert len(transactions_data) == 77
 
 
 def test_advanced_stats_schema(advanced_stats_data):
     assert list(advanced_stats_data.columns) == adv_stats_cols
+
 
 def test_advanced_stats_rows(advanced_stats_data):
     assert len(advanced_stats_data) == 31
@@ -117,5 +128,12 @@ def test_advanced_stats_rows(advanced_stats_data):
 def test_pbp_schema(pbp_transformed_data):
     assert list(pbp_transformed_data.columns) == pbp_cols
 
+
 def test_pbp_rows(pbp_transformed_data):
     assert len(pbp_transformed_data) == 1184
+
+
+### WIP for raw html testing
+
+# def test_raw_stats_rows(player_stats_data_raw):
+#     assert len(player_stats_data_raw) == 1
