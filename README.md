@@ -1,4 +1,4 @@
-# Version: 1.1.3
+# Version: 1.1.4
 
 # ![Tests](https://github.com/jyablonski/python_docker/actions/workflows/deploy.yml/badge.svg)
 
