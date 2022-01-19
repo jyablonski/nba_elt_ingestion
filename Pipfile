@@ -12,8 +12,9 @@ lxml = "==4.6.3"
 html5lib = "==1.1"
 boto3 = "==1.18.27"
 SQLAlchemy = "==1.4.22"
-nltk = "*"
+nltk = "==3.6.7"
 twint = {ref = "fix/RefreshTokenException", git = "https://github.com/Museum-Barberini/twint.git"}
+requests = "==2.27.1"
 
 [dev-packages]
 black = "==19.10b0"
