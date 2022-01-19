@@ -135,5 +135,8 @@ def test_pbp_rows(pbp_transformed_data):
 
 ### WIP for raw html testing
 
-# def test_raw_stats_rows(player_stats_data_raw):
-#     assert len(player_stats_data_raw) == 1
+def test_raw_stats_rows(player_stats_data_raw):
+    assert len(player_stats_data_raw) == 0
+
+# def test_raw_stats_schema(player_stats_data_raw):
+#     assert list(player_stats_data_raw.columns) == raw_stats_cols

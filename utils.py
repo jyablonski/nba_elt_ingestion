@@ -1,7 +1,8 @@
 import os
 import logging
-from urllib.request import urlopen
+import requests
 from datetime import datetime, timedelta
+
 import numpy as np
 import pandas as pd
 import praw
@@ -205,7 +206,7 @@ def get_player_stats_data():
         url = "https://www.basketball-reference.com/leagues/NBA_{}_per_game.html".format(
             year_stats
         )
-        html = urlopen(url)
+        html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
 
         headers = [th.getText() for th in soup.findAll("tr", limit=2)[0].findAll("th")]
@@ -284,7 +285,7 @@ def get_boxscores_data(month=month, day=day, year=year):
     url = f"https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={month}&day={day}&year={year}&type=all"
 
     try:
-        html = urlopen(url)
+        html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
         headers = [th.getText() for th in soup.findAll("tr", limit=2)[0].findAll("th")]
         headers = headers[1:]
@@ -309,12 +310,21 @@ def get_boxscores_data(month=month, day=day, year=year):
 
         df = pd.DataFrame(player_stats, columns=headers)
         return df
-    except BaseException as error:
+    except IndexError as error:
         logging.info(
             f"Box Score Extraction Function Failed, {error}, no data available for {year}-{month}-{day}"
         )
         print(
             f"Box Score Extraction Function Failed, {error}, no data available for {year}-{month}-{day}"
+        )
+        df = []
+        return df      
+    except BaseException as error:
+        logging.info(
+            f"Box Score Extraction Function Failed, {error}"
+        )
+        print(
+            f"Box Score Extraction Function Failed, {error}"
         )
         df = []
         return df
@@ -379,7 +389,7 @@ def get_boxscores_transformed(df):
         df = df.query("Player == Player").reset_index(drop=True)
         df["Player"] = (
             df["Player"]
-            .str.normalize("NFKD")
+            .str.normalize("NFKD")  # this is removing all accented characters
             .str.encode("ascii", errors="ignore")
             .str.decode("utf-8")
         )
@@ -521,7 +531,7 @@ def get_transactions_data():
     """
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
-        html = urlopen(url)
+        html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
         # theres a bunch of garbage in the first 50 rows - no matter what
         trs = soup.findAll("li")[70:]
@@ -1012,9 +1022,9 @@ def scrape_tweets(search_term: str):
         df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["tweet"]]
         df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["tweet"]]
         df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
-        print(f"Twitter Tweet Extraction Success, retrieving {len(df)} total comments")
+        print(f"Twitter Tweet Extraction Success, retrieving {len(df)} total tweets")
         logging.info(
-            f"Twitter Tweet Extraction Success, retrieving {len(df)} total comments"
+            f"Twitter Tweet Extraction Success, retrieving {len(df)} total tweets"
         )
         return df
     except BaseException as e:

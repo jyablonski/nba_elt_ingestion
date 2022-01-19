@@ -1,5 +1,6 @@
 import os
 import pickle
+import requests
 import pytest
 import pytest_mock
 import sqlite3
@@ -142,23 +143,22 @@ def logs_data():
     df = pd.DataFrame({"errors": "Test... Failure"})
     return df
 
-
 ##### NEW TESTS
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def player_stats_data_raw(monkeypatch):
     """
     Fixture to load web scrape html from an html file for testing.
     """
     fname = os.path.join(
-        os.path.dirname(__file__), "tests/fixture_csvs/stats_html.html"
+        os.path.dirname(__file__), "fixture_csvs/stats_html.html"
     )
 
     with open(fname, "rb") as fp:
-        stats = fp.read()
+        html = fp.read()
 
-    def mock_urlopen():
-        return stats
+    def mock_get():
+        return html
 
-    monkeypatch.setattr(urlopen, "url", mock_urlopen)
+    monkeypatch.setattr(requests, "get", mock_get)
     df = get_player_stats_data()
     return df
