@@ -5,6 +5,7 @@ import pandas as pd
 from app import write_to_sql, send_aws_email, execute_email_function
 from utils import adv_stats_cols, boxscores_cols, injury_cols, opp_stats_cols
 from utils import pbp_cols, odds_cols, stats_cols, transactions_cols
+from utils import get_player_stats_data
 
 # SES TESTS
 @mock_ses
@@ -135,8 +136,13 @@ def test_pbp_rows(pbp_transformed_data):
 
 ### WIP for raw html testing
 
-def test_raw_stats_rows(player_stats_data_raw):
-    assert len(player_stats_data_raw) == 0
+# def test_raw_stats_rows(player_stats_data_raw):
+#     assert len(player_stats_data_raw) == 0
 
 # def test_raw_stats_schema(player_stats_data_raw):
 #     assert list(player_stats_data_raw.columns) == raw_stats_cols
+
+# NEW NEW
+# def test_raw_stats_rows(player_stats_html_get):
+#     df = get_player_stats_data()
+#     assert len(df) == 425
