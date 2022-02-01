@@ -22,6 +22,8 @@ jobs:
         run: |
           touch .coveralls.yml
           echo repo_token: "$repo_token" >> .coveralls.yml
+          mkdir logs
+          cat > logs/example.log
         shell: bash
       - name: Install dependencies
         run: |

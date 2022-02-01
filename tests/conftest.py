@@ -143,22 +143,34 @@ def logs_data():
     df = pd.DataFrame({"errors": "Test... Failure"})
     return df
 
+
 ##### NEW TESTS
+# @pytest.fixture()
+# def player_stats_data_raw(monkeypatch):
+#     """
+#     Fixture to load web scrape html from an html file for testing.
+#     """
+#     fname = os.path.join(
+#         os.path.dirname(__file__), "fixture_csvs/stats_html.html"
+#     )
+
+#     with open(fname, "rb") as fp:
+#         html = fp.read()
+
+#     def mock_get():
+#         return html
+
+#     monkeypatch.setattr(requests, "get", mock_get)
+#     df = get_player_stats_data()
+#     return df
+
+
 @pytest.fixture()
-def player_stats_data_raw(monkeypatch):
-    """
-    Fixture to load web scrape html from an html file for testing.
-    """
-    fname = os.path.join(
-        os.path.dirname(__file__), "fixture_csvs/stats_html.html"
-    )
-
+def player_stats_html_get(mocker):
+    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/stats_html.html")
     with open(fname, "rb") as fp:
-        html = fp.read()
+        html_data = fp.read()
 
-    def mock_get():
-        return html
-
-    monkeypatch.setattr(requests, "get", mock_get)
-    df = get_player_stats_data()
-    return df
+    html = mocker.patch("requests.get")
+    html.return_value = html_data
+    return html
