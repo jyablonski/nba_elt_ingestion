@@ -1,6 +1,6 @@
 import os
 import logging
-from urllib.request import urlopen
+import requests
 from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
@@ -11,7 +11,17 @@ import boto3
 from botocore.exceptions import ClientError
 from utils import *
 
-print("STARTING NBA ELT PIPELINE SCRIPT Version: 1.1.6")
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(levelname)s] %(asctime)s %(message)s",
+    datefmt="%Y-%m-%d %I:%M:%S %p",
+    handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
+)
+logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
+
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.1.6")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.1.6")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.1.6")
 
 # helper sql function - has to be here & not utils bc of globals().items()
 def write_to_sql(con, data, table_type):
@@ -31,7 +41,6 @@ def write_to_sql(con, data, table_type):
         data_name = [k for k, v in globals().items() if v is data][0]
         # ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
         if len(data) == 0:
-            print(f"{data_name} is empty, not writing to SQL")
             logging.info(f"{data_name} is empty, not writing to SQL")
         else:
             data.to_sql(
@@ -40,11 +49,9 @@ def write_to_sql(con, data, table_type):
                 index=False,
                 if_exists=table_type,
             )
-            print(f"Writing aws_{data_name}_source to SQL")
             logging.info(f"Writing aws_{data_name}_source to SQL")
     except BaseException as error:
-        logging.info(f"SQL Write Script Failed, {error}")
-        print(f"SQL Write Script Failed, {error}")
+        logging.error(f"SQL Write Script Failed, {error}")
         return error
 
 
@@ -66,31 +73,18 @@ def validate_schema(data_df, schema):
         if (
             len(data_df) == 0
         ):  # this has to be first to deal with both empty lists + valid data frames
-            logging.info(f"Schema Validation Failed for {data_name}, df is empty")
-            return print(f"Schema Validation Failed for {data_name}, df is empty")
+            logging.error(f"Schema Validation Failed for {data_name}, df is empty")
         elif list(data_df.columns) == schema:
             logging.info(f"Schema Validation Passed for {data_name}")
-            return print(f"Schema Validation Passed for {data_name}")
         else:
-            logging.info(f"Schema Validation Failed for {data_name}")
-            return print(f"Schema Validation Failed for {data_name}")
+            logging.error(f"Schema Validation Failed for {data_name}")
     except BaseException as e:
-        print(f"Schema Validation Failed for {data_name}, {e}")
-        logging.info(f"Schema Validation Failed for {data_name}, {e}")
+        logging.error(f"Schema Validation Failed for {data_name}, {e}")
         pass
 
 
-logging.basicConfig(
-    filename="example.log",
-    level=logging.DEBUG,
-    format="%(asctime)s %(message)s",
-    datefmt="%m/%d/%Y %I:%M:%S %p",
-)
-
-print("Starting Logging Function")
 logging.info("Starting Logging Function")
 
-print("LOADED FUNCTIONS")
 logging.info("LOADED FUNCTIONS")
 
 today = datetime.now().date()
@@ -106,7 +100,6 @@ else:
 
 
 if __name__ == "__main__":
-    print("STARTING WEB SCRAPE")
     logging.info("STARTING WEB SCRAPE")
 
     # STEP 1: Extract Raw Data
@@ -120,11 +113,9 @@ if __name__ == "__main__":
     opp_stats_raw = get_opp_stats_data()
     twitter_data = scrape_tweets("nba")
 
-    print("FINISHED WEB SCRAPE")
     logging.info("FINISHED WEB SCRAPE")
 
     # STEP 2: Transform data
-    print("STARTING DATA TRANSFORMATIONS")
     logging.info("STARTING DATA TRANSFORMATIONS")
 
     stats = get_player_stats_transformed(stats_raw)
@@ -139,10 +130,8 @@ if __name__ == "__main__":
     )  # this uses the transformed boxscores
     opp_stats = get_opp_stats_transformed(opp_stats_raw)
 
-    print("FINISHED DATA TRANSFORMATIONS")
     logging.info("FINISHED DATA TRANSFORMATIONS")
 
-    print("STARTING SCHEMA VALIDATION")
     logging.info("STARTING SCHEMA VALIDATION")
 
     # STEP 3: Validating Schemas - 1 for each SQL Write
@@ -158,14 +147,12 @@ if __name__ == "__main__":
     validate_schema(transactions, transactions_cols)
     validate_schema(twitter_data, twitter_cols)
 
-    print("FINISHED SCHEMA VALIDATION")
     logging.info("FINISHED SCHEMA VALIDATION")
 
-    print("STARTING SQL STORING")
     logging.info("STARTING SQL STORING")
 
     # STEP 4: Append Transformed Data to SQL
-    conn = sql_connection(schema="nba_source")
+    conn = sql_connection(os.environ.get("RDS_SCHEMA"))
     write_to_sql(conn, stats, "append")
     write_to_sql(conn, boxscores, "append")
     write_to_sql(conn, injury_data, "append")
@@ -179,9 +166,9 @@ if __name__ == "__main__":
     write_to_sql(conn, twitter_data, "append")
 
     # STEP 5: Grab Logs from previous steps & send email out detailing notable events
-    logs = pd.read_csv("example.log", sep=r"\\t", engine="python", header=None)
+    logs = pd.read_csv("logs/example.log", sep=r"\\t", engine="python", header=None)
     logs = logs.rename(columns={0: "errors"})
     logs = logs.query("errors.str.contains('Failed')", engine="python")
     execute_email_function(logs)
 
-print("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.1.6")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.1.6")

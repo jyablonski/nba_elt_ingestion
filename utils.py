@@ -221,13 +221,9 @@ def get_player_stats_data():
         logging.info(
             f"General Stats Extraction Function Successful, retrieving {len(stats)} updated rows"
         )
-        print(
-            f"General Stats Extraction Function Successful, retrieving {len(stats)} updated rows"
-        )
         return stats
     except BaseException as error:
-        logging.info(f"General Stats Extraction Function Failed, {error}")
-        print(f"General Stats Extraction Function Failed, {error}")
+        logging.error(f"General Stats Extraction Function Failed, {error}")
         df = []
         return df
 
@@ -257,13 +253,9 @@ def get_player_stats_transformed(df):
         logging.info(
             f"General Stats Transformation Function Successful, retrieving {len(stats)} updated rows"
         )
-        print(
-            f"General Stats Transformation Function Successful, retrieving {len(stats)} updated rows"
-        )
         return stats
     except BaseException as error:
-        logging.info(f"General Stats Transformation Function Failed, {error}")
-        print(f"General Stats Transformation Function Failed, {error}")
+        logging.error(f"General Stats Transformation Function Failed, {error}")
         df = []
         return df
 
@@ -311,21 +303,13 @@ def get_boxscores_data(month=month, day=day, year=year):
         df = pd.DataFrame(player_stats, columns=headers)
         return df
     except IndexError as error:
-        logging.info(
-            f"Box Score Extraction Function Failed, {error}, no data available for {year}-{month}-{day}"
-        )
-        print(
+        logging.warning(
             f"Box Score Extraction Function Failed, {error}, no data available for {year}-{month}-{day}"
         )
         df = []
-        return df      
+        return df
     except BaseException as error:
-        logging.info(
-            f"Box Score Extraction Function Failed, {error}"
-        )
-        print(
-            f"Box Score Extraction Function Failed, {error}"
-        )
+        logging.error(f"Box Score Extraction Function Failed, {error}")
         df = []
         return df
 
@@ -397,15 +381,9 @@ def get_boxscores_transformed(df):
         logging.info(
             f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
-        print(
-            f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
-        )
         return df
     except BaseException as error:
-        logging.info(
-            f"Box Score Function Failed, {error}, no data available for {year}-{month}-{day}"
-        )
-        print(
+        logging.error(
             f"Box Score Function Failed, {error}, no data available for {year}-{month}-{day}"
         )
         df = []
@@ -428,13 +406,9 @@ def get_opp_stats_data():
         logging.info(
             f"Opp Stats Web Scrape Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
-        print(
-            f"Opp Stats Web Scrape Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
-        )
         return df
     except BaseException as error:
-        logging.info(f"Opp Stats Web Scrape Function Failed, {error}")
-        print(f"Opp Stats Web Scrape Function Failed, {error}")
+        logging.error(f"Opp Stats Web Scrape Function Failed, {error}")
         df = []
         return df
 
@@ -457,13 +431,9 @@ def get_opp_stats_transformed(df):
         logging.info(
             f"Opp Stats Transformation Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
-        print(
-            f"Opp Stats Transformation Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
-        )
         return df
     except BaseException as error:
-        logging.info(f"Opp Stats Function Failed, {error}")
-        print(f"Opp Stats Function Failed, {error}")
+        logging.error(f"Opp Stats Function Failed, {error}")
         df = []
         return df
 
@@ -484,11 +454,9 @@ def get_injuries_data():
         logging.info(
             f"Injury Web Scrape Function Successful, retrieving {len(df)} rows"
         )
-        print(f"Injury Web Scrape Function Successful, retrieving {len(df)} rows")
         return df
     except BaseException as error:
-        logging.info(f"Injury Web Scrape Function Failed, {error}")
-        print(f"Injury Web Scrape Function Failed, {error}")
+        logging.error(f"Injury Web Scrape Function Failed, {error}")
         df = []
         return df
 
@@ -510,11 +478,9 @@ def get_injuries_transformed(df):
         logging.info(
             f"Injury Transformation Function Successful, retrieving {len(df)} rows"
         )
-        print(f"Injury Transformation Function Successful, retrieving {len(df)} rows")
         return df
     except BaseException as error:
-        logging.info(f"Injury Transformation Function Failed, {error}")
-        print(f"Injury Transformation Function Failed, {error}")
+        logging.error(f"Injury Transformation Function Failed, {error}")
         df = []
         return df
 
@@ -553,13 +519,9 @@ def get_transactions_data():
         logging.info(
             f"Transactions Web Scrape Function Successful, retrieving {len(transactions)} rows"
         )
-        print(
-            f"Transactions Web Scrape Function Successful, retrieving {len(transactions)} rows"
-        )
         return transactions
     except BaseException as error:
-        logging.info(f"Transaction Web Scrape Function Failed, {error}")
-        print(f"Transactions Web Scrape Failed, {error}")
+        logging.error(f"Transaction Web Scrape Function Failed, {error}")
         df = []
         return df
 
@@ -591,13 +553,9 @@ def get_transactions_transformed(df):
         logging.info(
             f"Transactions Transformation Function Successful, retrieving {len(transactions)} rows"
         )
-        print(
-            f"Transactions Transformation Function Successful, retrieving {len(transactions)} rows"
-        )
         return transactions
     except BaseException as error:
-        logging.info(f"Transaction Transformation Function Failed, {error}")
-        print(f"Transactions Transformation Failed, {error}")
+        logging.error(f"Transaction Transformation Function Failed, {error}")
         df = []
         return df
 
@@ -619,13 +577,9 @@ def get_advanced_stats_data():
         logging.info(
             f"Advanced Stats Web Scrape Function Successful, retrieving updated data for 30 Teams"
         )
-        print(
-            f"Advanced Stats Web Scrape Function Successful, retrieving updated data for 30 Teams"
-        )
         return df
     except BaseException as error:
-        logging.info(f"Advanced Stats Web Scrape Function Failed, {error}")
-        print(f"Advanced Stats Web Scrape Function Failed, {error}")
+        logging.error(f"Advanced Stats Web Scrape Function Failed, {error}")
         df = []
         return df
 
@@ -683,13 +637,9 @@ def get_advanced_stats_transformed(df):
         logging.info(
             f"Advanced Stats Transformation Function Successful, retrieving updated data for 30 Teams"
         )
-        print(
-            f"Advanced Stats Transformation Function Successful, retrieving updated data for 30 Teams"
-        )
         return df
     except BaseException as error:
-        logging.info(f"Advanced Stats Transformation Function Failed, {error}")
-        print(f"Advanced Stats Transformation Function Failed, {error}")
+        logging.error(f"Advanced Stats Transformation Function Failed, {error}")
         df = []
         return df
 
@@ -709,9 +659,6 @@ def get_odds_data():
     try:
         url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
         df = pd.read_html(url)
-        print(
-            f"Odds Web Scrape Function Successful for {len(df)} day, retrieving {len(df)} day objects"
-        )
         logging.info(
             f"Odds Web Scrape Function Successful {len(df)} day, retrieving {len(df)} day objects"
         )
@@ -720,8 +667,7 @@ def get_odds_data():
         BaseException,
         ValueError,
     ) as error:  # valueerror fucked shit up apparently idfk
-        print(f"Odds Function Failed for {len(df)} day, {error}")
-        logging.info(f"Odds Function Failed {len(df)} day, {error}")
+        logging.error(f"Odds Function Failed {len(df)} day, {error}")
         df = []
         return df
 
@@ -801,9 +747,6 @@ def get_odds_transformed(df):
             ]
             data = data.rename(columns={data.columns[0]: "team"})
             data = data.query("date == date.min()")  # only grab games from upcoming day
-            print(
-                f"Odds Transformation Function Successful for {len(df)} day, retrieving {len(data)} rows"
-            )
             logging.info(
                 f"Odds Transformation Function Successful {len(df)} day, retrieving {len(data)} rows"
             )
@@ -828,16 +771,12 @@ def get_odds_transformed(df):
             ]
             data = data.rename(columns={data.columns[0]: "team"})
             data = data.query("date == date.min()")  # only grab games from upcoming day
-            print(
-                f"Odds Transformation Function Successful for {len(df)} day, retrieving {len(data)} rows"
-            )
             logging.info(
                 f"Odds Transformation Function Successful {len(df)} day, retrieving {len(data)} rows"
             )
             return data
     except BaseException as error:
-        print(f"Odds Transformation Function Failed for {len(df)} day objects, {error}")
-        logging.info(
+        logging.error(
             f"Odds Transformation Function Failed for {len(df)} day objects, {error}"
         )
         data = []
@@ -895,16 +834,12 @@ def get_reddit_data(sub):
         )
         posts.columns = posts.columns.str.lower()
 
-        print(
-            f"Reddit Scrape Successful, grabbing 27 Recent popular posts from r/{sub} subreddit"
-        )
         logging.info(
             f"Reddit Scrape Successful, grabbing 27 Recent popular posts from r/{sub} subreddit"
         )
         return posts
     except BaseException as error:
-        logging.info(f"Reddit Scrape Function Failed, {error}")
-        print(f"Reddit Scrape Function Failed, {error}")
+        logging.error(f"Reddit Scrape Function Failed, {error}")
         data = []
         return data
 
@@ -972,16 +907,12 @@ def get_reddit_comments(urls):
         df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["comment"]]
         df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
 
-        print(
-            f"Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls"
-        )
         logging.info(
             f"Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls"
         )
         return df
     except BaseException as e:
-        print(f"Reddit Comment Extraction Failed for url {i}, {e}")
-        logging.info(f"Reddit Comment Extraction Failed for url {i}, {e}")
+        logging.error(f"Reddit Comment Extraction Failed for url {i}, {e}")
         df = []
         return df
 
@@ -1022,14 +953,12 @@ def scrape_tweets(search_term: str):
         df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["tweet"]]
         df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["tweet"]]
         df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
-        print(f"Twitter Tweet Extraction Success, retrieving {len(df)} total tweets")
         logging.info(
             f"Twitter Tweet Extraction Success, retrieving {len(df)} total tweets"
         )
         return df
     except BaseException as e:
-        print(f"Twitter Tweet Extraction Failed, {e}")
-        logging.info(f"Twitter Tweet Extraction Failed, {e}")
+        logging.error(f"Twitter Tweet Extraction Failed, {e}")
         df = []
         return df
 
@@ -1037,7 +966,7 @@ def scrape_tweets(search_term: str):
 def get_pbp_data_transformed(df):
     """
     Web Scrape function w/ pandas read_html that uses aliases via boxscores function
-    to scrape the pbp data interactively for each game played the previous day
+    to scrape the pbp data iteratively for each game played the previous day
 
     Args:
         df (Pandas DataFrame) - the DataFrame result from running the boxscores function.
@@ -1188,29 +1117,23 @@ def get_pbp_data_transformed(df):
                 logging.info(
                     f"PBP Data Transformation Function Successful, retrieving {len(pbp_list)} rows for {year}-{month}-{day}"
                 )
-                print(
-                    f"PBP Data Transformation Function Successful, retrieving {len(pbp_list)} rows for {year}-{month}-{day}"
-                )
                 # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
                 return pbp_list
             except BaseException as error:
-                logging.info(f"PBP Data Transformation Logic Failed, {error}")
-                print(f"PBP Data Transformation Logic Failed, {error}")
+                logging.error(f"PBP Data Transformation Logic Failed, {error}")
                 df = []
                 return df
         else:
             df = []
-            logging.info("PBP Function No Data Yesterday")
-            print("PBP Function No Data Yesterday")
+            logging.warning("PBP Function No Data Yesterday")
             return df
     except BaseException as error:
-        logging.info(f"PBP Data Transformation Function Failed, {error}")
-        print(f"PBP Data Transformation Function Failed, {error}")
+        logging.error(f"PBP Data Transformation Function Failed, {error}")
         data = []
         return data
 
 
-def sql_connection(schema="nba_source"):
+def sql_connection(rds_schema):
     """
     SQL Connection function connecting to my postgres db with schema = nba_source where initial data in ELT lands
 
@@ -1227,16 +1150,14 @@ def sql_connection(schema="nba_source"):
     try:
         connection = create_engine(
             f"postgresql+psycopg2://{RDS_USER}:{RDS_PW}@{RDS_IP}:5432/{RDS_DB}",
-            connect_args={"options": f"-csearch_path={schema}"},
+            connect_args={"options": f"-csearch_path={rds_schema}"},
             # defining schema to connect to
             echo=False,
         )
-        logging.info(f"SQL Connection to schema: {schema} Successful")
-        print(f"SQL Connection to schema: {schema} Successful")
+        logging.info(f"SQL Connection to schema: {rds_schema} Successful")
         return connection
     except exc.SQLAlchemyError as e:
-        logging.info(f"SQL Connection to schema: {schema} Failed, Error: {e}")
-        print(f"SQL Connection to schema: {schema} Failed, Error: {e}")
+        logging.error(f"SQL Connection to schema: {rds_schema} Failed, Error: {e}")
         return e
 
 
@@ -1275,10 +1196,10 @@ def send_aws_email(logs):
             Source=sender,
         )
     except ClientError as e:
-        print(e.response["Error"]["Message"])
+        logging.info(e.response["Error"]["Message"])
     else:
-        print("Email sent! Message ID:"),
-        print(response["MessageId"])
+        logging.info("Email sent! Message ID:"),
+        logging.info(response["MessageId"])
 
 
 def execute_email_function(logs):
@@ -1293,11 +1214,10 @@ def execute_email_function(logs):
     """
     try:
         if len(logs) > 0:
-            print("Sending Email")
+            logging.info("Sending Email")
             send_aws_email(logs)
         elif len(logs) == 0:
-            print("No Errors!")
+            logging.info("No Errors!")
             send_aws_email(logs)
     except BaseException as error:
-        logging.info(f"Failed Email Alert, {error}")
-        print(f"Failed Email Alert, {error}")
+        logging.error(f"Failed Email Alert, {error}")
