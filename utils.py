@@ -1132,6 +1132,7 @@ def get_pbp_data_transformed(df):
         data = []
         return data
 
+
 def sql_connection(rds_schema):
     """
     SQL Connection function connecting to my postgres db with schema = nba_source where initial data in ELT lands
