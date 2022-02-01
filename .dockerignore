@@ -1,4 +1,6 @@
 .gitignore
+.gitattributes
+.git
 *.env
 .env
 .github
@@ -20,3 +22,7 @@ great_expectations/*
 .bumpversion.cfg
 Makefile
 __pycache__
+logs
+VERSION
+requirements.txt
+.coveragerc
