@@ -1,4 +1,4 @@
-# Version: 1.2.1
+# Version: 1.2.2
 
 # ![Tests](https://github.com/jyablonski/python_docker/actions/workflows/prod_test.yml/badge.svg)
 # ![ECR Deployment](https://github.com/jyablonski/python_docker/actions/workflows/prod_deploy.yml/badge.svg)
