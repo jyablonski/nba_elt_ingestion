@@ -26,6 +26,8 @@ WORKDIR /home/appuser
 USER appuser
 
 COPY app.py ./app.py
+COPY utils.py ./utils.py
+
 RUN mkdir logs
 RUN cat > logs/example.log
 RUN ["python3", "-c", "import nltk; nltk.download('vader_lexicon')"]
