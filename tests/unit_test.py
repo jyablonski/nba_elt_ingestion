@@ -2,10 +2,12 @@ import pytest
 from moto import mock_ses
 import boto3
 import pandas as pd
+import numpy as np
 from app import write_to_sql, send_aws_email, execute_email_function
 from utils import adv_stats_cols, boxscores_cols, injury_cols, opp_stats_cols
 from utils import pbp_cols, odds_cols, stats_cols, transactions_cols
 from utils import get_player_stats_data
+from tests.schema import *
 
 # SES TESTS
 @mock_ses
@@ -75,11 +77,11 @@ def test_player_stats_rows(player_stats_data):
 
 
 def test_player_stats_schema(player_stats_data):
-    assert list(player_stats_data.columns) == stats_cols
+    assert player_stats_data.dtypes.to_dict() == stats_schema
 
 
 def test_boxscores_schema(boxscores_data):
-    assert list(boxscores_data.columns) == boxscores_cols
+    assert boxscores_data.dtypes.to_dict() == boxscores_schema
 
 
 def test_boxscores_rows(boxscores_data):
@@ -87,7 +89,7 @@ def test_boxscores_rows(boxscores_data):
 
 
 def test_opp_stats_schema(opp_stats_data):
-    assert list(opp_stats_data.columns) == opp_stats_cols
+    assert opp_stats_data.dtypes.to_dict() == opp_stats_schema
 
 
 def test_opp_stats_rows(opp_stats_data):
@@ -95,7 +97,7 @@ def test_opp_stats_rows(opp_stats_data):
 
 
 def test_odds_schema(odds_data):
-    assert list(odds_data.columns) == odds_cols
+    assert odds_data.dtypes.to_dict() == odds_schema
 
 
 def test_odds_rows(odds_data):
@@ -103,7 +105,7 @@ def test_odds_rows(odds_data):
 
 
 def test_injuries_schema(injuries_data):
-    assert list(injuries_data.columns) == injury_cols
+    assert injuries_data.dtypes.to_dict() == injury_schema
 
 
 def test_injuries_rows(injuries_data):
@@ -111,7 +113,7 @@ def test_injuries_rows(injuries_data):
 
 
 def test_transactions_schema(transactions_data):
-    assert list(transactions_data.columns) == transactions_cols
+    assert transactions_data.dtypes.to_dict() == transactions_schema
 
 
 def test_transactions_rows(transactions_data):
@@ -119,7 +121,7 @@ def test_transactions_rows(transactions_data):
 
 
 def test_advanced_stats_schema(advanced_stats_data):
-    assert list(advanced_stats_data.columns) == adv_stats_cols
+    assert advanced_stats_data.dtypes.to_dict() == adv_stats_schema
 
 
 def test_advanced_stats_rows(advanced_stats_data):
@@ -127,12 +129,41 @@ def test_advanced_stats_rows(advanced_stats_data):
 
 
 def test_pbp_schema(pbp_transformed_data):
-    assert list(pbp_transformed_data.columns) == pbp_cols
+    assert pbp_transformed_data.dtypes.to_dict() == pbp_data_schema
 
 
 def test_pbp_rows(pbp_transformed_data):
     assert len(pbp_transformed_data) == 1184
 
+
+def test_fake_schema(boxscores_data):
+    assert boxscores_data.dtypes.to_dict() != boxscores_schema_fake
+
+
+### DEPRECATING COLUMN TESTING AS OF 2022-02-10
+# def test_pbp_cols(pbp_transformed_data):
+#     assert list(pbp_transformed_data.columns) == pbp_cols
+
+# def test_advanced_stats_cols(advanced_stats_data):
+#     assert list(advanced_stats_data.columns) == adv_stats_cols
+
+# def test_transactions_cols(transactions_data):
+#     assert list(transactions_data.columns) == transactions_cols
+
+# def test_injuries_cols(injuries_data):
+#     assert list(injuries_data.columns) == injury_cols
+
+# def test_odds_cols(odds_data):
+#     assert list(odds_data.columns) == odds_cols
+
+# def test_opp_stats_cols(opp_stats_data):
+#     assert list(opp_stats_data.columns) == opp_stats_cols
+
+# def test_boxscores_cols(boxscores_data):
+#     assert list(boxscores_data.columns) == boxscores_cols
+
+# def test_player_stats_cols(player_stats_data):
+#     assert list(player_stats_data.columns) == stats_cols
 
 ### WIP for raw html testing
 
