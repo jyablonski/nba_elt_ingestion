@@ -209,7 +209,7 @@ transactions_schema = {
 }
 
 twitter_data_schema = {
-    "created_at": np.dtype("<M8[ns]"),
+    "created_at": np.dtype("O"),
     "date": np.dtype("O"),
     "username": np.dtype("O"),
     "tweet": np.dtype("O"),
