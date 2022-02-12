@@ -140,6 +140,14 @@ def test_fake_schema(boxscores_data):
     assert boxscores_data.dtypes.to_dict() != boxscores_schema_fake
 
 
+def test_twitter_rows(twitter_stats_data):
+    assert len(twitter_stats_data) == 1286
+
+
+def test_twitter_schema(twitter_stats_data):
+    assert twitter_stats_data.dtypes.to_dict() == twitter_data_schema
+
+
 ### DEPRECATING COLUMN TESTING AS OF 2022-02-10
 # def test_pbp_cols(pbp_transformed_data):
 #     assert list(pbp_transformed_data.columns) == pbp_cols
@@ -167,8 +175,8 @@ def test_fake_schema(boxscores_data):
 
 ### WIP for raw html testing
 
-# def test_raw_stats_rows(player_stats_data_raw):
-#     assert len(player_stats_data_raw) == 0
+# def test_raw_stats_rows(player_stats_html_get):
+#     assert len(player_stats_html_get) == 1
 
 # def test_raw_stats_schema(player_stats_data_raw):
 #     assert list(player_stats_data_raw.columns) == raw_stats_cols

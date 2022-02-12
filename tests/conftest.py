@@ -144,33 +144,35 @@ def logs_data():
     return df
 
 
-##### NEW TESTS
-# @pytest.fixture()
-# def player_stats_data_raw(monkeypatch):
-#     """
-#     Fixture to load web scrape html from an html file for testing.
-#     """
-#     fname = os.path.join(
-#         os.path.dirname(__file__), "fixture_csvs/stats_html.html"
-#     )
-
-#     with open(fname, "rb") as fp:
-#         html = fp.read()
-
-#     def mock_get():
-#         return html
-
-#     monkeypatch.setattr(requests, "get", mock_get)
-#     df = get_player_stats_data()
-#     return df
-
-
 @pytest.fixture()
-def player_stats_html_get(mocker):
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/stats_html.html")
-    with open(fname, "rb") as fp:
-        html_data = fp.read()
+def twitter_stats_data(mocker):
+    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/nba_tweets.csv")
+    twitter_csv = pd.read_csv(fname)
 
-    html = mocker.patch("requests.get")
-    html.return_value = html_data
-    return html
+    df = mocker.patch(
+        "utils.pd.read_csv"
+    )  # mock the return value for the csv to use my fixture
+    df.return_value = twitter_csv
+
+    twint_mock = mocker.patch(
+        "utils.twint.run.Search"
+    )  # mock the twitter scrape so it doesnt run
+    twint_mock.return_value = 1
+    twitter_data = scrape_tweets("nba")
+    return twitter_data
+
+
+##### NEW TESTS
+
+# @pytest.fixture()
+# def player_stats_html_get(mocker):
+#     fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/stats_html.html")
+#     with open(fname, "rb") as fp:
+#         html_data = fp.read()
+
+#     html = mocker.patch("utils.requests.get")
+#     html.content = PropertyMock(return_value = html_data)
+#     html.return_value = html_data
+
+#     stats_html_get = get_player_stats_data()
+#     return stats_html_get
