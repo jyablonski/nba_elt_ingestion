@@ -3,10 +3,10 @@ from moto import mock_ses
 import boto3
 import pandas as pd
 import numpy as np
-from app import write_to_sql, send_aws_email, execute_email_function
-from utils import adv_stats_cols, boxscores_cols, injury_cols, opp_stats_cols
-from utils import pbp_cols, odds_cols, stats_cols, transactions_cols
-from utils import get_player_stats_data
+from src.app import write_to_sql, send_aws_email, execute_email_function
+from src.utils import adv_stats_cols, boxscores_cols, injury_cols, opp_stats_cols
+from src.utils import pbp_cols, odds_cols, stats_cols, transactions_cols
+from src.utils import get_player_stats_data
 from tests.schema import *
 
 # SES TESTS

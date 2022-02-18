@@ -723,8 +723,12 @@ def get_odds_transformed(df):
                 data2["Tomorrow"] = data2["Tomorrow"].str.replace(
                     "LA Clippers", "LAC Clippers", regex=True
                 )
-                data2["Tomorrow"] = data2["Tomorrow"].str.replace("AM", "AM ", regex=True)
-                data2["Tomorrow"] = data2["Tomorrow"].str.replace("PM", "PM ", regex=True)
+                data2["Tomorrow"] = data2["Tomorrow"].str.replace(
+                    "AM", "AM ", regex=True
+                )
+                data2["Tomorrow"] = data2["Tomorrow"].str.replace(
+                    "PM", "PM ", regex=True
+                )
                 data2["Time"] = data2["Tomorrow"].str.split().str[0]
                 data2["datetime1"] = (
                     pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data2["Time"])
@@ -751,7 +755,9 @@ def get_odds_transformed(df):
                     ["tomorrow", "spread", "total", "moneyline", "date", "datetime1"]
                 ]
                 data = data.rename(columns={data.columns[0]: "team"})
-                data = data.query("date == date.min()")  # only grab games from upcoming day
+                data = data.query(
+                    "date == date.min()"
+                )  # only grab games from upcoming day
                 logging.info(
                     f"Odds Transformation Function Successful {len(df)} day, retrieving {len(data)} rows"
                 )
@@ -775,7 +781,9 @@ def get_odds_transformed(df):
                     ["tomorrow", "spread", "total", "moneyline", "date", "datetime1"]
                 ]
                 data = data.rename(columns={data.columns[0]: "team"})
-                data = data.query("date == date.min()")  # only grab games from upcoming day
+                data = data.query(
+                    "date == date.min()"
+                )  # only grab games from upcoming day
                 logging.info(
                     f"Odds Transformation Function Successful {len(df)} day, retrieving {len(data)} rows"
                 )

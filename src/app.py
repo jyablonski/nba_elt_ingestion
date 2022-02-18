@@ -9,7 +9,13 @@ from bs4 import BeautifulSoup
 from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
-from utils import *
+
+try:
+    from .utils import *  # this works for tests
+except:
+    from utils import *  # this works for this script
+# https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
+# idfk wat im doin but it works
 
 logging.basicConfig(
     level=logging.INFO,
