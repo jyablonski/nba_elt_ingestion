@@ -1,7 +1,7 @@
 # Lints all python files
 .PHONY: lint
 lint: 
-	black app.py utils.py tests/conftest.py tests/unit_test.py
+	black src/app.py src/utils.py tests/conftest.py tests/unit_test.py
 
 .PHONY: create-venv
 create-venv:
@@ -40,11 +40,17 @@ git-rebase:
 .PHONY: bump-patch
 bump-patch:
 	@bump2version patch
+	@git push --tags
+	@git push
 
 .PHONY: bump-minor
 bump-minor:
 	@bump2version minor
+	@git push --tags
+	@git push
 
 .PHONY: bump-major
 bump-major:
 	@bump2version major
+	@git push --tags
+	@git push

@@ -10,7 +10,7 @@ import boto3
 
 # import moto
 from datetime import datetime, timedelta
-from utils import *
+from src.utils import *
 
 ## Testing transformation functions from utils.py with custom csv + pickle object fixtures with edge cases
 
@@ -150,12 +150,12 @@ def twitter_stats_data(mocker):
     twitter_csv = pd.read_csv(fname)
 
     df = mocker.patch(
-        "utils.pd.read_csv"
+        "src.utils.pd.read_csv"
     )  # mock the return value for the csv to use my fixture
     df.return_value = twitter_csv
 
     twint_mock = mocker.patch(
-        "utils.twint.run.Search"
+        "src.utils.twint.run.Search"
     )  # mock the twitter scrape so it doesnt run
     twint_mock.return_value = 1
     twitter_data = scrape_tweets("nba")

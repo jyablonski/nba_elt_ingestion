@@ -9,7 +9,13 @@ from bs4 import BeautifulSoup
 from sqlalchemy import exc, create_engine
 import boto3
 from botocore.exceptions import ClientError
-from utils import *
+
+try:
+    from .utils import *  # this works for tests
+except:
+    from utils import *  # this works for this script
+# https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
+# idfk wat im doin but it works
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,9 +25,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.2.7")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.2.7")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.2.7")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.0")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.0")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.0")
 
 # helper sql function - has to be here & not utils bc of globals().items()
 def write_to_sql(con, data, table_type):
@@ -171,4 +177,4 @@ if __name__ == "__main__":
     logs = logs.query("errors.str.contains('Failed')", engine="python")
     execute_email_function(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.2.7")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.3.0")
