@@ -128,6 +128,14 @@ def test_advanced_stats_rows(advanced_stats_data):
     assert len(advanced_stats_data) == 31
 
 
+def test_shooting_stats_schema(shooting_stats_data):
+    assert shooting_stats_data.dtypes.to_dict() == shooting_stats_schema
+
+
+def test_shooting_stats_rows(shooting_stats_data):
+    assert len(shooting_stats_data) == 592
+
+
 def test_pbp_schema(pbp_transformed_data):
     assert pbp_transformed_data.dtypes.to_dict() == pbp_data_schema
 

@@ -25,9 +25,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.0")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.0")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.0")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.1")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.1")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.1")
 
 # helper sql function - has to be here & not utils bc of globals().items()
 def write_to_sql(con, data, table_type):
@@ -117,6 +117,7 @@ if __name__ == "__main__":
     odds_raw = get_odds_data()
     reddit_data = get_reddit_data("nba")  # doesnt need transformation
     opp_stats_raw = get_opp_stats_data()
+    shooting_stats_raw = get_shooting_stats_data()
     twitter_data = scrape_tweets("nba")
 
     logging.info("FINISHED WEB SCRAPE")
@@ -135,6 +136,7 @@ if __name__ == "__main__":
         boxscores
     )  # this uses the transformed boxscores
     opp_stats = get_opp_stats_transformed(opp_stats_raw)
+    shooting_stats = get_shooting_stats_transformed(shooting_stats_raw)
 
     logging.info("FINISHED DATA TRANSFORMATIONS")
 
@@ -152,6 +154,7 @@ if __name__ == "__main__":
     validate_schema(odds, odds_cols)
     validate_schema(transactions, transactions_cols)
     validate_schema(twitter_data, twitter_cols)
+    validate_schema(shooting_stats, shooting_stats_cols)
 
     logging.info("FINISHED SCHEMA VALIDATION")
 
@@ -170,6 +173,7 @@ if __name__ == "__main__":
     write_to_sql(conn, pbp_data, "append")
     write_to_sql(conn, opp_stats, "append")
     write_to_sql(conn, twitter_data, "append")
+    write_to_sql(conn, shooting_stats, "append")
 
     # STEP 5: Grab Logs from previous steps & send email out detailing notable events
     logs = pd.read_csv("logs/example.log", sep=r"\\t", engine="python", header=None)
@@ -177,4 +181,4 @@ if __name__ == "__main__":
     logs = logs.query("errors.str.contains('Failed')", engine="python")
     execute_email_function(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.3.0")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.3.1")
