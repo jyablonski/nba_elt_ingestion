@@ -108,6 +108,19 @@ def advanced_stats_data():
     return df
 
 
+@pytest.fixture(scope="session")
+def shooting_stats_data():
+    """
+    Fixture to load shooting stats data from a csv file for testing.
+    """
+    fname = os.path.join(
+        os.path.dirname(__file__), "fixture_csvs/shooting_stats_data.csv"
+    )
+    shooting_stats = pd.read_csv(fname)
+    shooting_stats = get_shooting_stats_transformed(shooting_stats)
+    return shooting_stats
+
+
 # has to be pickle bc odds data can be returned in list of 1 or 2 objects
 @pytest.fixture(scope="session")
 def odds_data():

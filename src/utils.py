@@ -57,6 +57,7 @@ adv_stats_cols = [
     "att/game",
     "scrape_date",
 ]
+
 boxscores_cols = [
     "player",
     "team",
@@ -88,7 +89,9 @@ boxscores_cols = [
     "type",
     "season",
 ]
+
 injury_cols = ["player", "team", "date", "description", "scrape_date"]
+
 opp_stats_cols = [
     "team",
     "fg_percent_opp",
@@ -97,6 +100,7 @@ opp_stats_cols = [
     "ppg_opp",
     "scrape_date",
 ]
+
 pbp_cols = [
     "timequarter",
     "descriptionplayvisitor",
@@ -112,6 +116,7 @@ pbp_cols = [
     "marginscore",
     "date",
 ]
+
 reddit_cols = [
     "title",
     "score",
@@ -123,6 +128,7 @@ reddit_cols = [
     "scrape_date",
     "scrape_time",
 ]
+
 reddit_comment_cols = [
     "author",
     "comment",
@@ -139,7 +145,9 @@ reddit_comment_cols = [
     "pos",
     "sentiment",
 ]
+
 odds_cols = ["team", "spread", "total", "moneyline", "date", "datetime1"]
+
 stats_cols = [
     "player",
     "pos",
@@ -172,7 +180,9 @@ stats_cols = [
     "pts",
     "scrape_date",
 ]
+
 transactions_cols = ["date", "transaction", "scrape_date"]
+
 twitter_cols = [
     "created_at",
     "date",
@@ -190,6 +200,30 @@ twitter_cols = [
     "neu",
     "pos",
     "sentiment",
+]
+
+shooting_stats_cols = [
+    "player",
+    "avg_shot_distance",
+    "pct_fga_2p",
+    "pct_fga_0_3",
+    "pct_fga_3_10",
+    "pct_fga_10_16",
+    "pct_fga_16_3p",
+    "pct_fga_3p",
+    "fg_pct_0_3",
+    "fg_pct_3_10",
+    "fg_pct_10_16",
+    "fg_pct_16_3p",
+    "pct_2pfg_ast",
+    "pct_3pfg_ast",
+    "dunk_pct_tot_fg",
+    "dunks",
+    "corner_3_ast_pct",
+    "corner_3pm_pct",
+    "heaves_att",
+    "heaves_makes",
+    "scrape_date",
 ]
 
 
@@ -228,7 +262,7 @@ def get_player_stats_data():
         return df
 
 
-def get_player_stats_transformed(df):
+def get_player_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ BS4 that transforms aggregate season stats
     Args:
@@ -314,7 +348,7 @@ def get_boxscores_data(month=month, day=day, year=year):
         return df
 
 
-def get_boxscores_transformed(df):
+def get_boxscores_transformed(df: pd.DataFrame) -> pd.DataFrame:
     try:
         df[
             [
@@ -413,7 +447,7 @@ def get_opp_stats_data():
         return df
 
 
-def get_opp_stats_transformed(df):
+def get_opp_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
     try:
         df = df[["Team", "FG%", "3P%", "3P", "PTS"]]
         df = df.rename(
@@ -461,7 +495,7 @@ def get_injuries_data():
         return df
 
 
-def get_injuries_transformed(df):
+def get_injuries_transformed(df: pd.DataFrame) -> pd.DataFrame:
     """
     Transformation Function for injuries function
 
@@ -526,7 +560,7 @@ def get_transactions_data():
         return df
 
 
-def get_transactions_transformed(df):
+def get_transactions_transformed(df: pd.DataFrame) -> pd.DataFrame:
     """
     Transformation function for Transactions data
 
@@ -584,7 +618,7 @@ def get_advanced_stats_data():
         return df
 
 
-def get_advanced_stats_transformed(df):
+def get_advanced_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
     """
     Transformation function for Advanced Stats
 
@@ -644,6 +678,112 @@ def get_advanced_stats_transformed(df):
         return df
 
 
+def get_shooting_stats_data():
+    """
+    Web Scrape function w/ pandas read_html that grabs all raw shooting stats
+    Args:
+        None
+    Returns:
+        Pandas DataFrame of raw shooting stats
+    """
+    try:
+        url = "https://www.basketball-reference.com/leagues/NBA_2022_shooting.html"
+        df = pd.read_html(url)[0]
+        logging.info(
+            f"Shooting Stats Web Scrape Function Successful, retrieving {len(df)} rows for Shooting Stats"
+        )
+        return df
+    except BaseException as error:
+        logging.error(f"Shooting Stats Web Scrape Function Failed, {error}")
+        df = []
+        return df
+
+
+def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Web Scrape Transformation function for Shooting Stats
+    Args:
+        df (pandas DataFrame): The Raw Shooting Stats DF
+    Returns:
+        Pandas DataFrame of Transformed Shooting Stats
+    """
+    try:
+        df.columns = df.columns.to_flat_index()
+        df = df.rename(
+            columns={
+                df.columns[1]: "player",
+                df.columns[6]: "mp",
+                df.columns[8]: "avg_shot_distance",
+                df.columns[10]: "pct_fga_2p",
+                df.columns[11]: "pct_fga_0_3",
+                df.columns[12]: "pct_fga_3_10",
+                df.columns[13]: "pct_fga_10_16",
+                df.columns[14]: "pct_fga_16_3p",
+                df.columns[15]: "pct_fga_3p",
+                df.columns[18]: "fg_pct_0_3",
+                df.columns[19]: "fg_pct_3_10",
+                df.columns[20]: "fg_pct_10_16",
+                df.columns[21]: "fg_pct_16_3p",
+                df.columns[24]: "pct_2pfg_ast",
+                df.columns[25]: "pct_3pfg_ast",
+                df.columns[27]: "dunk_pct_tot_fg",
+                df.columns[28]: "dunks",
+                df.columns[30]: "corner_3_ast_pct",
+                df.columns[31]: "corner_3pm_pct",
+                df.columns[33]: "heaves_att",
+                df.columns[34]: "heaves_makes",
+            }
+        )[
+            [
+                "player",
+                "mp",
+                "avg_shot_distance",
+                "pct_fga_2p",
+                "pct_fga_0_3",
+                "pct_fga_3_10",
+                "pct_fga_10_16",
+                "pct_fga_16_3p",
+                "pct_fga_3p",
+                "fg_pct_0_3",
+                "fg_pct_3_10",
+                "fg_pct_10_16",
+                "fg_pct_16_3p",
+                "pct_2pfg_ast",
+                "pct_3pfg_ast",
+                "dunk_pct_tot_fg",
+                "dunks",
+                "corner_3_ast_pct",
+                "corner_3pm_pct",
+                "heaves_att",
+                "heaves_makes",
+            ]
+        ]
+        df = df.query('player != "Player"').copy()
+        df["mp"] = pd.to_numeric(df["mp"])
+        df = (
+            df.sort_values(["mp"], ascending=False)
+            .groupby("player")
+            .first()
+            .reset_index()
+            .drop("mp", axis=1)
+        )
+        df["player"] = (
+            df["player"]
+            .str.normalize("NFKD")  # this is removing all accented characters
+            .str.encode("ascii", errors="ignore")
+            .str.decode("utf-8")
+        )
+        df["scrape_date"] = datetime.now().date()
+        logging.info(
+            f"Shooting Stats Transformation Function Successful, retrieving {len(df)} rows"
+        )
+        return df
+    except BaseException as e:
+        logging.info(f"Shooting Stats Transformation Function Failed, {e}")
+        df = []
+        return df
+
+
 # leaving this as is for now
 def get_odds_data():
     """
@@ -677,7 +817,7 @@ def get_odds_data():
 #     pickle.dump(df, fp)
 
 
-def get_odds_transformed(df):
+def get_odds_transformed(df: pd.DataFrame) -> pd.DataFrame:
     """
     Transformation function for Odds Data
 
@@ -796,7 +936,7 @@ def get_odds_transformed(df):
             return data
 
 
-def get_reddit_data(sub):
+def get_reddit_data(sub: str) -> pd.DataFrame:
     """
     Web Scrape function w/ PRAW that grabs top ~27 top posts from a given subreddit.
     Left sub as an argument in case I want to scrape multi subreddits in the future (r/nba, r/nbadiscussion, r/sportsbook etc)
@@ -857,7 +997,7 @@ def get_reddit_data(sub):
         return data
 
 
-def get_reddit_comments(urls):
+def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
     """
     Web Scrape function w/ PRAW that iteratively extracts comments from provided reddit post urls
 
@@ -931,7 +1071,7 @@ def get_reddit_comments(urls):
 
 
 # adding this in as of 2021-01-15
-def scrape_tweets(search_term: str):
+def scrape_tweets(search_term: str) -> pd.DataFrame:
     try:
         c = twint.Config()
         c.Search = search_term
@@ -976,7 +1116,7 @@ def scrape_tweets(search_term: str):
         return df
 
 
-def get_pbp_data_transformed(df):
+def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that uses aliases via boxscores function
     to scrape the pbp data iteratively for each game played the previous day
@@ -1146,7 +1286,7 @@ def get_pbp_data_transformed(df):
         return data
 
 
-def sql_connection(rds_schema):
+def sql_connection(rds_schema: str):
     """
     SQL Connection function connecting to my postgres db with schema = nba_source where initial data in ELT lands
 
@@ -1174,7 +1314,7 @@ def sql_connection(rds_schema):
         return e
 
 
-def send_aws_email(logs):
+def send_aws_email(logs: pd.DataFrame):
     """
     Email function utilizing boto3, has to be set up with SES in AWS and env variables passed in via Terraform.
 
@@ -1215,7 +1355,7 @@ def send_aws_email(logs):
         logging.info(response["MessageId"])
 
 
-def execute_email_function(logs):
+def execute_email_function(logs: pd.DataFrame):
     """
     Email function that executes the email function upon script finishing.
 

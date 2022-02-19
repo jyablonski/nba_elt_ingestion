@@ -226,3 +226,27 @@ twitter_data_schema = {
     "pos": np.dtype("float64"),
     "sentiment": np.dtype("int64"),
 }
+
+shooting_stats_schema = {
+    'player': np.dtype('O'),
+    'avg_shot_distance': np.dtype('O'),
+    'pct_fga_2p': np.dtype('O'),
+    'pct_fga_0_3': np.dtype('O'),
+    'pct_fga_3_10': np.dtype('O'),
+    'pct_fga_10_16': np.dtype('O'),
+    'pct_fga_16_3p': np.dtype('O'),
+    'pct_fga_3p': np.dtype('O'),
+    'fg_pct_0_3': np.dtype('O'),
+    'fg_pct_3_10': np.dtype('O'),
+    'fg_pct_10_16': np.dtype('O'),
+    'fg_pct_16_3p': np.dtype('O'),
+    'pct_2pfg_ast': np.dtype('O'),
+    'pct_3pfg_ast': np.dtype('O'),
+    'dunk_pct_tot_fg': np.dtype('O'),
+    'dunks': np.dtype('O'),
+    'corner_3_ast_pct': np.dtype('O'),
+    'corner_3pm_pct': np.dtype('O'),
+    'heaves_att': np.dtype('O'),
+    'heaves_makes': np.dtype('O'),
+    'scrape_date': np.dtype('O')
+ }
