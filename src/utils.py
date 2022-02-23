@@ -226,6 +226,26 @@ shooting_stats_cols = [
     "scrape_date",
 ]
 
+def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Function to remove suffixes from player names for joining downstream.
+    Assumes the column name is ['player']
+
+    Args:
+        df (pd.DataFrame) - The DataFrame you wish to alter
+    
+    Returns:
+        df with transformed player names
+    """
+    try:
+        df['player'] = df['player'].str.replace(" Jr.", "", regex = True)
+        df['player'] = df['player'].str.replace(" Sr.", "", regex = True)
+        df['player'] = df['player'].str.replace(" III", "", regex = True) # III HAS TO GO FIRST, OVER II
+        df['player'] = df['player'].str.replace(" II", "", regex = True) # Robert Williams III -> Robert WilliamsI
+        df['player'] = df['player'].str.replace(" IV", "", regex = True)
+        return(df)
+    except BaseException as e:
+        print(f"Error Occurred with clean_player_names, {e}")
 
 def get_player_stats_data():
     """
@@ -773,6 +793,7 @@ def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
             .str.encode("ascii", errors="ignore")
             .str.decode("utf-8")
         )
+        df = clean_player_names(df)
         df["scrape_date"] = datetime.now().date()
         logging.info(
             f"Shooting Stats Transformation Function Successful, retrieving {len(df)} rows"
