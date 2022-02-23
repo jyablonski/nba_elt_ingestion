@@ -155,6 +155,16 @@ def test_twitter_rows(twitter_stats_data):
 def test_twitter_schema(twitter_stats_data):
     assert twitter_stats_data.dtypes.to_dict() == twitter_data_schema
 
+def test_clean_player_names_rows(clean_player_names_data):
+    assert len(clean_player_names_data) == 5
+
+# add in new test rows if you add in new name replacement conditions
+def test_clean_player_names_rows(clean_player_names_data):
+    assert clean_player_names_data['player'][0] == 'Marcus Morris'
+    assert clean_player_names_data['player'][1] == 'Kelly Oubre'
+    assert clean_player_names_data['player'][2] == 'Gary Payton'
+    assert clean_player_names_data['player'][3] == 'Robert Williams'
+    assert clean_player_names_data['player'][4] == 'Lonnie Walker'
 
 ### DEPRECATING COLUMN TESTING AS OF 2022-02-10
 # def test_pbp_cols(pbp_transformed_data):
