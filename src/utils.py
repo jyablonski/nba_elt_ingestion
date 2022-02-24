@@ -224,7 +224,9 @@ shooting_stats_cols = [
     "heaves_att",
     "heaves_makes",
     "scrape_date",
+    "scrape_ts",
 ]
+
 
 def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -238,14 +240,19 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         df with transformed player names
     """
     try:
-        df['player'] = df['player'].str.replace(" Jr.", "", regex = True)
-        df['player'] = df['player'].str.replace(" Sr.", "", regex = True)
-        df['player'] = df['player'].str.replace(" III", "", regex = True) # III HAS TO GO FIRST, OVER II
-        df['player'] = df['player'].str.replace(" II", "", regex = True) # Robert Williams III -> Robert WilliamsI
-        df['player'] = df['player'].str.replace(" IV", "", regex = True)
-        return(df)
+        df["player"] = df["player"].str.replace(" Jr.", "", regex=True)
+        df["player"] = df["player"].str.replace(" Sr.", "", regex=True)
+        df["player"] = df["player"].str.replace(
+            " III", "", regex=True
+        )  # III HAS TO GO FIRST, OVER II
+        df["player"] = df["player"].str.replace(
+            " II", "", regex=True
+        )  # Robert Williams III -> Robert WilliamsI
+        df["player"] = df["player"].str.replace(" IV", "", regex=True)
+        return df
     except BaseException as e:
         print(f"Error Occurred with clean_player_names, {e}")
+
 
 def get_player_stats_data():
     """
@@ -795,6 +802,7 @@ def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         )
         df = clean_player_names(df)
         df["scrape_date"] = datetime.now().date()
+        df["scrape_ts"] = datetime.now()
         logging.info(
             f"Shooting Stats Transformation Function Successful, retrieving {len(df)} rows"
         )

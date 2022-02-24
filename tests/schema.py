@@ -248,5 +248,6 @@ shooting_stats_schema = {
     'corner_3pm_pct': np.dtype('O'),
     'heaves_att': np.dtype('O'),
     'heaves_makes': np.dtype('O'),
-    'scrape_date': np.dtype('O')
+    'scrape_date': np.dtype('O'),
+    "scrape_ts": np.dtype("<M8[ns]"),
  }
