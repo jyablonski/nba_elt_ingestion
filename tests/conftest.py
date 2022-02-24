@@ -174,11 +174,23 @@ def twitter_stats_data(mocker):
     twitter_data = scrape_tweets("nba")
     return twitter_data
 
+
 @pytest.fixture(scope="session")
 def clean_player_names_data():
-    df = pd.DataFrame({'player': ['Marcus Morris Sr.', 'Kelly Oubre Jr.', 'Gary Payton II', 'Robert Williams III', 'Lonnie Walker IV']})
+    df = pd.DataFrame(
+        {
+            "player": [
+                "Marcus Morris Sr.",
+                "Kelly Oubre Jr.",
+                "Gary Payton II",
+                "Robert Williams III",
+                "Lonnie Walker IV",
+            ]
+        }
+    )
     df = clean_player_names(df)
     return df
+
 
 ##### NEW TESTS
 
