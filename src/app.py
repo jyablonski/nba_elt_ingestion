@@ -1,14 +1,16 @@
 import os
 import logging
-import requests
 from datetime import datetime, timedelta
+
+import awswrangler as wr
+import boto3
+from botocore.exceptions import ClientError
+from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
 import praw
-from bs4 import BeautifulSoup
+import requests
 from sqlalchemy import exc, create_engine
-import boto3
-from botocore.exceptions import ClientError
 
 try:
     from .utils import *  # this works for tests
@@ -29,40 +31,8 @@ logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.3")
 # logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.3")
 # logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.3.3")
 
-# helper sql function - has to be here & not utils bc of globals().items()
-def write_to_sql(con, data, table_type):
-    """
-    SQL Table function to write a pandas data frame in aws_dfname_source format
-
-    Args:
-        data: The Pandas DataFrame to store in SQL
-
-        table_type: Whether the table should replace or append to an existing SQL Table under that name
-
-    Returns:
-        Writes the Pandas DataFrame to a Table in Snowflake in the {nba_source} Schema we connected to.
-
-    """
-    try:
-        data_name = [k for k, v in globals().items() if v is data][0]
-        # ^ this disgusting monstrosity is to get the name of the -fucking- dataframe lmfao
-        if len(data) == 0:
-            logging.info(f"{data_name} is empty, not writing to SQL")
-        else:
-            data.to_sql(
-                con=con,
-                name=f"aws_{data_name}_source",
-                index=False,
-                if_exists=table_type,
-            )
-            logging.info(f"Writing aws_{data_name}_source to SQL")
-    except BaseException as error:
-        logging.error(f"SQL Write Script Failed, {error}")
-        return error
-
-
 # helper validation function - has to be here instead of utils bc of globals().items()
-def validate_schema(data_df, schema):
+def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
     """
     Schema Validation function to check whether table columns are correct before writing to SQL.
     Errors are written to Logs
@@ -74,19 +44,26 @@ def validate_schema(data_df, schema):
     Returns:
         None
     """
-    data_name = [k for k, v in globals().items() if v is data_df][0]
+    data_name = [k for k, v in globals().items() if v is df][0]
     try:
         if (
-            len(data_df) == 0
+            len(df) == 0
         ):  # this has to be first to deal with both empty lists + valid data frames
-            logging.error(f"Schema Validation Failed for {data_name}, df is empty")
-        elif list(data_df.columns) == schema:
+            logging.error(f"Schema Validation Failed for {df}, df is empty")
+            # df.schema = 'Invalidated'
+            return df
+        elif list(df.columns) == schema:
             logging.info(f"Schema Validation Passed for {data_name}")
+            df.schema = "Validated"
+            return df
         else:
             logging.error(f"Schema Validation Failed for {data_name}")
+            df.schema = "Invalidated"
+            return df
     except BaseException as e:
         logging.error(f"Schema Validation Failed for {data_name}, {e}")
-        pass
+        df.schema = "Invalidated"
+        return df
 
 
 logging.info("Starting Logging Function")
@@ -143,18 +120,18 @@ if __name__ == "__main__":
     logging.info("STARTING SCHEMA VALIDATION")
 
     # STEP 3: Validating Schemas - 1 for each SQL Write
-    validate_schema(stats, stats_cols)
-    validate_schema(adv_stats, adv_stats_cols)
-    validate_schema(boxscores, boxscores_cols)
-    validate_schema(injury_data, injury_cols)
-    validate_schema(opp_stats, opp_stats_cols)
-    validate_schema(pbp_data, pbp_cols)
-    validate_schema(reddit_data, reddit_cols)
-    validate_schema(reddit_comment_data, reddit_comment_cols)
-    validate_schema(odds, odds_cols)
-    validate_schema(transactions, transactions_cols)
-    validate_schema(twitter_data, twitter_cols)
-    validate_schema(shooting_stats, shooting_stats_cols)
+    stats = validate_schema(stats, stats_cols)
+    adv_stats = validate_schema(adv_stats, adv_stats_cols)
+    boxscores = validate_schema(boxscores, boxscores_cols)
+    injury_data = validate_schema(injury_data, injury_cols)
+    opp_stats = validate_schema(opp_stats, opp_stats_cols)
+    pbp_stats = validate_schema(pbp_data, pbp_cols)
+    reddit_data = validate_schema(reddit_data, reddit_cols)
+    reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
+    odds = validate_schema(odds, odds_cols)
+    transactions = validate_schema(transactions, transactions_cols)
+    twitter_data = validate_schema(twitter_data, twitter_cols)
+    shooting_stats = validate_schema(shooting_stats, shooting_stats_cols)
 
     logging.info("FINISHED SCHEMA VALIDATION")
 
@@ -162,18 +139,31 @@ if __name__ == "__main__":
 
     # STEP 4: Append Transformed Data to SQL
     conn = sql_connection(os.environ.get("RDS_SCHEMA"))
-    write_to_sql(conn, stats, "append")
-    write_to_sql(conn, boxscores, "append")
-    write_to_sql(conn, injury_data, "append")
-    write_to_sql(conn, transactions, "append")
-    write_to_sql(conn, adv_stats, "append")
-    write_to_sql(conn, odds, "append")
-    write_to_sql(conn, reddit_data, "append")
-    write_to_sql(conn, reddit_comment_data, "append")
-    write_to_sql(conn, pbp_data, "append")
-    write_to_sql(conn, opp_stats, "append")
-    write_to_sql(conn, twitter_data, "append")
-    write_to_sql(conn, shooting_stats, "append")
+    write_to_sql(conn, "stats", stats, "append")
+    write_to_sql(conn, "boxscores", boxscores, "append")
+    write_to_sql(conn, "injury_data", injury_data, "append")
+    write_to_sql(conn, "transactions", transactions, "append")
+    write_to_sql(conn, "adv_stats", adv_stats, "append")
+    write_to_sql(conn, "odds", odds, "append")
+    write_to_sql(conn, "reddit_data", reddit_data, "append")
+    write_to_sql(conn, "reddit_comment_data", reddit_comment_data, "append")
+    write_to_sql(conn, "pbp_data", pbp_data, "append")
+    write_to_sql(conn, "opp_stats", opp_stats, "append")
+    write_to_sql(conn, "twitter_data", twitter_data, "append")
+    write_to_sql(conn, "shooting_stats", shooting_stats, "append")
+
+    write_to_s3("stats", stats)
+    write_to_s3("boxscores", boxscores)
+    write_to_s3("injury_data", injury_data)
+    write_to_s3("transactions", transactions)
+    write_to_s3("adv_stats", adv_stats)
+    write_to_s3("odds", odds)
+    write_to_s3("reddit_data", reddit_data)
+    write_to_s3("reddit_comment_data", reddit_comment_data)
+    write_to_s3("pbp_data", pbp_data)
+    write_to_s3("opp_stats", opp_stats)
+    write_to_s3("twitter_data", twitter_data)
+    write_to_s3("shooting_stats", shooting_stats)
 
     # STEP 5: Grab Logs from previous steps & send email out detailing notable events
     logs = pd.read_csv("logs/example.log", sep=r"\\t", engine="python", header=None)
