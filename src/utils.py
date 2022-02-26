@@ -1,18 +1,20 @@
-import os
-import logging
-import requests
 from datetime import datetime, timedelta
+import logging
+import os
+import requests
 
+import awswrangler as wr
+import boto3
+from bs4 import BeautifulSoup
+from botocore.exceptions import ClientError
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
 import numpy as np
 import pandas as pd
 import praw
-from bs4 import BeautifulSoup
+import requests
 from sqlalchemy import exc, create_engine
-import boto3
-from botocore.exceptions import ClientError
 import twint
-import nltk
-from nltk.sentiment import SentimentIntensityAnalyzer
 
 today = datetime.now().date()
 todaytime = datetime.now()
@@ -226,6 +228,13 @@ shooting_stats_cols = [
     "scrape_date",
     "scrape_ts",
 ]
+
+
+def get_leading_zeroes(month: int) -> str:
+    if len(str(month)) > 1:
+        return month
+    else:
+        return f"0{month}"
 
 
 def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
@@ -1313,6 +1322,82 @@ def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
         logging.error(f"PBP Data Transformation Function Failed, {error}")
         data = []
         return data
+
+
+def write_to_s3(
+    file_name: str, df: pd.DataFrame, bucket: str = os.environ.get("S3_BUCKET")
+):
+    """
+    S3 Function using awswrangler to write file.  Only supports parquet right now.
+
+    Args:
+        file_name (str): The base name of the file (boxscores, opp_stats)
+
+        df (pd.DataFrame): The Pandas DataFrame to write
+
+        bucket (str): The Bucket to write to.  Defaults to `os.environ.get('S3_BUCKET')`
+
+    Returns:
+        Writes the Pandas DataFrame to an S3 File.
+
+    """
+    month_prefix = get_leading_zeroes(month)
+    # df['file_name'] = f'{file_name}-{today}.parquet'
+    try:
+        if df.schema == "Validated":
+            wr.s3.to_parquet(
+                df=df,
+                path=f"s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{today}.parquet",
+                index=False,
+            )
+            logging.info(
+                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{today}.parquet"
+            )
+            pass
+        else:
+            wr.s3.to_parquet(
+                df=df,
+                path=f"s3://{bucket}/{file_name}/invalidated/{month_prefix}/{file_name}-{today}.parquet",
+                index=False,
+            )
+            logging.info(
+                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/invalidated/{month_prefix}/{file_name}-{today}.parquet"
+            )
+            pass
+    except BaseException as error:
+        logging.info(f"S3 Storage Function Failed {file_name}, {error}")
+        pass
+
+
+def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str):
+    """
+    SQL Table function to write a pandas data frame in aws_dfname_source format
+
+    Args:
+        data: The Pandas DataFrame to store in SQL
+
+        table_type: Whether the table should replace or append to an existing SQL Table under that name
+
+    Returns:
+        Writes the Pandas DataFrame to a Table in Snowflake in the {nba_source} Schema we connected to.
+
+    """
+    try:
+        if len(df) == 0:
+            logging.info(f"{table_name} is empty, not writing to SQL")
+        elif df.schema == "Validated":
+            df.to_sql(
+                con=con,
+                name=f"aws_{table_name}_source",
+                index=False,
+                if_exists=table_type,
+            )
+            logging.info(f"Schema Validated, Writing aws_{table_name}_source to SQL")
+        else:
+            logging.info(f"{table_name} Schema Invalidated, not writing to SQL")
+    except BaseException as error:
+        logging.error(f"SQL Write Script Failed, {error}")
+        return error
 
 
 def sql_connection(rds_schema: str):

@@ -1,12 +1,14 @@
-import pytest
-from moto import mock_ses
+from datetime import datetime
+
+import awswrangler as wr
 import boto3
-import pandas as pd
+from moto import mock_ses, mock_s3
 import numpy as np
-from src.app import write_to_sql, send_aws_email, execute_email_function
-from src.utils import adv_stats_cols, boxscores_cols, injury_cols, opp_stats_cols
-from src.utils import pbp_cols, odds_cols, stats_cols, transactions_cols
-from src.utils import get_player_stats_data
+import pandas as pd
+import pytest
+
+from src.utils import write_to_sql, write_to_s3, get_leading_zeroes
+from src.utils import send_aws_email, execute_email_function
 from tests.schema import *
 
 # SES TESTS
@@ -34,6 +36,44 @@ def test_ses_execution_no_logs(aws_credentials):
     assert ses.verify_email_identity(EmailAddress="jyablonski9@gmail.com")
 
 
+@mock_s3
+def test_write_to_s3_validated(player_stats_data):
+    conn = boto3.resource("s3", region_name="us-east-1")
+    today = datetime.now().date()
+    month = datetime.now().month
+    month_prefix = get_leading_zeroes(month)
+    player_stats_data.schema = "Validated"
+    conn.create_bucket(Bucket="moto_test_bucket")
+
+    write_to_s3("player_stats_data", player_stats_data, bucket="moto_test_bucket")
+    bucket = conn.Bucket("moto_test_bucket")
+    contents = [_.key for _ in bucket.objects.all()]
+
+    assert (
+        contents[0]
+        == f"player_stats_data/validated/{month_prefix}/player_stats_data-{today}.parquet"
+    )
+
+
+@mock_s3
+def test_write_to_s3_invalidated(player_stats_data):
+    conn = boto3.resource("s3", region_name="us-east-1")
+    today = datetime.now().date()
+    month = datetime.now().month
+    month_prefix = get_leading_zeroes(month)
+    player_stats_data.schema = "Invalidated"
+    conn.create_bucket(Bucket="moto_test_bucket")
+
+    write_to_s3("player_stats_data", player_stats_data, bucket="moto_test_bucket")
+    bucket = conn.Bucket("moto_test_bucket")
+    contents = [_.key for _ in bucket.objects.all()]
+
+    assert (
+        contents[0]
+        == f"player_stats_data/invalidated/{month_prefix}/player_stats_data-{today}.parquet"
+    )
+
+
 # WRITE TO SQL TESTS
 def test_player_stats_sql(setup_database, player_stats_data):
     df = player_stats_data
@@ -53,9 +93,8 @@ def test_player_stats_sql(setup_database, player_stats_data):
 # table has to get created from ^ first, other wise this will error out.
 def test_write_to_sql(setup_database, player_stats_data):
     conn = setup_database.cursor()
-    write_to_sql(
-        conn, player_stats_data, "append"
-    )  # remember it creates f"aws_{data_name}_source" table
+    player_stats_data.schema = "Validated"
+    write_to_sql(conn, "player_stats_data", player_stats_data, "append")
     df_len = len(list(conn.execute("SELECT * FROM aws_player_stats_data_source")))
     assert df_len == 384
 
@@ -63,11 +102,9 @@ def test_write_to_sql(setup_database, player_stats_data):
 def test_write_to_sql_no_data(setup_database):
     conn = setup_database.cursor()
     player_stats_data = pd.DataFrame({"errors": []})
-    write_to_sql(
-        conn, player_stats_data, "append"
-    )  # remember it creates f"aws_{data_name}_source" table
+    player_stats_data.schema = "Invalidated"
+    write_to_sql(conn, "player_stats_data", player_stats_data, "append")
     df_len = len(list(conn.execute("SELECT * FROM aws_player_stats_data_source")))
-    assert len(player_stats_data) + df_len == 384
     assert len(player_stats_data) == 0
 
 
@@ -77,6 +114,7 @@ def test_player_stats_rows(player_stats_data):
 
 
 def test_player_stats_schema(player_stats_data):
+    # player_stats_data["file_name"] = "xxx"
     assert player_stats_data.dtypes.to_dict() == stats_schema
 
 
