@@ -4,17 +4,19 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pandas = "==1.3.2"
+awswrangler = "==2.14.0"
 beautifulsoup4 = "==4.9.3"
-psycopg2-binary = "==2.9.3"
+boto3 = "1.21.8"
 praw = "==7.5.0"
-lxml = "==4.6.3"
 html5lib = "==1.1"
-boto3 = "==1.18.27"
-SQLAlchemy = "==1.4.22"
+lxml = "==4.8.0"
 nltk = "==3.6.7"
-twint = {ref = "fix/RefreshTokenException", git = "https://github.com/Museum-Barberini/twint.git"}
+pandas = "==1.3.5"
+praw = "==7.5.0"
+psycopg2-binary = "==2.9.3"
 requests = "==2.27.1"
+SQLAlchemy = "==1.4.22"
+twint = {ref = "fix/RefreshTokenException", git = "https://github.com/Museum-Barberini/twint.git"}
 
 [dev-packages]
 black = "==19.10b0"
