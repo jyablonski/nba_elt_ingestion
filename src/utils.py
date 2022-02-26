@@ -1098,6 +1098,9 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
         df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["comment"]]
         df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
 
+        df["edited"] = np.where(
+            df["edited"] == False, 0, 1
+        )  # if edited, then 1, else 0
         logging.info(
             f"Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls"
         )
@@ -1392,7 +1395,7 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str):
                 index=False,
                 if_exists=table_type,
             )
-            logging.info(f"Schema Validated, Writing aws_{table_name}_source to SQL")
+            logging.info(f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL")
         else:
             logging.info(f"{table_name} Schema Invalidated, not writing to SQL")
     except BaseException as error:
