@@ -22,8 +22,11 @@ yesterday = today - timedelta(1)
 day = (datetime.now() - timedelta(1)).day
 month = (datetime.now() - timedelta(1)).month
 year = (datetime.now() - timedelta(1)).year
-if datetime.now().date() < datetime(2022, 4, 11).date():
+
+if today < datetime(2022, 4, 11).date():
     season_type = "Regular Season"
+elif (today >= datetime(2022, 4, 11).date()) & (today < datetime(2022, 4, 16).date()):
+    season_type = 'Play-In'
 else:
     season_type = "Playoffs"
 
@@ -1344,7 +1347,7 @@ def write_to_s3(
         Writes the Pandas DataFrame to an S3 File.
 
     """
-    month_prefix = get_leading_zeroes(month)
+    month_prefix = get_leading_zeroes(datetime.now().month)
     # df['file_name'] = f'{file_name}-{today}.parquet'
     try:
         if df.schema == "Validated":

@@ -27,9 +27,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.1")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.1")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.1")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.2")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.2")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.2")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -76,11 +76,13 @@ yesterday = today - timedelta(1)
 day = (datetime.now() - timedelta(1)).day
 month = (datetime.now() - timedelta(1)).month
 year = (datetime.now() - timedelta(1)).year
-if datetime.now().date() < datetime(2022, 4, 11).date():
+
+if today < datetime(2022, 4, 11).date():
     season_type = "Regular Season"
+elif (today >= datetime(2022, 4, 11).date()) & (today < datetime(2022, 4, 16).date()):
+    season_type = 'Play-In'
 else:
     season_type = "Playoffs"
-
 
 if __name__ == "__main__":
     logging.info("STARTING WEB SCRAPE")
@@ -171,4 +173,4 @@ if __name__ == "__main__":
     logs = logs.query("errors.str.contains('Failed')", engine="python")
     execute_email_function(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.4.1")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.4.2")
