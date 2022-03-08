@@ -76,11 +76,13 @@ yesterday = today - timedelta(1)
 day = (datetime.now() - timedelta(1)).day
 month = (datetime.now() - timedelta(1)).month
 year = (datetime.now() - timedelta(1)).year
-if datetime.now().date() < datetime(2022, 4, 11).date():
+
+if today < datetime(2022, 4, 11).date():
     season_type = "Regular Season"
+elif (today >= datetime(2022, 4, 11).date()) & (today < datetime(2022, 4, 16).date()):
+    season_type = 'Play-In'
 else:
     season_type = "Playoffs"
-
 
 if __name__ == "__main__":
     logging.info("STARTING WEB SCRAPE")
