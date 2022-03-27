@@ -153,6 +153,7 @@ if __name__ == "__main__":
     write_to_sql(conn, "opp_stats", opp_stats, "append")
     write_to_sql(conn, "twitter_data", twitter_data, "append")
     write_to_sql(conn, "shooting_stats", shooting_stats, "append")
+    conn.dispose()
 
     write_to_s3("stats", stats)
     write_to_s3("boxscores", boxscores)
