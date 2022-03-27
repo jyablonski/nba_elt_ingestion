@@ -14,6 +14,7 @@ RUN ./install_packages.sh
 COPY Pipfile .
 COPY Pipfile.lock .
 RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
+# this makes it so the build will fail if i dont pipenv lock beforehand
 
 
 FROM base AS runtime
