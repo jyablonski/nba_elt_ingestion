@@ -27,9 +27,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.2")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.2")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.2")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.3")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.3")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.4.3")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -174,4 +174,4 @@ if __name__ == "__main__":
     logs = logs.query("errors.str.contains('Failed')", engine="python")
     execute_email_function(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.4.2")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.4.3")
