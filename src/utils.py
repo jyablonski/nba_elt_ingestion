@@ -17,10 +17,7 @@ from sqlalchemy import exc, create_engine
 import sentry_sdk
 import twint
 
-sentry_sdk.init(
-    os.environ.get('SENTRY_TOKEN'),
-    traces_sample_rate=1.0
-)
+sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
 today = datetime.now().date()
@@ -33,7 +30,7 @@ year = (datetime.now() - timedelta(1)).year
 if today < datetime(2022, 4, 11).date():
     season_type = "Regular Season"
 elif (today >= datetime(2022, 4, 11).date()) & (today < datetime(2022, 4, 16).date()):
-    season_type = 'Play-In'
+    season_type = "Play-In"
 else:
     season_type = "Playoffs"
 
@@ -241,6 +238,15 @@ shooting_stats_cols = [
 
 
 def get_leading_zeroes(month: int) -> str:
+    """
+    Function to add leading zeroes to a month (1 (January) -> 01) for the write_to_s3 function.
+
+    Args:
+        month (int): The month integer
+    
+    Returns:
+        The same month integer with a leading 0 if it is less than 10 (Nov/Dec aka 11/12 unaffected).
+    """
     if len(str(month)) > 1:
         return month
     else:
@@ -253,7 +259,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
     Assumes the column name is ['player']
 
     Args:
-        df (pd.DataFrame) - The DataFrame you wish to alter
+        df (DataFrame): The DataFrame you wish to alter
     
     Returns:
         df with transformed player names
@@ -277,10 +283,12 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
 def get_player_stats_data():
     """
     Web Scrape function w/ BS4 that grabs aggregate season stats
+
     Args:
         None
+
     Returns:
-        Pandas DataFrame of Player Aggregate Season stats
+        DataFrame of Player Aggregate Season stats
     """
     try:
         year_stats = 2022
@@ -312,11 +320,13 @@ def get_player_stats_data():
 
 def get_player_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Web Scrape function w/ BS4 that transforms aggregate season stats
+    Web Scrape function w/ BS4 that transforms aggregate player season stats.  Player names get accents removed.
+
     Args:
-        Raw Data Frame for Player Stats
+        df (DataFrame): Raw Data Frame for Player Stats
+
     Returns:
-        Pandas DataFrame of Player Aggregate Season stats
+        DataFrame of Player Aggregate Season stats
     """
     stats = df
     try:
@@ -345,17 +355,18 @@ def get_player_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
 
 def get_boxscores_data(month=month, day=day, year=year):
     """
-    Function that grabs box scores from a given date in mmddyyyy format - defaults to yesterday.  values can be ex. 1 or 01
+    Function that grabs box scores from a given date in mmddyyyy format - defaults to yesterday.  values can be ex. 1 or 01.
+    Can't use read_html for this so this is raw web scraping baby.
 
     Args:
-        month (string) - month value of the game played (0 - 12)
+        month (string): month value of the game played (0 - 12)
 
-        day (string) - day value of the game played (1 - 31)
+        day (string): day value of the game played (1 - 31)
 
-        year (string) - year value of the game played (2021)
+        year (string): year value of the game played (2021)
 
     Returns:
-        Pandas DataFrame of Player Aggregate Season stats
+        DataFrame of Player Aggregate Season stats
     """
     url = f"https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={month}&day={day}&year={year}&type=all"
 
@@ -400,6 +411,16 @@ def get_boxscores_data(month=month, day=day, year=year):
 
 
 def get_boxscores_transformed(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Transformation Function for boxscores that gets stored to SQL and is used as an input for PBP Function.
+    Player names get accents removed & team acronyms get normalized here.
+
+    Args:
+        df (DataFrame): Raw Boxscores DataFrame
+
+    Returns:
+        DataFrame of transformed boxscores.
+    """
     try:
         df[
             [
@@ -501,6 +522,15 @@ def get_opp_stats_data():
 
 
 def get_opp_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Transformation Function for Opponent Stats.
+
+    Args:
+        df (DataFrame): The Raw Opponent Stats DataFrame
+
+    Returns:
+        DataFrame of transformed Opponent Stats Data
+    """
     try:
         df = df[["Team", "FG%", "3P%", "3P", "PTS"]]
         df = df.rename(
@@ -555,7 +585,7 @@ def get_injuries_transformed(df: pd.DataFrame) -> pd.DataFrame:
     Transformation Function for injuries function
 
     Args:
-        Raw Injuries DataFrame
+        df (DataFrame): Raw Injuries DataFrame
 
     Returns:
         Pandas DataFrame of all current player injuries & their associated team
@@ -622,7 +652,7 @@ def get_transactions_transformed(df: pd.DataFrame) -> pd.DataFrame:
     Transformation function for Transactions data
 
     Args:
-        Raw Transactions DataFrame
+        df (DataFrame): Raw Transactions DataFrame
 
     Returns:
         Pandas DataFrame of all Transactions data 
@@ -660,7 +690,7 @@ def get_advanced_stats_data():
         None
 
     Returns:
-        Pandas DataFrame of all current Team Advanced Stats
+        DataFrame of all current Team Advanced Stats
     """
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2022.html"
@@ -682,7 +712,7 @@ def get_advanced_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
     Transformation function for Advanced Stats
 
     Args:
-        Raw Advanced Stats DataFrame
+        df (DataFrame): Raw Advanced Stats DataFrame
 
     Returns:
         Pandas DataFrame of all Advanced Stats data 
@@ -741,10 +771,12 @@ def get_advanced_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
 def get_shooting_stats_data():
     """
     Web Scrape function w/ pandas read_html that grabs all raw shooting stats
+
     Args:
         None
+
     Returns:
-        Pandas DataFrame of raw shooting stats
+        DataFrame of raw shooting stats
     """
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2022_shooting.html"
@@ -762,11 +794,14 @@ def get_shooting_stats_data():
 
 def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Web Scrape Transformation function for Shooting Stats
+    Web Scrape Transformation function for Shooting Stats.
+    This has some multi index bullshit attached in the beginning if it screws up the future - that's probably it.
+
     Args:
-        df (pandas DataFrame): The Raw Shooting Stats DF
+        df (DataFrame): The Raw Shooting Stats DF
+
     Returns:
-        Pandas DataFrame of Transformed Shooting Stats
+        DataFrame of Transformed Shooting Stats
     """
     try:
         df.columns = df.columns.to_flat_index()
@@ -848,12 +883,11 @@ def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-# leaving this as is for now
 def get_odds_data():
     """
     Web Scrape function w/ pandas read_html that grabs current day's nba odds in raw format.
     There are 2 objects [0], [1] if the days are split into 2.
-    AWS ECS operates in UTC time so the game start times are actually 6+ hours ahead of what they actually are
+    AWS ECS operates in UTC time so the game start times are actually 5-6+ hours ahead of what they actually are, so there are 2 html tables.
 
     Args:
         None
@@ -887,7 +921,7 @@ def get_odds_transformed(df: pd.DataFrame) -> pd.DataFrame:
     Transformation function for Odds Data
 
     Args:
-        Raw Odds DataFrame
+        df (DataFrame): Raw Odds DataFrame
 
     Returns:
         Pandas DataFrame of all Odds Data 
@@ -1008,7 +1042,7 @@ def get_reddit_data(sub: str) -> pd.DataFrame:
     Left sub as an argument in case I want to scrape multi subreddits in the future (r/nba, r/nbadiscussion, r/sportsbook etc)
 
     Args:
-        sub (string) - subreddit to query
+        sub (string): subreddit to query
 
     Returns:
         Pandas DataFrame of all current top posts on r/nba
@@ -1066,10 +1100,10 @@ def get_reddit_data(sub: str) -> pd.DataFrame:
 
 def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
     """
-    Web Scrape function w/ PRAW that iteratively extracts comments from provided reddit post urls
+    Web Scrape function w/ PRAW that iteratively extracts comments from provided reddit post urls.
 
     Args:
-        urls (Pandas Series) - The (reddit) urls to extract comments from
+        urls (Series): The (reddit) urls to extract comments from
 
     Returns:
         Pandas DataFrame of all comments from the provided reddit urls
@@ -1143,6 +1177,19 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
 
 # adding this in as of 2021-01-15
 def scrape_tweets(search_term: str) -> pd.DataFrame:
+    """
+    Twitter Scrape function using twint to grab between 1,000 and 2,000 tweets about the search parameter.
+    It has to like write to a fkn csv then read from csv, idk, thx for the OOP.
+    The twint package is no longer updated so probably want to use official Twitter API for this.
+
+    Args:
+        search_term (str): The term to search Tweets for.
+
+    Returns:
+        DataFrame of around 1-2k Tweets
+
+    
+    """
     try:
         c = twint.Config()
         c.Search = search_term
@@ -1191,10 +1238,11 @@ def scrape_tweets(search_term: str) -> pd.DataFrame:
 def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that uses aliases via boxscores function
-    to scrape the pbp data iteratively for each game played the previous day
+    to scrape the pbp data iteratively for each game played the previous day.
+    It assumes there is a location column in the df being passed in.
 
     Args:
-        df (Pandas DataFrame) - the DataFrame result from running the boxscores function.
+        df (DataFrame) - the DataFrame result from running the boxscores function.
 
     Returns:
         All PBP Data for the games in the input df
@@ -1411,9 +1459,13 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str):
     SQL Table function to write a pandas data frame in aws_dfname_source format
 
     Args:
-        data: The Pandas DataFrame to store in SQL
+        con (SQL Connection): The connection to the SQL DB.
 
-        table_type: Whether the table should replace or append to an existing SQL Table under that name
+        table_name (str): The Table name to write to SQL as.
+
+        df (DataFrame): The Pandas DataFrame to store in SQL
+
+        table_type (str): Whether the table should replace or append to an existing SQL Table under that name
 
     Returns:
         Writes the Pandas DataFrame to a Table in Snowflake in the {nba_source} Schema we connected to.
@@ -1429,7 +1481,9 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str):
                 index=False,
                 if_exists=table_type,
             )
-            logging.info(f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL")
+            logging.info(
+                f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL"
+            )
         else:
             logging.info(f"{table_name} Schema Invalidated, not writing to SQL")
     except BaseException as error:
@@ -1440,13 +1494,13 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str):
 
 def sql_connection(rds_schema: str):
     """
-    SQL Connection function connecting to my postgres db with schema = nba_source where initial data in ELT lands
+    SQL Connection function connecting to my postgres db with schema = nba_source where initial data in ELT lands.
 
     Args:
-        None
+        rds_schema (str): The Schema in the DB to connect to.
 
     Returns:
-        SQL Connection variable to schema: nba_source in my PostgreSQL DB
+        SQL Connection variable to a specified schema in my PostgreSQL DB
     """
     RDS_USER = os.environ.get("RDS_USER")
     RDS_PW = os.environ.get("RDS_PW")
@@ -1470,9 +1524,10 @@ def sql_connection(rds_schema: str):
 def send_aws_email(logs: pd.DataFrame):
     """
     Email function utilizing boto3, has to be set up with SES in AWS and env variables passed in via Terraform.
+    The actual email code is copied from aws/boto3 and the subject / message should go in the subject / body_html variables.
 
     Args:
-        None
+        logs (DataFrame): The log file name generated by the script.
 
     Returns:
         Sends an email out upon every script execution, including errors (if any)
@@ -1511,9 +1566,10 @@ def send_aws_email(logs: pd.DataFrame):
 def execute_email_function(logs: pd.DataFrame):
     """
     Email function that executes the email function upon script finishing.
+    This is really not necessary; originally thought i wouldn't email if no errors would found but now i send it everyday regardless.
 
     Args:
-        None
+        logs (DataFrame): The log file name generated by the script.
 
     Returns:
         Holds the actual send_email logic and executes if invoked as a script (aka on ECS)
