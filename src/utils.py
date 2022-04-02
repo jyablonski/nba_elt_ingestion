@@ -17,10 +17,7 @@ from sqlalchemy import exc, create_engine
 import sentry_sdk
 import twint
 
-sentry_sdk.init(
-    os.environ.get('SENTRY_TOKEN'),
-    traces_sample_rate=1.0
-)
+sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
 today = datetime.now().date()
@@ -33,7 +30,7 @@ year = (datetime.now() - timedelta(1)).year
 if today < datetime(2022, 4, 11).date():
     season_type = "Regular Season"
 elif (today >= datetime(2022, 4, 11).date()) & (today < datetime(2022, 4, 16).date()):
-    season_type = 'Play-In'
+    season_type = "Play-In"
 else:
     season_type = "Playoffs"
 
@@ -885,6 +882,7 @@ def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         df = []
         return df
 
+
 def get_odds_data():
     """
     Web Scrape function w/ pandas read_html that grabs current day's nba odds in raw format.
@@ -1483,7 +1481,9 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str):
                 index=False,
                 if_exists=table_type,
             )
-            logging.info(f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL")
+            logging.info(
+                f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL"
+            )
         else:
             logging.info(f"{table_name} Schema Invalidated, not writing to SQL")
     except BaseException as error:

@@ -80,7 +80,7 @@ year = (datetime.now() - timedelta(1)).year
 if today < datetime(2022, 4, 11).date():
     season_type = "Regular Season"
 elif (today >= datetime(2022, 4, 11).date()) & (today < datetime(2022, 4, 16).date()):
-    season_type = 'Play-In'
+    season_type = "Play-In"
 else:
     season_type = "Playoffs"
 
