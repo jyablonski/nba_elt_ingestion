@@ -194,6 +194,14 @@ def test_twitter_schema(twitter_stats_data):
     assert twitter_stats_data.dtypes.to_dict() == twitter_data_schema
 
 
+def test_schedule_rows(schedule_data):
+    assert len(schedule_data) == 458
+
+
+def test_schedule_schema(schedule_data):
+    assert schedule_data.dtypes.to_dict() == schedule_schema
+
+
 def test_clean_player_names_rows(clean_player_names_data):
     assert len(clean_player_names_data) == 5
 

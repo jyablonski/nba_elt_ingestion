@@ -202,30 +202,13 @@ odds_schema = {
     "datetime1": np.dtype("<M8[ns]"),
 }
 
-transactions_schema = {
-    "date": np.dtype("<M8[ns]"),
-    "transaction": np.dtype("O"),
-    "scrape_date": np.dtype("O"),
-}
-
-twitter_data_schema = {
-    "created_at": np.dtype("O"),
-    "date": np.dtype("O"),
-    "username": np.dtype("O"),
-    "tweet": np.dtype("O"),
-    "language": np.dtype("O"),
-    "link": np.dtype("O"),
-    "likes_count": np.dtype("int64"),
-    "retweets_count": np.dtype("int64"),
-    "replies_count": np.dtype("int64"),
-    "scrape_date": np.dtype("O"),
-    "scrape_ts": np.dtype("<M8[ns]"),
-    "compound": np.dtype("float64"),
-    "neg": np.dtype("float64"),
-    "neu": np.dtype("float64"),
-    "pos": np.dtype("float64"),
-    "sentiment": np.dtype("int64"),
-}
+schedule_schema = {
+    'start_time': np.dtype('O'),
+    'away_team': np.dtype('O'),
+    'home_team': np.dtype('O'),
+    'date': np.dtype('O'),
+    'proper_date': np.dtype('O')
+ }
 
 shooting_stats_schema = {
     'player': np.dtype('O'),
@@ -251,3 +234,28 @@ shooting_stats_schema = {
     'scrape_date': np.dtype('O'),
     "scrape_ts": np.dtype("<M8[ns]"),
  }
+
+transactions_schema = {
+    "date": np.dtype("<M8[ns]"),
+    "transaction": np.dtype("O"),
+    "scrape_date": np.dtype("O"),
+}
+
+twitter_data_schema = {
+    "created_at": np.dtype("O"),
+    "date": np.dtype("O"),
+    "username": np.dtype("O"),
+    "tweet": np.dtype("O"),
+    "language": np.dtype("O"),
+    "link": np.dtype("O"),
+    "likes_count": np.dtype("int64"),
+    "retweets_count": np.dtype("int64"),
+    "replies_count": np.dtype("int64"),
+    "scrape_date": np.dtype("O"),
+    "scrape_ts": np.dtype("<M8[ns]"),
+    "compound": np.dtype("float64"),
+    "neg": np.dtype("float64"),
+    "neu": np.dtype("float64"),
+    "pos": np.dtype("float64"),
+    "sentiment": np.dtype("int64"),
+}

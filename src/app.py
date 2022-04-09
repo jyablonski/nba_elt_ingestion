@@ -96,6 +96,7 @@ if __name__ == "__main__":
     odds_raw = get_odds_data()
     reddit_data = get_reddit_data("nba")  # doesnt need transformation
     opp_stats_raw = get_opp_stats_data()
+    schedule = schedule_scraper("2022", ["april", "may", "june"])
     shooting_stats_raw = get_shooting_stats_data()
     twitter_data = scrape_tweets("nba")
 
@@ -133,6 +134,7 @@ if __name__ == "__main__":
     odds = validate_schema(odds, odds_cols)
     transactions = validate_schema(transactions, transactions_cols)
     twitter_data = validate_schema(twitter_data, twitter_cols)
+    schedule = validate_schema(schedule, schedule_cols)
     shooting_stats = validate_schema(shooting_stats, shooting_stats_cols)
 
     logging.info("FINISHED SCHEMA VALIDATION")
@@ -152,6 +154,7 @@ if __name__ == "__main__":
     write_to_sql(conn, "pbp_data", pbp_data, "append")
     write_to_sql(conn, "opp_stats", opp_stats, "append")
     write_to_sql(conn, "twitter_data", twitter_data, "append")
+    write_to_sql(conn, "schedule", schedule, "append")
     write_to_sql(conn, "shooting_stats", shooting_stats, "append")
     conn.dispose()
 
@@ -166,6 +169,7 @@ if __name__ == "__main__":
     write_to_s3("pbp_data", pbp_data)
     write_to_s3("opp_stats", opp_stats)
     write_to_s3("twitter_data", twitter_data)
+    write_to_s3("schedule", schedule)
     write_to_s3("shooting_stats", shooting_stats)
 
     # STEP 5: Grab Logs from previous steps & send email out detailing notable events
