@@ -158,6 +158,24 @@ def logs_data():
 
 
 @pytest.fixture()
+def schedule_data(mocker):
+    """
+    Fixture to load schedule data from an html file for testing.
+    *** THIS WORKS FOR ANY REQUESTS.GET MOCKING IN THE FUTURE ***
+    """
+    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/schedule.html")
+    with open(fname, "rb") as fp:
+        mock_content = fp.read()
+
+    # IM A FUCKING GENIUS HOLY SHIT IT WORKS
+    # you have to first patch the requests.get response, and subsequently the return value of requests.get(url).content
+    mocker.patch("src.utils.requests.get").return_value.content = mock_content
+
+    schedule = schedule_scraper("2022", ["february", "march"])
+    return schedule
+
+
+@pytest.fixture()
 def twitter_stats_data(mocker):
     fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/nba_tweets.csv")
     twitter_csv = pd.read_csv(fname)
