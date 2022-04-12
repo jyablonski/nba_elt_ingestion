@@ -1526,7 +1526,12 @@ def write_to_s3(
     month_prefix = get_leading_zeroes(datetime.now().month)
     # df['file_name'] = f'{file_name}-{today}.parquet'
     try:
-        if df.schema == "Validated":
+        if len(df) == 0:
+            logging.info(
+                f"Not storing {file_name} to s3 because it's empty."
+            )
+            pass
+        elif df.schema == "Validated":
             wr.s3.to_parquet(
                 df=df,
                 path=f"s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{today}.parquet",
