@@ -49,7 +49,7 @@ def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
         if (
             len(df) == 0
         ):  # this has to be first to deal with both empty lists + valid data frames
-            logging.error(f"Schema Validation Failed for {df}, df is empty")
+            logging.error(f"Schema Validation Failed for {data_name}, df is empty")
             # df.schema = 'Invalidated'
             return df
         elif list(df.columns) == schema:
