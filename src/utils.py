@@ -502,13 +502,13 @@ def get_boxscores_transformed(df: pd.DataFrame) -> pd.DataFrame:
 
 def get_opp_stats_data():
     """
-    Web Scrape function w/ pandas read_html that grabs all current injuries
+    Web Scrape function w/ pandas read_html that grabs all regular season opponent team stats
 
     Args:
         None
 
     Returns:
-        Pandas DataFrame of all current player injuries & their associated team
+        Pandas DataFrame of all current team opponent stats
     """
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2022.html"
@@ -597,6 +597,13 @@ def get_injuries_transformed(df: pd.DataFrame) -> pd.DataFrame:
         df = df.rename(columns={"Update": "Date"})
         df.columns = df.columns.str.lower()
         df["scrape_date"] = datetime.now().date()
+        df["player"] = (
+            df["player"]
+            .str.normalize("NFKD")  # this is removing all accented characters
+            .str.encode("ascii", errors="ignore")
+            .str.decode("utf-8")
+        )
+        df = clean_player_names(df)
         logging.info(
             f"Injury Transformation Function Successful, retrieving {len(df)} rows"
         )
@@ -1527,9 +1534,7 @@ def write_to_s3(
     # df['file_name'] = f'{file_name}-{today}.parquet'
     try:
         if len(df) == 0:
-            logging.info(
-                f"Not storing {file_name} to s3 because it's empty."
-            )
+            logging.info(f"Not storing {file_name} to s3 because it's empty.")
             pass
         elif df.schema == "Validated":
             wr.s3.to_parquet(
