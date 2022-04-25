@@ -27,9 +27,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.2")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.2")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.2")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.3")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.3")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.3")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -158,6 +158,7 @@ if __name__ == "__main__":
     write_to_sql(conn, "shooting_stats", shooting_stats, "append")
     conn.dispose()
 
+    # STEP 5: Write to S3
     write_to_s3("stats", stats)
     write_to_s3("boxscores", boxscores)
     write_to_s3("injury_data", injury_data)
@@ -172,10 +173,12 @@ if __name__ == "__main__":
     write_to_s3("schedule", schedule)
     write_to_s3("shooting_stats", shooting_stats)
 
-    # STEP 5: Grab Logs from previous steps & send email out detailing notable events
+    # STEP 6: Grab Logs from previous steps & send email out detailing notable events
     logs = pd.read_csv("logs/example.log", sep=r"\\t", engine="python", header=None)
     logs = logs.rename(columns={0: "errors"})
     logs = logs.query("errors.str.contains('Failed')", engine="python")
-    execute_email_function(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.2")
+    # STEP 7: Send Email
+    send_aws_email(logs)
+
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.3")

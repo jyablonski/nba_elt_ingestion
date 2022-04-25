@@ -183,15 +183,27 @@ reddit_comment_data_schema = {
     "url": np.dtype("O"),
     "flair1": np.dtype("O"),
     "flair2": np.dtype("O"),
-    "edited": np.dtype("O"),
+    "edited": np.dtype("int64"),
     "scrape_date": np.dtype("O"),
-    "scrape_ts": np.dtype("<M8[ns]"),
+    "scrape_ts": np.dtype("O"),
     "compound": np.dtype("float64"),
     "neg": np.dtype("float64"),
     "neu": np.dtype("float64"),
     "pos": np.dtype("float64"),
     "sentiment": np.dtype("int64"),
 }
+
+
+# {'Unnamed: 0': dtype('int64'),
+#  'author': dtype('O'),
+#  'comment': dtype('O'),
+#  'score': dtype('int64'),
+#  'url': dtype('O'),
+#  'flair1': dtype('O'),
+#  'flair2': dtype('O'),
+#  'edited': dtype('O'),
+#  'scrape_date': dtype('O'),
+#  'scrape_ts': dtype('O')}
 
 odds_schema = {
     "team": np.dtype("O"),

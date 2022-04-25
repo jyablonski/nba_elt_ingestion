@@ -887,7 +887,7 @@ def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         )
         return df
     except BaseException as e:
-        logging.info(f"Shooting Stats Transformation Function Failed, {e}")
+        logging.error(f"Shooting Stats Transformation Function Failed, {e}")
         sentry_sdk.capture_exception(e)
         df = []
         return df
@@ -1507,7 +1507,7 @@ def schedule_scraper(year: str, month_list: List[str]) -> pd.DataFrame:
         )
         return schedule_df
     except BaseException as e:
-        logging.info(f"Schedule Scraper Function Failed, {e}")
+        logging.error(f"Schedule Scraper Function Failed, {e}")
         print(f"Schedule Scraper Function Failed, {e}")
         df = []
         return df
@@ -1557,7 +1557,7 @@ def write_to_s3(
             )
             pass
     except BaseException as error:
-        logging.info(f"S3 Storage Function Failed {file_name}, {error}")
+        logging.error(f"S3 Storage Function Failed {file_name}, {error}")
         sentry_sdk.capture_exception(error)
         pass
 
@@ -1665,12 +1665,13 @@ def send_aws_email(logs: pd.DataFrame):
             Source=sender,
         )
     except ClientError as e:
-        logging.info(e.response["Error"]["Message"])
+        logging.error(e.response["Error"]["Message"])
     else:
         logging.info("Email sent! Message ID:"),
         logging.info(response["MessageId"])
 
 
+# DEPRECATING this as of 2022-04-25 - i send emails everyday now regardless of pass or fail
 def execute_email_function(logs: pd.DataFrame):
     """
     Email function that executes the email function upon script finishing.

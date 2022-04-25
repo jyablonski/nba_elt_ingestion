@@ -32,7 +32,7 @@ def test_ses_execution_logs(aws_credentials):
 def test_ses_execution_no_logs(aws_credentials):
     ses = boto3.client("ses", region_name="us-east-1")
     logs = pd.DataFrame({"errors": []})
-    execute_email_function(logs)
+    send_aws_email(logs)
     assert ses.verify_email_identity(EmailAddress="jyablonski9@gmail.com")
 
 
@@ -180,6 +180,13 @@ def test_pbp_schema(pbp_transformed_data):
 
 def test_pbp_rows(pbp_transformed_data):
     assert len(pbp_transformed_data) == 1184
+
+
+def test_reddit_comment_schema(reddit_comments_data):
+    assert reddit_comments_data.dtypes.to_dict() == reddit_comment_data_schema
+
+def test_reddit_comment_rows(reddit_comments_data):
+    assert len(reddit_comments_data) == 1000
 
 
 def test_fake_schema(boxscores_data):
