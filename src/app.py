@@ -158,6 +158,7 @@ if __name__ == "__main__":
     write_to_sql(conn, "shooting_stats", shooting_stats, "append")
     conn.dispose()
 
+    # STEP 5: Write to S3
     write_to_s3("stats", stats)
     write_to_s3("boxscores", boxscores)
     write_to_s3("injury_data", injury_data)
@@ -172,10 +173,12 @@ if __name__ == "__main__":
     write_to_s3("schedule", schedule)
     write_to_s3("shooting_stats", shooting_stats)
 
-    # STEP 5: Grab Logs from previous steps & send email out detailing notable events
+    # STEP 6: Grab Logs from previous steps & send email out detailing notable events
     logs = pd.read_csv("logs/example.log", sep=r"\\t", engine="python", header=None)
     logs = logs.rename(columns={0: "errors"})
     logs = logs.query("errors.str.contains('Failed')", engine="python")
-    execute_email_function(logs)
+
+    # STEP 7: Send Email
+    send_aws_email(logs)
 
 logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.2")
