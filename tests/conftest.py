@@ -14,7 +14,7 @@ from src.utils import *
 
 ## Testing transformation functions from utils.py with custom csv + pickle object fixtures with edge cases
 
-# mock ses
+# mock s3 / mock ses
 @pytest.fixture(scope="function")
 def aws_credentials():
     """Mocked AWS Credentials for moto."""
@@ -23,7 +23,6 @@ def aws_credentials():
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["USER_EMAIL"] = "jyablonski9@gmail.com"
-
 
 @pytest.fixture(scope="session")
 def setup_database():
@@ -167,12 +166,30 @@ def schedule_data(mocker):
     with open(fname, "rb") as fp:
         mock_content = fp.read()
 
-    # IM A FUCKING GENIUS HOLY SHIT IT WORKS
+    # IT WORKS
     # you have to first patch the requests.get response, and subsequently the return value of requests.get(url).content
     mocker.patch("src.utils.requests.get").return_value.content = mock_content
 
     schedule = schedule_scraper("2022", ["february", "march"])
     return schedule
+
+@pytest.fixture()
+def reddit_comments_data(mocker):
+    """
+    Fixture to load reddit_comments data from a csv file for testing.
+    """
+    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/reddit_comments_data.csv")
+    with open(fname, "rb") as fp:
+        reddit_comments_fixture = pd.read_csv(fname, index_col = 0) # literally fuck indexes
+
+    # mock a whole bunch of praw OOP gahbage
+    mocker.patch("src.utils.praw.Reddit").return_value = 1
+    mocker.patch("src.utils.praw.Reddit").return_value.submission = 1
+    mocker.patch("src.utils.praw.Reddit").return_value.submission.comments.list().return_value = 1
+    mocker.patch("src.utils.pd.DataFrame").return_value = reddit_comments_fixture
+
+    reddit_comments_data = get_reddit_comments(["fake", "test"])
+    return reddit_comments_data
 
 
 @pytest.fixture()
@@ -208,7 +225,6 @@ def clean_player_names_data():
     )
     df = clean_player_names(df)
     return df
-
 
 ##### NEW TESTS
 
