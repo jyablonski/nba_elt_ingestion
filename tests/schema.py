@@ -193,18 +193,6 @@ reddit_comment_data_schema = {
     "sentiment": np.dtype("int64"),
 }
 
-
-# {'Unnamed: 0': dtype('int64'),
-#  'author': dtype('O'),
-#  'comment': dtype('O'),
-#  'score': dtype('int64'),
-#  'url': dtype('O'),
-#  'flair1': dtype('O'),
-#  'flair2': dtype('O'),
-#  'edited': dtype('O'),
-#  'scrape_date': dtype('O'),
-#  'scrape_ts': dtype('O')}
-
 odds_schema = {
     "team": np.dtype("O"),
     "spread": np.dtype("O"),
