@@ -27,9 +27,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.3")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.3")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.3")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.4")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.4")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.4")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -42,7 +42,7 @@ def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
 
         schema (list):  The corresponding columns of the Pandas DataFrame to be checked
     Returns:
-        None
+        The same input DataFrame with a schema attribute that is either validated or invalidated
     """
     data_name = [k for k, v in globals().items() if v is df][0]
     try:
@@ -181,4 +181,4 @@ if __name__ == "__main__":
     # STEP 7: Send Email
     send_aws_email(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.3")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.4")

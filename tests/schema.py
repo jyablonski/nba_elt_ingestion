@@ -193,18 +193,6 @@ reddit_comment_data_schema = {
     "sentiment": np.dtype("int64"),
 }
 
-
-# {'Unnamed: 0': dtype('int64'),
-#  'author': dtype('O'),
-#  'comment': dtype('O'),
-#  'score': dtype('int64'),
-#  'url': dtype('O'),
-#  'flair1': dtype('O'),
-#  'flair2': dtype('O'),
-#  'edited': dtype('O'),
-#  'scrape_date': dtype('O'),
-#  'scrape_ts': dtype('O')}
-
 odds_schema = {
     "team": np.dtype("O"),
     "spread": np.dtype("O"),
@@ -215,37 +203,37 @@ odds_schema = {
 }
 
 schedule_schema = {
-    'start_time': np.dtype('O'),
-    'away_team': np.dtype('O'),
-    'home_team': np.dtype('O'),
-    'date': np.dtype('O'),
-    'proper_date': np.dtype('O')
- }
+    "start_time": np.dtype("O"),
+    "away_team": np.dtype("O"),
+    "home_team": np.dtype("O"),
+    "date": np.dtype("O"),
+    "proper_date": np.dtype("O"),
+}
 
 shooting_stats_schema = {
-    'player': np.dtype('O'),
-    'avg_shot_distance': np.dtype('O'),
-    'pct_fga_2p': np.dtype('O'),
-    'pct_fga_0_3': np.dtype('O'),
-    'pct_fga_3_10': np.dtype('O'),
-    'pct_fga_10_16': np.dtype('O'),
-    'pct_fga_16_3p': np.dtype('O'),
-    'pct_fga_3p': np.dtype('O'),
-    'fg_pct_0_3': np.dtype('O'),
-    'fg_pct_3_10': np.dtype('O'),
-    'fg_pct_10_16': np.dtype('O'),
-    'fg_pct_16_3p': np.dtype('O'),
-    'pct_2pfg_ast': np.dtype('O'),
-    'pct_3pfg_ast': np.dtype('O'),
-    'dunk_pct_tot_fg': np.dtype('O'),
-    'dunks': np.dtype('O'),
-    'corner_3_ast_pct': np.dtype('O'),
-    'corner_3pm_pct': np.dtype('O'),
-    'heaves_att': np.dtype('O'),
-    'heaves_makes': np.dtype('O'),
-    'scrape_date': np.dtype('O'),
+    "player": np.dtype("O"),
+    "avg_shot_distance": np.dtype("O"),
+    "pct_fga_2p": np.dtype("O"),
+    "pct_fga_0_3": np.dtype("O"),
+    "pct_fga_3_10": np.dtype("O"),
+    "pct_fga_10_16": np.dtype("O"),
+    "pct_fga_16_3p": np.dtype("O"),
+    "pct_fga_3p": np.dtype("O"),
+    "fg_pct_0_3": np.dtype("O"),
+    "fg_pct_3_10": np.dtype("O"),
+    "fg_pct_10_16": np.dtype("O"),
+    "fg_pct_16_3p": np.dtype("O"),
+    "pct_2pfg_ast": np.dtype("O"),
+    "pct_3pfg_ast": np.dtype("O"),
+    "dunk_pct_tot_fg": np.dtype("O"),
+    "dunks": np.dtype("O"),
+    "corner_3_ast_pct": np.dtype("O"),
+    "corner_3pm_pct": np.dtype("O"),
+    "heaves_att": np.dtype("O"),
+    "heaves_makes": np.dtype("O"),
+    "scrape_date": np.dtype("O"),
     "scrape_ts": np.dtype("<M8[ns]"),
- }
+}
 
 transactions_schema = {
     "date": np.dtype("<M8[ns]"),

@@ -279,7 +279,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         df["player"] = df["player"].str.replace(" IV", "", regex=True)
         return df
     except BaseException as e:
-        print(f"Error Occurred with clean_player_names, {e}")
+        logging.error(f"Error Occurred with clean_player_names, {e}")
         sentry_sdk.capture_exception(e)
 
 
@@ -295,9 +295,7 @@ def get_player_stats_data():
     """
     try:
         year_stats = 2022
-        url = "https://www.basketball-reference.com/leagues/NBA_{}_per_game.html".format(
-            year_stats
-        )
+        url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_per_game.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
 
@@ -331,24 +329,22 @@ def get_player_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame of Player Aggregate Season stats
     """
-    stats = df
     try:
-        stats["PTS"] = pd.to_numeric(stats["PTS"])
-
-        stats = stats.query("Player == Player").reset_index()
-        stats["Player"] = (
-            stats["Player"]
+        df["PTS"] = pd.to_numeric(df["PTS"])
+        df = df.query("Player == Player").reset_index()
+        df["Player"] = (
+            df["Player"]
             .str.normalize("NFKD")
             .str.encode("ascii", errors="ignore")
             .str.decode("utf-8")
         )
-        stats.columns = stats.columns.str.lower()
-        stats["scrape_date"] = datetime.now().date()
-        stats = stats.drop("index", axis=1)
+        df.columns = df.columns.str.lower()
+        df["scrape_date"] = datetime.now().date()
+        df = df.drop("index", axis=1)
         logging.info(
-            f"General Stats Transformation Function Successful, retrieving {len(stats)} updated rows"
+            f"General Stats Transformation Function Successful, retrieving {len(df)} updated rows"
         )
-        return stats
+        return df
     except BaseException as error:
         logging.error(f"General Stats Transformation Function Failed, {error}")
         sentry_sdk.capture_exception(error)
@@ -1297,9 +1293,7 @@ def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
                 )  # formatting into url format.
                 pbp_list = pd.DataFrame()
                 for i in yesterday_hometeams["team"]:
-                    url = "https://www.basketball-reference.com/boxscores/pbp/{}0{}.html".format(
-                        newdate, i
-                    )
+                    url = f"https://www.basketball-reference.com/boxscores/pbp/{newdate}0{i}.html"
                     df = pd.read_html(url)[0]
                     df.columns = df.columns.map("".join)
                     df = df.rename(
@@ -1460,9 +1454,6 @@ def schedule_scraper(year: str, month_list: List[str]) -> pd.DataFrame:
             logging.info(
                 f"Schedule Function Completed for {i}, retrieving {len(schedule)} rows"
             )
-            print(
-                f"Schedule Function Completed for {i}, retrieving {len(schedule)} rows"
-            )
             completed_months.append(i)
             schedule_df = schedule_df.append(schedule)
 
@@ -1482,15 +1473,9 @@ def schedule_scraper(year: str, month_list: List[str]) -> pd.DataFrame:
         logging.info(
             f"Schedule Function Completed for {' '.join(completed_months)}, retrieving {len(schedule_df)} total rows"
         )
-        print(
-            f"Schedule Function Completed for {' '.join(completed_months)}, retrieving {len(schedule_df)} total rows"
-        )
         return schedule_df
     except IndexError as index_error:
         logging.info(
-            f"{i} currently has no data in basketball-reference, stopping the function and returning data for {' '.join(completed_months)}"
-        )
-        print(
             f"{i} currently has no data in basketball-reference, stopping the function and returning data for {' '.join(completed_months)}"
         )
         schedule_df = schedule_df[
@@ -1508,7 +1493,6 @@ def schedule_scraper(year: str, month_list: List[str]) -> pd.DataFrame:
         return schedule_df
     except BaseException as e:
         logging.error(f"Schedule Scraper Function Failed, {e}")
-        print(f"Schedule Scraper Function Failed, {e}")
         df = []
         return df
 
@@ -1644,11 +1628,9 @@ def send_aws_email(logs: pd.DataFrame):
     recipient = os.environ.get("USER_EMAIL")
     aws_region = "us-east-1"
     subject = f"NBA ELT PIPELINE - {str(len(logs))} Alert Fails for {str(today)}"
-    body_html = message = """\
+    body_html = message = f"""\
 <h3>Errors:</h3>
-                   {}""".format(
-        logs.to_html()
-    )
+                   {logs.to_html()}"""
 
     charset = "UTF-8"
     client = boto3.client("ses", region_name=aws_region)
