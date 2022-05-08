@@ -24,6 +24,7 @@ def aws_credentials():
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["USER_EMAIL"] = "jyablonski9@gmail.com"
 
+
 @pytest.fixture(scope="session")
 def setup_database():
     """ Fixture to set up an empty in-memory database """
@@ -173,19 +174,26 @@ def schedule_data(mocker):
     schedule = schedule_scraper("2022", ["february", "march"])
     return schedule
 
+
 @pytest.fixture()
 def reddit_comments_data(mocker):
     """
     Fixture to load reddit_comments data from a csv file for testing.
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/reddit_comments_data.csv")
+    fname = os.path.join(
+        os.path.dirname(__file__), "fixture_csvs/reddit_comments_data.csv"
+    )
     with open(fname, "rb") as fp:
-        reddit_comments_fixture = pd.read_csv(fname, index_col = 0) # literally fuck indexes
+        reddit_comments_fixture = pd.read_csv(
+            fname, index_col=0
+        )  # literally fuck indexes
 
     # mock a whole bunch of praw OOP gahbage
     mocker.patch("src.utils.praw.Reddit").return_value = 1
     mocker.patch("src.utils.praw.Reddit").return_value.submission = 1
-    mocker.patch("src.utils.praw.Reddit").return_value.submission.comments.list().return_value = 1
+    mocker.patch(
+        "src.utils.praw.Reddit"
+    ).return_value.submission.comments.list().return_value = 1
     mocker.patch("src.utils.pd.DataFrame").return_value = reddit_comments_fixture
 
     reddit_comments_data = get_reddit_comments(["fake", "test"])
@@ -225,6 +233,7 @@ def clean_player_names_data():
     )
     df = clean_player_names(df)
     return df
+
 
 ##### NEW TESTS
 

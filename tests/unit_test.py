@@ -76,10 +76,8 @@ def test_write_to_s3_invalidated(player_stats_data):
 
 # WRITE TO SQL TESTS
 def test_player_stats_sql(setup_database, player_stats_data):
-    df = player_stats_data
-    print(len(df))
     cursor = setup_database.cursor()
-    df.to_sql(
+    player_stats_data.to_sql(
         con=setup_database,
         name="aws_player_stats_data_source",
         index=False,
@@ -184,6 +182,7 @@ def test_pbp_rows(pbp_transformed_data):
 
 def test_reddit_comment_schema(reddit_comments_data):
     assert reddit_comments_data.dtypes.to_dict() == reddit_comment_data_schema
+
 
 def test_reddit_comment_rows(reddit_comments_data):
     assert len(reddit_comments_data) == 1000
