@@ -42,7 +42,7 @@ def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
 
         schema (list):  The corresponding columns of the Pandas DataFrame to be checked
     Returns:
-        None
+        The same input DataFrame with a schema attribute that is either validated or invalidated
     """
     data_name = [k for k, v in globals().items() if v is df][0]
     try:
