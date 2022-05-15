@@ -484,12 +484,19 @@ def get_boxscores_transformed(df: pd.DataFrame) -> pd.DataFrame:
         )
         df.columns = df.columns.str.lower()
         logging.info(
-            f"Box Score Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
+            f"Box Score Transformation Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
         return df
+    except TypeError as error:
+        logging.warning(
+            f"Box Score Transformation Function Failed, {error}, no data available for {year}-{month}-{day}"
+        )
+        sentry_sdk.capture_exception(error)
+        df = []
+        return df   
     except BaseException as error:
         logging.error(
-            f"Box Score Function Failed, {error}, no data available for {year}-{month}-{day}"
+            f"Box Score Transformation Function Logic Failed, {error}"
         )
         sentry_sdk.capture_exception(error)
         df = []
@@ -1397,13 +1404,13 @@ def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
                 # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
                 return pbp_list
             except BaseException as error:
-                logging.error(f"PBP Data Transformation Logic Failed, {error}")
+                logging.error(f"PBP Transformation Function Logic Failed, {error}")
                 sentry_sdk.capture_exception(error)
                 df = []
                 return df
         else:
             df = []
-            logging.warning("PBP Function No Data Yesterday")
+            logging.warning(f"PBP Transformation Function Failed, no data available for {year}-{month}-{day}")
             return df
     except BaseException as error:
         logging.error(f"PBP Data Transformation Function Failed, {error}")
