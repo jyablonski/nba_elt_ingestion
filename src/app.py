@@ -156,6 +156,10 @@ if __name__ == "__main__":
     write_to_sql(conn, "twitter_data", twitter_data, "append")
     write_to_sql(conn, "schedule", schedule, "append")
     write_to_sql(conn, "shooting_stats", shooting_stats, "append")
+
+    # write_to_sql_upsert(conn, "transactions", transactions, "upsert", ["date", "transaction"])
+    # write_to_sql_upsert(conn, "injury_data", injury_data, "upsert", ["player", "team", "description"])
+    # write_to_sql_upsert(conn, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
     conn.dispose()
 
     # STEP 5: Write to S3

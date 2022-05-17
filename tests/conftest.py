@@ -107,7 +107,6 @@ def advanced_stats_data():
     df = get_advanced_stats_transformed(df)
     return df
 
-
 @pytest.fixture(scope="session")
 def shooting_stats_data():
     """
@@ -249,3 +248,25 @@ def clean_player_names_data():
 
 #     stats_html_get = get_player_stats_data()
 #     return stats_html_get
+
+# @pytest.fixture(scope="session")
+# def schedule_upsert_data_1():
+#     """
+#     Fixture to load team advanced stats data from a csv file for testing.
+#     """
+#     fname = os.path.join(
+#         os.path.dirname(__file__), "fixture_csvs/schedule_upsert_data.csv"
+#     )
+#     df = pd.read_csv(fname, nrows = 2)
+#     return df
+
+# @pytest.fixture(scope="session")
+# def schedule_upsert_data_2():
+#     """
+#     Fixture to load team advanced stats data from a csv file for testing.
+#     """
+#     fname = os.path.join(
+#         os.path.dirname(__file__), "fixture_csvs/schedule_upsert_data.csv"
+#     )
+#     df = pd.read_csv(fname, skiprows = [1, 2])
+#     return df
