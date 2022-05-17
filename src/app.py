@@ -27,9 +27,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.5")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.5")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.5")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.6")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.6")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.6")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -156,6 +156,10 @@ if __name__ == "__main__":
     write_to_sql(conn, "twitter_data", twitter_data, "append")
     write_to_sql(conn, "schedule", schedule, "append")
     write_to_sql(conn, "shooting_stats", shooting_stats, "append")
+
+    # write_to_sql_upsert(conn, "transactions", transactions, "upsert", ["date", "transaction"])
+    # write_to_sql_upsert(conn, "injury_data", injury_data, "upsert", ["player", "team", "description"])
+    # write_to_sql_upsert(conn, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
     conn.dispose()
 
     # STEP 5: Write to S3
@@ -181,4 +185,4 @@ if __name__ == "__main__":
     # STEP 7: Send Email
     send_aws_email(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.5")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.6")

@@ -3,6 +3,7 @@ import logging
 import os
 import requests
 from typing import List
+import uuid
 
 import awswrangler as wr
 import boto3
@@ -493,11 +494,9 @@ def get_boxscores_transformed(df: pd.DataFrame) -> pd.DataFrame:
         )
         sentry_sdk.capture_exception(error)
         df = []
-        return df   
+        return df
     except BaseException as error:
-        logging.error(
-            f"Box Score Transformation Function Logic Failed, {error}"
-        )
+        logging.error(f"Box Score Transformation Function Logic Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = []
         return df
@@ -1139,7 +1138,7 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
     try:
         for i in urls:
             submission = reddit.submission(url=i)
-            submission.comments.replace_more(limit=0)
+            submission.comments.replace_more(limit=None)
             for comment in submission.comments.list():
                 author_list.append(comment.author)
                 comment_list.append(comment.body)
@@ -1410,7 +1409,9 @@ def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
                 return df
         else:
             df = []
-            logging.warning(f"PBP Transformation Function Failed, no data available for {year}-{month}-{day}")
+            logging.warning(
+                f"PBP Transformation Function Failed, no data available for {year}-{month}-{day}"
+            )
             return df
     except BaseException as error:
         logging.error(f"PBP Data Transformation Function Failed, {error}")
@@ -1589,6 +1590,90 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str):
         logging.error(f"SQL Write Script Failed, {error}")
         sentry_sdk.capture_exception(error)
         return error
+
+
+def write_to_sql_upsert(
+    conn, table_name: str, df: pd.DataFrame, table_type: str, pd_index: List[str]
+):
+    """
+    SQL Table function to upsert a Pandas DataFrame into a SQL Table.
+
+    Will create a new table if it doesn't exist.  If it does, it will insert new records and upsert new column values onto existing records (if applicable).
+
+    You have to do some extra index stuff to the pandas df to specify what the primary key of the records is (this data does not get upserted).
+
+    Args:
+        conn (SQL Connection): The connection to the SQL DB.
+
+        table_name (str): The Table name to write to SQL as.
+
+        df (DataFrame): The Pandas DataFrame to store in SQL
+
+        table_type (str): A placeholder which should always be "upsert"
+
+    Returns:
+        Upserts any new data in the Pandas DataFrame to the table in Postgres in the {nba_source_dev} schema
+
+    """
+    try:
+        df = df.set_index(pd_index)
+        df = df.rename_axis(pd_index)
+        sql_table_name = f"aws_{table_name}_source"
+
+        # If the table does not exist, we should just use to_sql to create it - schema is hardcoded in
+        if not conn.execute(
+            f"""SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE  table_schema = 'nba_source' 
+                AND    table_name   = '{sql_table_name}');
+                """
+        ).first()[0]:
+            df.to_sql(sql_table_name, conn)
+            print(
+                f"SQL Upsert Function Successful, {len(df)} records added to a NEW table {sql_table_name}"
+            )
+            pass
+        else:
+            # If it already exists...
+            temp_table_name = f"temp_{uuid.uuid4().hex[:6]}"
+            df.to_sql(temp_table_name, conn, index=True)
+            # use to_sql to create a "temp" table, then drop it at the end.
+
+            index = list(df.index.names)
+            index_sql_txt = ", ".join([f'"{i}"' for i in index])
+            columns = list(df.columns)
+            headers = index + columns
+            headers_sql_txt = ", ".join([f'"{i}"' for i in headers])
+            # this is excluding the primary key columns needed to identify the unique rows.
+            update_column_stmt = ", ".join(
+                [f'"{col}" = EXCLUDED."{col}"' for col in columns]
+            )
+
+            # For the ON CONFLICT clause, postgres requires that the columns have unique constraint
+            query_pk = f"""
+            ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS unique_constraint_for_upsert;
+            ALTER TABLE "{sql_table_name}" ADD CONSTRAINT unique_constraint_for_upsert UNIQUE ({index_sql_txt});
+            """
+
+            conn.execute(query_pk)
+
+            # Compose and execute upsert query
+            query_upsert = f"""
+            INSERT INTO "{sql_table_name}" ({headers_sql_txt}) 
+            SELECT {headers_sql_txt} FROM "{temp_table_name}"
+            ON CONFLICT ({index_sql_txt}) DO UPDATE 
+            SET {update_column_stmt};
+            """
+            conn.execute(query_upsert)
+            conn.execute(f"DROP TABLE {temp_table_name};")
+            print(
+                f"SQL Upsert Function Successful, {len(df)} records added or upserted into {table_name}"
+            )
+            pass
+    except BaseException as error:
+        conn.execute(f"DROP TABLE {temp_table_name};")
+        print(f"SQL Upsert Function Failed for {table_name} ({len(df)} rows), {error}")
+        pass
 
 
 def sql_connection(rds_schema: str):

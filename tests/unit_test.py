@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.utils import write_to_sql, write_to_s3, get_leading_zeroes
-from src.utils import send_aws_email, execute_email_function
+from src.utils import write_to_sql, write_to_sql_upsert, write_to_s3, get_leading_zeroes
+from src.utils import get_leading_zeroes, send_aws_email, execute_email_function
 from tests.schema import *
 
 # SES TESTS
@@ -220,41 +220,15 @@ def test_clean_player_names_rows(clean_player_names_data):
     assert clean_player_names_data["player"][3] == "Robert Williams"
     assert clean_player_names_data["player"][4] == "Lonnie Walker"
 
+# don't think this is possible bc i use postgres which has different syntax and constraint stuff and schemas
+# mocking half of the function out seems stupid right now
+# def test_write_to_sql_upsert(setup_database, schedule_upsert_data_1, schedule_upsert_data_2):
+#     conn = setup_database.cursor()
+#     write_to_sql_upsert(setup_database, "schedule_dummy", schedule_upsert_data_1, "upsert", pd_index = ["away_team", "home_team", "proper_date"], is_test = True)
+#     write_to_sql_upsert(setup_database, "schedule_dummy", schedule_upsert_data_2, "upsert", pd_index = ["away_team", "home_team", "proper_date"], is_test = True)
+#     write_to_sql_upsert(setup_database, "schedule_dummy", schedule_upsert_data_2, "upsert", pd_index = ["away_team", "home_team", "proper_date"], is_test = True)
+#     # intentionally write it twice to make sure data doesn't get duplicated
 
-### DEPRECATING COLUMN TESTING AS OF 2022-02-10
-# def test_pbp_cols(pbp_transformed_data):
-#     assert list(pbp_transformed_data.columns) == pbp_cols
-
-# def test_advanced_stats_cols(advanced_stats_data):
-#     assert list(advanced_stats_data.columns) == adv_stats_cols
-
-# def test_transactions_cols(transactions_data):
-#     assert list(transactions_data.columns) == transactions_cols
-
-# def test_injuries_cols(injuries_data):
-#     assert list(injuries_data.columns) == injury_cols
-
-# def test_odds_cols(odds_data):
-#     assert list(odds_data.columns) == odds_cols
-
-# def test_opp_stats_cols(opp_stats_data):
-#     assert list(opp_stats_data.columns) == opp_stats_cols
-
-# def test_boxscores_cols(boxscores_data):
-#     assert list(boxscores_data.columns) == boxscores_cols
-
-# def test_player_stats_cols(player_stats_data):
-#     assert list(player_stats_data.columns) == stats_cols
-
-### WIP for raw html testing
-
-# def test_raw_stats_rows(player_stats_html_get):
-#     assert len(player_stats_html_get) == 1
-
-# def test_raw_stats_schema(player_stats_data_raw):
-#     assert list(player_stats_data_raw.columns) == raw_stats_cols
-
-# NEW NEW
-# def test_raw_stats_rows(player_stats_html_get):
-#     df = get_player_stats_data()
-#     assert len(df) == 425
+#     df_len = len(list(conn.execute("SELECT * from schedule_dummy;")))
+#     conn.close()
+#     assert df_len == 6
