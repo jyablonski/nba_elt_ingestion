@@ -1138,7 +1138,7 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
     try:
         for i in urls:
             submission = reddit.submission(url=i)
-            submission.comments.replace_more(limit=None)
+            submission.comments.replace_more(limit=0)
             for comment in submission.comments.list():
                 author_list.append(comment.author)
                 comment_list.append(comment.body)
@@ -1535,7 +1535,7 @@ def write_to_s3(
                 index=False,
             )
             logging.info(
-                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{today}.parquet"
+                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{today}.parquet)"
             )
             pass
         else:
@@ -1545,7 +1545,7 @@ def write_to_s3(
                 index=False,
             )
             logging.info(
-                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/invalidated/{month_prefix}/{file_name}-{today}.parquet"
+                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/invalidated/{month_prefix}/{file_name}-{today}.parquet)"
             )
             pass
     except BaseException as error:
