@@ -107,6 +107,7 @@ def advanced_stats_data():
     df = get_advanced_stats_transformed(df)
     return df
 
+
 @pytest.fixture(scope="session")
 def shooting_stats_data():
     """
