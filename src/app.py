@@ -1,6 +1,6 @@
-import os
-import logging
 from datetime import datetime, timedelta
+import logging
+import os
 
 import awswrangler as wr
 import boto3
@@ -11,6 +11,11 @@ import pandas as pd
 import praw
 import requests
 from sqlalchemy import exc, create_engine
+
+try:
+    from .schema import *
+except:
+    from schema import *
 
 try:
     from .utils import *  # this works for tests
