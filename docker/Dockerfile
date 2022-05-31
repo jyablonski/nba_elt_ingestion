@@ -28,6 +28,7 @@ USER appuser
 
 COPY src/app.py ./app.py
 COPY src/utils.py ./utils.py
+COPY src/schema.py ./schema.py
 
 RUN mkdir logs
 RUN cat > logs/example.log

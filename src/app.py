@@ -1,6 +1,6 @@
-import os
-import logging
 from datetime import datetime, timedelta
+import logging
+import os
 
 import awswrangler as wr
 import boto3
@@ -11,6 +11,11 @@ import pandas as pd
 import praw
 import requests
 from sqlalchemy import exc, create_engine
+
+try:
+    from .schema import *
+except:
+    from schema import *
 
 try:
     from .utils import *  # this works for tests
@@ -27,9 +32,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.8")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.8")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.8")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.9")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.9")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.9")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -185,4 +190,4 @@ if __name__ == "__main__":
     # STEP 7: Send Email
     send_aws_email(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.8")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.9")
