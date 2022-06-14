@@ -1408,6 +1408,8 @@ def write_to_sql_upsert(
 
         table_type (str): A placeholder which should always be "upsert"
 
+        pd_index (List[str]): The columns that make up the composite primary key of the SQL Table.
+
     Returns:
         Upserts any new data in the Pandas DataFrame to the table in Postgres in the {nba_source_dev} schema
 
