@@ -93,16 +93,16 @@ if __name__ == "__main__":
     logging.info("STARTING WEB SCRAPE")
 
     # STEP 1: Extract Raw Data
-    stats_raw = get_player_stats_data()
-    boxscores_raw = get_boxscores_data()
+    # stats_raw = get_player_stats_data()
+    # boxscores_raw = get_boxscores_data()
     injury_data_raw = get_injuries_data()
     transactions_raw = get_transactions_data()
     # adv_stats_raw = get_advanced_stats_data()
-    odds_raw = get_odds_data()
+    # odds_raw = get_odds_data()
     reddit_data = get_reddit_data("nba")  # doesnt need transformation
     # opp_stats_raw = get_opp_stats_data()
     # schedule = schedule_scraper("2022", ["april", "may", "june"])
-    shooting_stats_raw = get_shooting_stats_data()
+    # shooting_stats_raw = get_shooting_stats_data()
     twitter_data = scrape_tweets("nba")
 
     logging.info("FINISHED WEB SCRAPE")
@@ -110,37 +110,37 @@ if __name__ == "__main__":
     # STEP 2: Transform data
     logging.info("STARTING DATA TRANSFORMATIONS")
 
-    stats = get_player_stats_transformed(stats_raw)
-    boxscores = get_boxscores_transformed(boxscores_raw)
+    # stats = get_player_stats_transformed(stats_raw)
+    # boxscores = get_boxscores_transformed(boxscores_raw)
     injury_data = get_injuries_transformed(injury_data_raw)
     transactions = get_transactions_transformed(transactions_raw)
     # adv_stats = get_advanced_stats_transformed(adv_stats_raw)
-    odds = get_odds_transformed(odds_raw)
+    # odds = get_odds_transformed(odds_raw)
     reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
-    pbp_data = get_pbp_data_transformed(
-        boxscores
-    )  # this uses the transformed boxscores
+    # pbp_data = get_pbp_data_transformed(
+    #     boxscores
+    # )  # this uses the transformed boxscores
     # opp_stats = get_opp_stats_transformed(opp_stats_raw)
-    shooting_stats = get_shooting_stats_transformed(shooting_stats_raw)
+    # shooting_stats = get_shooting_stats_transformed(shooting_stats_raw)
 
     logging.info("FINISHED DATA TRANSFORMATIONS")
 
     logging.info("STARTING SCHEMA VALIDATION")
 
     # STEP 3: Validating Schemas - 1 for each SQL Write
-    stats = validate_schema(stats, stats_cols)
+    # stats = validate_schema(stats, stats_cols)
     # adv_stats = validate_schema(adv_stats, adv_stats_cols)
-    boxscores = validate_schema(boxscores, boxscores_cols)
+    # boxscores = validate_schema(boxscores, boxscores_cols)
     injury_data = validate_schema(injury_data, injury_cols)
     # opp_stats = validate_schema(opp_stats, opp_stats_cols)
-    pbp_stats = validate_schema(pbp_data, pbp_cols)
+    # pbp_stats = validate_schema(pbp_data, pbp_cols)
     reddit_data = validate_schema(reddit_data, reddit_cols)
     reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
-    odds = validate_schema(odds, odds_cols)
+    # odds = validate_schema(odds, odds_cols)
     transactions = validate_schema(transactions, transactions_cols)
     twitter_data = validate_schema(twitter_data, twitter_cols)
     # schedule = validate_schema(schedule, schedule_cols)
-    shooting_stats = validate_schema(shooting_stats, shooting_stats_cols)
+    # shooting_stats = validate_schema(shooting_stats, shooting_stats_cols)
 
     logging.info("FINISHED SCHEMA VALIDATION")
 
@@ -148,19 +148,19 @@ if __name__ == "__main__":
 
     # STEP 4: Append Transformed Data to SQL
     conn = sql_connection(os.environ.get("RDS_SCHEMA"))
-    write_to_sql(conn, "stats", stats, "append")
-    write_to_sql(conn, "boxscores", boxscores, "append")
+    # write_to_sql(conn, "stats", stats, "append")
+    # write_to_sql(conn, "boxscores", boxscores, "append")
     write_to_sql(conn, "injury_data", injury_data, "append")
     write_to_sql(conn, "transactions", transactions, "append")
     # write_to_sql(conn, "adv_stats", adv_stats, "append")
-    write_to_sql(conn, "odds", odds, "append")
+    # write_to_sql(conn, "odds", odds, "append")
     write_to_sql(conn, "reddit_data", reddit_data, "append")
     write_to_sql(conn, "reddit_comment_data", reddit_comment_data, "append")
-    write_to_sql(conn, "pbp_data", pbp_data, "append")
+    # write_to_sql(conn, "pbp_data", pbp_data, "append")
     # write_to_sql(conn, "opp_stats", opp_stats, "append")
     write_to_sql(conn, "twitter_data", twitter_data, "append")
     # write_to_sql(conn, "schedule", schedule, "append")
-    write_to_sql(conn, "shooting_stats", shooting_stats, "append")
+    # write_to_sql(conn, "shooting_stats", shooting_stats, "append")
 
     # write_to_sql_upsert(conn, "transactions", transactions, "upsert", ["date", "transaction"])
     # write_to_sql_upsert(conn, "injury_data", injury_data, "upsert", ["player", "team", "description"])
@@ -168,19 +168,19 @@ if __name__ == "__main__":
     conn.dispose()
 
     # STEP 5: Write to S3
-    write_to_s3("stats", stats)
-    write_to_s3("boxscores", boxscores)
+    # write_to_s3("stats", stats)
+    # write_to_s3("boxscores", boxscores)
     write_to_s3("injury_data", injury_data)
     write_to_s3("transactions", transactions)
     # write_to_s3("adv_stats", adv_stats)
-    write_to_s3("odds", odds)
+    # write_to_s3("odds", odds)
     write_to_s3("reddit_data", reddit_data)
     write_to_s3("reddit_comment_data", reddit_comment_data)
-    write_to_s3("pbp_data", pbp_data)
+    # write_to_s3("pbp_data", pbp_data)
     # write_to_s3("opp_stats", opp_stats)
     write_to_s3("twitter_data", twitter_data)
     # write_to_s3("schedule", schedule)
-    write_to_s3("shooting_stats", shooting_stats)
+    # write_to_s3("shooting_stats", shooting_stats)
 
     # STEP 6: Grab Logs from previous steps & send email out detailing notable events
     logs = pd.read_csv("logs/example.log", sep=r"\\t", engine="python", header=None)
