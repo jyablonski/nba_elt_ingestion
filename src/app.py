@@ -32,9 +32,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.11")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.11")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.11")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.12")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.12")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.12")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -150,8 +150,6 @@ if __name__ == "__main__":
     conn = sql_connection(os.environ.get("RDS_SCHEMA"))
     # write_to_sql(conn, "stats", stats, "append")
     # write_to_sql(conn, "boxscores", boxscores, "append")
-    write_to_sql(conn, "injury_data", injury_data, "append")
-    write_to_sql(conn, "transactions", transactions, "append")
     # write_to_sql(conn, "adv_stats", adv_stats, "append")
     # write_to_sql(conn, "odds", odds, "append")
     write_to_sql(conn, "reddit_data", reddit_data, "append")
@@ -162,9 +160,15 @@ if __name__ == "__main__":
     # write_to_sql(conn, "schedule", schedule, "append")
     # write_to_sql(conn, "shooting_stats", shooting_stats, "append")
 
-    # write_to_sql_upsert(conn, "transactions", transactions, "upsert", ["date", "transaction"])
-    # write_to_sql_upsert(conn, "injury_data", injury_data, "upsert", ["player", "team", "description"])
+    # UPSERT TABLES
+    write_to_sql_upsert(
+        conn, "transactions", transactions, "upsert", ["date", "transaction"]
+    )
+    write_to_sql_upsert(
+        conn, "injury_data", injury_data, "upsert", ["player", "team", "description"]
+    )
     # write_to_sql_upsert(conn, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
+    
     conn.dispose()
 
     # STEP 5: Write to S3
@@ -190,4 +194,4 @@ if __name__ == "__main__":
     # STEP 7: Send Email
     send_aws_email(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.11")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.12")

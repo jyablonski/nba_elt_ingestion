@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import logging
 import os
 import requests
-from typing import List
+from typing import List, Optional
 import uuid
 
 import awswrangler as wr
@@ -16,6 +16,7 @@ import pandas as pd
 import praw
 import requests
 from sqlalchemy import exc, create_engine
+from sqlalchemy.engine.base import Engine
 import sentry_sdk
 import twint
 
@@ -35,6 +36,7 @@ elif (today >= datetime(2022, 4, 11).date()) & (today < datetime(2022, 4, 16).da
     season_type = "Play-In"
 else:
     season_type = "Playoffs"
+
 
 def get_leading_zeroes(month: int) -> str:
     """
@@ -79,7 +81,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         sentry_sdk.capture_exception(e)
 
 
-def get_player_stats_data():
+def get_player_stats_data() -> pd.DataFrame:
     """
     Web Scrape function w/ BS4 that grabs aggregate season stats
 
@@ -148,7 +150,9 @@ def get_player_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-def get_boxscores_data(month=month, day=day, year=year):
+def get_boxscores_data(
+    month: int = month, day: int = day, year: int = year
+) -> pd.DataFrame:
     """
     Function that grabs box scores from a given date in mmddyyyy format - defaults to yesterday.  values can be ex. 1 or 01.
     Can't use read_html for this so this is raw web scraping baby.
@@ -297,7 +301,7 @@ def get_boxscores_transformed(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-def get_opp_stats_data():
+def get_opp_stats_data() -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all regular season opponent team stats
 
@@ -356,7 +360,7 @@ def get_opp_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-def get_injuries_data():
+def get_injuries_data() -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all current injuries
 
@@ -412,7 +416,7 @@ def get_injuries_transformed(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-def get_transactions_data():
+def get_transactions_data() -> pd.DataFrame:
     """
     Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
 
@@ -489,7 +493,7 @@ def get_transactions_transformed(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-def get_advanced_stats_data():
+def get_advanced_stats_data() -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all team advanced stats
 
@@ -575,7 +579,7 @@ def get_advanced_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-def get_shooting_stats_data():
+def get_shooting_stats_data() -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all raw shooting stats
 
@@ -690,7 +694,7 @@ def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-def get_odds_data():
+def get_odds_data() -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs current day's nba odds in raw format.
     There are 2 objects [0], [1] if the days are split into 2.
@@ -1304,7 +1308,7 @@ def schedule_scraper(year: str, month_list: List[str]) -> pd.DataFrame:
 
 def write_to_s3(
     file_name: str, df: pd.DataFrame, bucket: str = os.environ.get("S3_BUCKET")
-):
+) -> None:
     """
     S3 Function using awswrangler to write file.  Only supports parquet right now.
 
@@ -1328,6 +1332,8 @@ def write_to_s3(
         elif df.schema == "Validated":
             wr.s3.to_parquet(
                 df=df,
+                # 2022-06-21 - use this updated s3 naming convention next season
+                # f"s3://{bucket}/{file_name}/validated/year={year}/month={month_prefix}/{file_name}-{today}.parquet"
                 path=f"s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{today}.parquet",
                 index=False,
             )
@@ -1351,7 +1357,7 @@ def write_to_s3(
         pass
 
 
-def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str):
+def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> None:
     """
     SQL Table function to write a pandas data frame in aws_dfname_source format
 
@@ -1386,12 +1392,11 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str):
     except BaseException as error:
         logging.error(f"SQL Write Script Failed, {error}")
         sentry_sdk.capture_exception(error)
-        return error
 
 
 def write_to_sql_upsert(
     conn, table_name: str, df: pd.DataFrame, table_type: str, pd_index: List[str]
-):
+) -> None:
     """
     SQL Table function to upsert a Pandas DataFrame into a SQL Table.
 
@@ -1450,8 +1455,8 @@ def write_to_sql_upsert(
 
             # For the ON CONFLICT clause, postgres requires that the columns have unique constraint
             query_pk = f"""
-            ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS unique_constraint_for_upsert;
-            ALTER TABLE "{sql_table_name}" ADD CONSTRAINT unique_constraint_for_upsert UNIQUE ({index_sql_txt});
+            ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS unique_constraint_for_upsert_{table_name};
+            ALTER TABLE "{sql_table_name}" ADD CONSTRAINT unique_constraint_for_upsert_{table_name} UNIQUE ({index_sql_txt});
             """
 
             conn.execute(query_pk)
@@ -1465,17 +1470,19 @@ def write_to_sql_upsert(
             """
             conn.execute(query_upsert)
             conn.execute(f"DROP TABLE {temp_table_name};")
-            print(
+            logging.info(
                 f"SQL Upsert Function Successful, {len(df)} records added or upserted into {table_name}"
             )
             pass
     except BaseException as error:
         conn.execute(f"DROP TABLE {temp_table_name};")
-        print(f"SQL Upsert Function Failed for {table_name} ({len(df)} rows), {error}")
+        logging.error(
+            f"SQL Upsert Function Failed for {table_name} ({len(df)} rows), {error}"
+        )
         pass
 
 
-def sql_connection(rds_schema: str):
+def sql_connection(rds_schema: str) -> Engine:
     """
     SQL Connection function connecting to my postgres db with schema = nba_source where initial data in ELT lands.
 
@@ -1504,7 +1511,7 @@ def sql_connection(rds_schema: str):
         return e
 
 
-def send_aws_email(logs: pd.DataFrame):
+def send_aws_email(logs: pd.DataFrame) -> None:
     """
     Email function utilizing boto3, has to be set up with SES in AWS and env variables passed in via Terraform.
     The actual email code is copied from aws/boto3 and the subject / message should go in the subject / body_html variables.
@@ -1545,7 +1552,7 @@ def send_aws_email(logs: pd.DataFrame):
 
 
 # DEPRECATING this as of 2022-04-25 - i send emails everyday now regardless of pass or fail
-def execute_email_function(logs: pd.DataFrame):
+def execute_email_function(logs: pd.DataFrame) -> None:
     """
     Email function that executes the email function upon script finishing.
     This is really not necessary; originally thought i wouldn't email if no errors would found but now i send it everyday regardless.
