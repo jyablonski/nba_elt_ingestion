@@ -32,9 +32,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.12")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.12")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.12")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.13")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.13")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.13")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -148,27 +148,37 @@ if __name__ == "__main__":
 
     # STEP 4: Append Transformed Data to SQL
     conn = sql_connection(os.environ.get("RDS_SCHEMA"))
-    # write_to_sql(conn, "stats", stats, "append")
-    # write_to_sql(conn, "boxscores", boxscores, "append")
-    # write_to_sql(conn, "adv_stats", adv_stats, "append")
-    # write_to_sql(conn, "odds", odds, "append")
-    write_to_sql(conn, "reddit_data", reddit_data, "append")
-    write_to_sql(conn, "reddit_comment_data", reddit_comment_data, "append")
-    # write_to_sql(conn, "pbp_data", pbp_data, "append")
-    # write_to_sql(conn, "opp_stats", opp_stats, "append")
-    write_to_sql(conn, "twitter_data", twitter_data, "append")
-    # write_to_sql(conn, "schedule", schedule, "append")
-    # write_to_sql(conn, "shooting_stats", shooting_stats, "append")
 
-    # UPSERT TABLES
-    write_to_sql_upsert(
-        conn, "transactions", transactions, "upsert", ["date", "transaction"]
-    )
-    write_to_sql_upsert(
-        conn, "injury_data", injury_data, "upsert", ["player", "team", "description"]
-    )
-    # write_to_sql_upsert(conn, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
-    
+    with conn.connect() as connection:
+        # write_to_sql(connection, "stats", stats, "append")
+        # write_to_sql(connection, "boxscores", boxscores, "append")
+        # write_to_sql(connection, "adv_stats", adv_stats, "append")
+        # write_to_sql(connection, "odds", odds, "append")
+        write_to_sql(connection, "reddit_data", reddit_data, "append")
+        write_to_sql(connection, "reddit_comment_data", reddit_comment_data, "append")
+        # write_to_sql(connection, "pbp_data", pbp_data, "append")
+        # write_to_sql(connection, "opp_stats", opp_stats, "append")
+        write_to_sql(connection, "twitter_data", twitter_data, "append")
+        # write_to_sql(connection, "schedule", schedule, "append")
+        # write_to_sql(connection, "shooting_stats", shooting_stats, "append")
+
+        # UPSERT TABLES
+        write_to_sql_upsert(
+            connection,
+            "transactions",
+            transactions,
+            "upsert",
+            ["date", "transaction"]
+        )
+        write_to_sql_upsert(
+            connection,
+            "injury_data",
+            injury_data,
+            "upsert",
+            ["player", "team", "description"],
+        )
+        # write_to_sql_upsert(connection, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
+
     conn.dispose()
 
     # STEP 5: Write to S3
@@ -194,4 +204,4 @@ if __name__ == "__main__":
     # STEP 7: Send Email
     send_aws_email(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.12")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.13")

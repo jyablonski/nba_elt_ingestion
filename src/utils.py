@@ -1484,7 +1484,8 @@ def write_to_sql_upsert(
 
 def sql_connection(rds_schema: str) -> Engine:
     """
-    SQL Connection function connecting to my postgres db with schema = nba_source where initial data in ELT lands.
+    SQL Connection function to define the SQL Driver + connection variables needed to connect to the DB.
+    This doesn't actually make the connection, use conn.connect() in a context manager to create 1 re-usable connection
 
     Args:
         rds_schema (str): The Schema in the DB to connect to.
