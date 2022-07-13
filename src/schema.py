@@ -175,6 +175,25 @@ twitter_cols = [
     "sentiment",
 ]
 
+twitter_tweepy_cols = [
+    "created_at",
+    "tweet_id",
+    "username",
+    "user_id",
+    "tweet",
+    "likes",
+    "retweets",
+    "language",
+    "scrape_ts",
+    "profile_img",
+    "url",
+    "compound",
+    "neg",
+    "neu",
+    "pos",
+    "sentiment",
+]
+
 schedule_cols = ["start_time", "away_team", "home_team", "date", "proper_date"]
 
 shooting_stats_cols = [

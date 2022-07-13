@@ -32,9 +32,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.13")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.13")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.5.13")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.0")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.0")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.0")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -104,6 +104,7 @@ if __name__ == "__main__":
     # schedule = schedule_scraper("2022", ["april", "may", "june"])
     # shooting_stats_raw = get_shooting_stats_data()
     twitter_data = scrape_tweets("nba")
+    twitter_tweepy_data = scrape_tweets_combo()
 
     logging.info("FINISHED WEB SCRAPE")
 
@@ -139,6 +140,7 @@ if __name__ == "__main__":
     # odds = validate_schema(odds, odds_cols)
     transactions = validate_schema(transactions, transactions_cols)
     twitter_data = validate_schema(twitter_data, twitter_cols)
+    twitter_tweepy_data = validate_schema(twitter_tweepy_data, twitter_tweepy_cols)
     # schedule = validate_schema(schedule, schedule_cols)
     # shooting_stats = validate_schema(shooting_stats, shooting_stats_cols)
 
@@ -164,11 +166,7 @@ if __name__ == "__main__":
 
         # UPSERT TABLES
         write_to_sql_upsert(
-            connection,
-            "transactions",
-            transactions,
-            "upsert",
-            ["date", "transaction"]
+            connection, "transactions", transactions, "upsert", ["date", "transaction"]
         )
         write_to_sql_upsert(
             connection,
@@ -176,6 +174,10 @@ if __name__ == "__main__":
             injury_data,
             "upsert",
             ["player", "team", "description"],
+        )
+
+        write_to_sql_upsert(
+            connection, "twitter_tweepy_data", twitter_tweepy_data, "upsert", ["tweet_id"],
         )
         # write_to_sql_upsert(connection, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
 
@@ -193,6 +195,7 @@ if __name__ == "__main__":
     # write_to_s3("pbp_data", pbp_data)
     # write_to_s3("opp_stats", opp_stats)
     write_to_s3("twitter_data", twitter_data)
+    write_to_s3("twitter_tweepy_data", twitter_tweepy_data)
     # write_to_s3("schedule", schedule)
     # write_to_s3("shooting_stats", shooting_stats)
 
@@ -204,4 +207,4 @@ if __name__ == "__main__":
     # STEP 7: Send Email
     send_aws_email(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.5.13")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.6.0")

@@ -18,6 +18,8 @@ import requests
 from sqlalchemy import exc, create_engine
 from sqlalchemy.engine.base import Engine
 import sentry_sdk
+import tweepy
+from tweepy import OAuthHandler
 import twint
 
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
@@ -1043,6 +1045,83 @@ def scrape_tweets(search_term: str) -> pd.DataFrame:
         return df
     except BaseException as e:
         logging.error(f"Twitter Tweet Extraction Failed, {e}")
+        sentry_sdk.capture_exception(e)
+        df = []
+        return df
+
+
+def scrape_tweets_tweepy(
+    search_parameter: str, count: int, result_type: str
+) -> pd.DataFrame:
+    auth = tweepy.OAuthHandler(
+        os.environ.get("twitter_consumer_api_key"),
+        os.environ.get("twitter_consumer_api_secret"),
+    )
+
+    # auth.set_access_token(
+    #     os.environ.get("twitter_access_api_key"),
+    #     os.environ.get("twitter_access_api_secret"),
+    # )
+
+    api = tweepy.API(auth, wait_on_rate_limit=True)
+
+    df = pd.DataFrame()
+    try:
+        for tweet in tweepy.Cursor(  # result_type can be mixed, recent, or popular.
+            api.search_tweets, search_parameter, count=count, result_type=result_type
+        ).items(count):
+            # print(status)
+            df = df.append(
+                {
+                    "created_at": tweet._json["created_at"],
+                    "tweet_id": tweet._json["id_str"],
+                    "username": tweet._json["user"]["screen_name"],
+                    "user_id": tweet._json["user"]["id"],
+                    "tweet": tweet._json["text"],
+                    "likes": tweet._json["favorite_count"],
+                    "retweets": tweet._json["retweet_count"],
+                    "language": tweet._json["lang"],
+                    "scrape_ts": datetime.now(),
+                    "profile_img": tweet._json["user"]["profile_image_url"],
+                    "url": f"https://twitter.com/twitter/statuses/{tweet._json['id']}",
+                },
+                ignore_index=True,
+            )
+
+        analyzer = SentimentIntensityAnalyzer()
+        df["compound"] = [analyzer.polarity_scores(x)["compound"] for x in df["tweet"]]
+        df["neg"] = [analyzer.polarity_scores(x)["neg"] for x in df["tweet"]]
+        df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["tweet"]]
+        df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["tweet"]]
+        df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
+
+        logging.info(f"Twitter Scrape Successful, retrieving {len(df)} Tweets")
+        return df
+    except BaseException as e:
+        logging.error(f"Error Occurred for Scrape Tweets Tweepy, {e}")
+        sentry_sdk.capture_exception(e)
+        df = []
+        return df
+
+
+def scrape_tweets_combo() -> pd.DataFrame:
+    try:
+        df1 = scrape_tweets_tweepy("nba", 1000, "popular")
+        df2 = scrape_tweets_tweepy("nba", 5000, "mixed")
+
+        # so the scrape_ts column screws up with filtering duplicates out so
+        # this code ignores that column to correctly drop the duplicates
+        df_combo = pd.concat([df1, df2])
+        df_combo = df_combo.drop_duplicates(
+            subset=df_combo.columns.difference(["scrape_ts", "likes", "retweets", "tweet"])
+        )
+
+        logging.info(
+            f"Grabbing {len(df1)} Popular Tweets and {len(df2)} Mixed Tweets for {len(df_combo)} Total, {(len(df1) + len(df2) - len(df_combo))} were duplicates"
+        )
+        return df_combo
+    except BaseException as e:
+        logging.error(f"Error Occurred for Scrape Tweets Combo, {e}")
         sentry_sdk.capture_exception(e)
         df = []
         return df
