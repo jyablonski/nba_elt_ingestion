@@ -218,6 +218,31 @@ def twitter_stats_data(mocker):
     return twitter_data
 
 
+@pytest.fixture()
+def twitter_tweepy_data(mocker):
+    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/tweepy_tweets.csv")
+    twitter_csv = pd.read_csv(fname)
+
+    mocker.patch("src.utils.tweepy.OAuthHandler").return_value = 1
+
+    # mocker.patch(
+    #     "src.utils.tweepy.API"
+    # ).return_value = 1
+
+    mocker.patch("src.utils.tweepy.API.search_tweets").return_value = 1
+
+    mocker.patch("src.utils.tweepy.Cursor").return_value = 1
+
+    mocker.patch("src.utils.tweepy.Cursor").return_value.items().return_value = 1
+
+    mocker.patch("src.utils.pd.DataFrame").return_value = twitter_csv
+
+    twitter_data = scrape_tweets_tweepy(
+        search_parameter="nba", count=1, result_type="popular"
+    )
+    return twitter_data
+
+
 @pytest.fixture(scope="session")
 def clean_player_names_data():
     df = pd.DataFrame(

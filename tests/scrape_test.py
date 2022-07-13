@@ -69,6 +69,11 @@ def test_twitter(twitter_stats_data):
     assert twitter_stats_data.dtypes.to_dict() == twitter_data_schema
 
 
+def test_twitter_tweepy(twitter_tweepy_data):
+    assert len(twitter_tweepy_data) == 1061
+    assert twitter_tweepy_data.dtypes.to_dict() == twitter_tweepy_schema
+
+
 def test_schedule(schedule_data):
     assert len(schedule_data) == 458
     assert schedule_data.dtypes.to_dict() == schedule_schema
