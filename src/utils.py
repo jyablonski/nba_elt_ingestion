@@ -20,7 +20,6 @@ from sqlalchemy.engine.base import Engine
 import sentry_sdk
 import tweepy
 from tweepy import OAuthHandler
-import twint
 
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
