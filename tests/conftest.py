@@ -200,22 +200,22 @@ def reddit_comments_data(mocker):
     return reddit_comments_data
 
 
-@pytest.fixture()
-def twitter_stats_data(mocker):
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/nba_tweets.csv")
-    twitter_csv = pd.read_csv(fname)
+# @pytest.fixture()
+# def twitter_stats_data(mocker):
+#     fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/nba_tweets.csv")
+#     twitter_csv = pd.read_csv(fname)
 
-    df = mocker.patch(
-        "src.utils.pd.read_csv"
-    )  # mock the return value for the csv to use my fixture
-    df.return_value = twitter_csv
+#     df = mocker.patch(
+#         "src.utils.pd.read_csv"
+#     )  # mock the return value for the csv to use my fixture
+#     df.return_value = twitter_csv
 
-    twint_mock = mocker.patch(
-        "src.utils.twint.run.Search"
-    )  # mock the twitter scrape so it doesnt run
-    twint_mock.return_value = 1
-    twitter_data = scrape_tweets("nba")
-    return twitter_data
+#     twint_mock = mocker.patch(
+#         "src.utils.twint.run.Search"
+#     )  # mock the twitter scrape so it doesnt run
+#     twint_mock.return_value = 1
+#     twitter_data = scrape_tweets("nba")
+#     return twitter_data
 
 
 @pytest.fixture()

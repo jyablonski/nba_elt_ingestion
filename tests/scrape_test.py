@@ -64,9 +64,9 @@ def test_fake_schema(boxscores_data):
     assert boxscores_data.dtypes.to_dict() != boxscores_schema_fake
 
 
-def test_twitter(twitter_stats_data):
-    assert len(twitter_stats_data) == 1286
-    assert twitter_stats_data.dtypes.to_dict() == twitter_data_schema
+# def test_twitter(twitter_stats_data):
+#     assert len(twitter_stats_data) == 1286
+#     assert twitter_stats_data.dtypes.to_dict() == twitter_data_schema
 
 
 def test_twitter_tweepy(twitter_tweepy_data):
