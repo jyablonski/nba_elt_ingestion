@@ -32,9 +32,9 @@ logging.basicConfig(
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.1")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.1")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.1")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.2")
+# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.2")
+# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.2")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -177,7 +177,11 @@ if __name__ == "__main__":
         )
 
         write_to_sql_upsert(
-            connection, "twitter_tweepy_data", twitter_tweepy_data, "upsert", ["tweet_id"],
+            connection,
+            "twitter_tweepy_data",
+            twitter_tweepy_data,
+            "upsert",
+            ["tweet_id"],
         )
         # write_to_sql_upsert(connection, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
 
@@ -207,4 +211,4 @@ if __name__ == "__main__":
     # STEP 7: Send Email
     send_aws_email(logs)
 
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.6.1")
+logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.6.2")

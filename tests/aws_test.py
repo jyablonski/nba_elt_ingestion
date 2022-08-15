@@ -54,9 +54,8 @@ def test_write_to_s3_validated(player_stats_data):
 
     assert (
         contents[0]
-        == f"player_stats_data/validated/{month_prefix}/player_stats_data-{today}.parquet"
+        == f"player_stats_data/validated/year={datetime.now().year}/month={month_prefix}/player_stats_data-{today}.parquet"
     )
-
 
 @mock_s3
 def test_write_to_s3_invalidated(player_stats_data):
@@ -73,5 +72,5 @@ def test_write_to_s3_invalidated(player_stats_data):
 
     assert (
         contents[0]
-        == f"player_stats_data/invalidated/{month_prefix}/player_stats_data-{today}.parquet"
+        == f"player_stats_data/invalidated/year={datetime.now().year}/month={month_prefix}/player_stats_data-{today}.parquet"
     )
