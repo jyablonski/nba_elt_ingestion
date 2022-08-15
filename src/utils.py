@@ -703,6 +703,7 @@ def get_odds_data() -> pd.DataFrame:
 
     Args:
         None
+
     Returns:
         Pandas DataFrame of NBA moneyline + spread odds for upcoming games for that day
     """
@@ -988,70 +989,82 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
         df = []
         return df
 
+# deprecating as of 2022-08-15
+# def scrape_tweets(search_term: str) -> pd.DataFrame:
+#     """
+#     Twitter Scrape function using twint to grab between 1,000 and 2,000 tweets about the search parameter.
+#     It has to like write to a fkn csv then read from csv, idk, thx for the OOP.
+#     The twint package is no longer updated so probably want to use official Twitter API for this.
 
-# adding this in as of 2021-01-15
-def scrape_tweets(search_term: str) -> pd.DataFrame:
-    """
-    Twitter Scrape function using twint to grab between 1,000 and 2,000 tweets about the search parameter.
-    It has to like write to a fkn csv then read from csv, idk, thx for the OOP.
-    The twint package is no longer updated so probably want to use official Twitter API for this.
+#     Args:
+#         search_term (str): The term to search Tweets for.
 
-    Args:
-        search_term (str): The term to search Tweets for.
-
-    Returns:
-        DataFrame of around 1-2k Tweets
+#     Returns:
+#         DataFrame of around 1-2k Tweets
 
     
-    """
-    try:
-        c = twint.Config()
-        c.Search = search_term
-        c.Limit = 2500  # number of Tweets to scrape
-        c.Store_csv = True  # store tweets in a csv file
-        c.Output = f"{search_term}_tweets.csv"  # path to csv file
-        c.Hide_output = True
+#     """
+#     try:
+#         c = twint.Config()
+#         c.Search = search_term
+#         c.Limit = 2500  # number of Tweets to scrape
+#         c.Store_csv = True  # store tweets in a csv file
+#         c.Output = f"{search_term}_tweets.csv"  # path to csv file
+#         c.Hide_output = True
 
-        twint.run.Search(c)
-        df = pd.read_csv(f"{search_term}_tweets.csv")
-        df = df[
-            [
-                "id",
-                "created_at",
-                "date",
-                "username",
-                "tweet",
-                "language",
-                "link",
-                "likes_count",
-                "retweets_count",
-                "replies_count",
-            ]
-        ].drop_duplicates()
-        df["scrape_date"] = datetime.now().date()
-        df["scrape_ts"] = datetime.now()
-        df = df.query('language=="en"').groupby("id").agg("last")
+#         twint.run.Search(c)
+#         df = pd.read_csv(f"{search_term}_tweets.csv")
+#         df = df[
+#             [
+#                 "id",
+#                 "created_at",
+#                 "date",
+#                 "username",
+#                 "tweet",
+#                 "language",
+#                 "link",
+#                 "likes_count",
+#                 "retweets_count",
+#                 "replies_count",
+#             ]
+#         ].drop_duplicates()
+#         df["scrape_date"] = datetime.now().date()
+#         df["scrape_ts"] = datetime.now()
+#         df = df.query('language=="en"').groupby("id").agg("last")
 
-        analyzer = SentimentIntensityAnalyzer()
-        df["compound"] = [analyzer.polarity_scores(x)["compound"] for x in df["tweet"]]
-        df["neg"] = [analyzer.polarity_scores(x)["neg"] for x in df["tweet"]]
-        df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["tweet"]]
-        df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["tweet"]]
-        df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
-        logging.info(
-            f"Twitter Tweet Extraction Success, retrieving {len(df)} total tweets"
-        )
-        return df
-    except BaseException as e:
-        logging.error(f"Twitter Tweet Extraction Failed, {e}")
-        sentry_sdk.capture_exception(e)
-        df = []
-        return df
+#         analyzer = SentimentIntensityAnalyzer()
+#         df["compound"] = [analyzer.polarity_scores(x)["compound"] for x in df["tweet"]]
+#         df["neg"] = [analyzer.polarity_scores(x)["neg"] for x in df["tweet"]]
+#         df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["tweet"]]
+#         df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["tweet"]]
+#         df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
+#         logging.info(
+#             f"Twitter Tweet Extraction Success, retrieving {len(df)} total tweets"
+#         )
+#         return df
+#     except BaseException as e:
+#         logging.error(f"Twitter Tweet Extraction Failed, {e}")
+#         sentry_sdk.capture_exception(e)
+#         df = []
+#         return df
 
 
 def scrape_tweets_tweepy(
     search_parameter: str, count: int, result_type: str
 ) -> pd.DataFrame:
+    """
+    Web Scrape function w/ Tweepy to scrape Tweets made within last ~ 7 days
+
+    Args:
+        search_parameter (str): The string you're interested in finding Tweets for
+
+        count (int): Number of tweets to grab
+
+        result_type (str): Either mixed, recent, or popular.
+
+    Returns:
+        Pandas DataFrame of recent Tweets
+    """
     auth = tweepy.OAuthHandler(
         os.environ.get("twitter_consumer_api_key"),
         os.environ.get("twitter_consumer_api_secret"),
@@ -1104,6 +1117,15 @@ def scrape_tweets_tweepy(
 
 
 def scrape_tweets_combo() -> pd.DataFrame:
+    """
+    Web Scrape function to scrape Tweepy Tweets for both popular & mixed tweets
+
+    Args:
+        None
+
+    Returns:
+        Pandas DataFrame of both popular and mixed tweets.
+    """
     try:
         df1 = scrape_tweets_tweepy("nba", 1000, "popular")
         df2 = scrape_tweets_tweepy("nba", 5000, "mixed")
@@ -1411,8 +1433,8 @@ def write_to_s3(
             wr.s3.to_parquet(
                 df=df,
                 # 2022-06-21 - use this updated s3 naming convention next season
-                # f"s3://{bucket}/{file_name}/validated/year={year}/month={month_prefix}/{file_name}-{today}.parquet"
-                path=f"s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{today}.parquet",
+                # f"s3://{bucket}/{file_name}/validated/year={datetime.now().year}/month={month_prefix}/{file_name}-{today}.parquet"
+                path=f"s3://{bucket}/{file_name}/validated/year={datetime.now().year}/month={month_prefix}/{file_name}-{today}.parquet",
                 index=False,
             )
             logging.info(
@@ -1422,7 +1444,7 @@ def write_to_s3(
         else:
             wr.s3.to_parquet(
                 df=df,
-                path=f"s3://{bucket}/{file_name}/invalidated/{month_prefix}/{file_name}-{today}.parquet",
+                path=f"s3://{bucket}/{file_name}/invalidated/year={datetime.now().year}/month={month_prefix}/{file_name}-{today}.parquet",
                 index=False,
             )
             logging.info(
@@ -1497,67 +1519,81 @@ def write_to_sql_upsert(
         Upserts any new data in the Pandas DataFrame to the table in Postgres in the {nba_source_dev} schema
 
     """
-    try:
-        df = df.set_index(pd_index)
-        df = df.rename_axis(pd_index)
-        sql_table_name = f"aws_{table_name}_source"
-
-        # If the table does not exist, we should just use to_sql to create it - schema is hardcoded in
-        if not conn.execute(
-            f"""SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE  table_schema = 'nba_source' 
-                AND    table_name   = '{sql_table_name}');
-                """
-        ).first()[0]:
-            df.to_sql(sql_table_name, conn)
-            print(
-                f"SQL Upsert Function Successful, {len(df)} records added to a NEW table {sql_table_name}"
-            )
-            pass
-        else:
-            # If it already exists...
-            temp_table_name = f"temp_{uuid.uuid4().hex[:6]}"
-            df.to_sql(temp_table_name, conn, index=True)
-            # use to_sql to create a "temp" table, then drop it at the end.
-
-            index = list(df.index.names)
-            index_sql_txt = ", ".join([f'"{i}"' for i in index])
-            columns = list(df.columns)
-            headers = index + columns
-            headers_sql_txt = ", ".join([f'"{i}"' for i in headers])
-            # this is excluding the primary key columns needed to identify the unique rows.
-            update_column_stmt = ", ".join(
-                [f'"{col}" = EXCLUDED."{col}"' for col in columns]
-            )
-
-            # For the ON CONFLICT clause, postgres requires that the columns have unique constraint
-            query_pk = f"""
-            ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS unique_constraint_for_upsert_{table_name};
-            ALTER TABLE "{sql_table_name}" ADD CONSTRAINT unique_constraint_for_upsert_{table_name} UNIQUE ({index_sql_txt});
-            """
-
-            conn.execute(query_pk)
-
-            # Compose and execute upsert query
-            query_upsert = f"""
-            INSERT INTO "{sql_table_name}" ({headers_sql_txt}) 
-            SELECT {headers_sql_txt} FROM "{temp_table_name}"
-            ON CONFLICT ({index_sql_txt}) DO UPDATE 
-            SET {update_column_stmt};
-            """
-            conn.execute(query_upsert)
-            conn.execute(f"DROP TABLE {temp_table_name};")
-            logging.info(
-                f"SQL Upsert Function Successful, {len(df)} records added or upserted into {table_name}"
-            )
-            pass
-    except BaseException as error:
-        conn.execute(f"DROP TABLE {temp_table_name};")
-        logging.error(
-            f"SQL Upsert Function Failed for {table_name} ({len(df)} rows), {error}"
+    sql_table_name = f"aws_{table_name}_source"
+    if len(df) == 0:
+        logging.info(
+            f"{sql_table_name} is empty, not storing to SQL"
         )
         pass
+    else:
+        # 2 try except blocks bc in event of an error there needs to be different logic to safely exit out and continue script
+        try:
+            df = df.set_index(pd_index)
+            df = df.rename_axis(pd_index)
+
+            if not conn.execute(
+                f"""SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE  table_schema = 'nba_source' 
+                    AND    table_name   = '{sql_table_name}');
+                    """
+            ).first()[0]:
+                # If the table does not exist, we should just use to_sql to create it
+                df.to_sql(sql_table_name, conn)
+                print(
+                    f"SQL Upsert Function Successful, {len(df)} records added to a NEW TABLE {sql_table_name}"
+                )
+                pass
+        except BaseException as error:
+                sentry_sdk.capture_exception(error)
+                logging.error(
+                    f"SQL Upsert Function Failed for NEW TABLE {sql_table_name} ({len(df)} rows), {error}"
+                )
+                pass
+        else:
+            try:
+            # If it already exists...
+                temp_table_name = f"temp_{uuid.uuid4().hex[:6]}"
+                df.to_sql(temp_table_name, conn, index=True)
+
+                index = list(df.index.names)
+                index_sql_txt = ", ".join([f'"{i}"' for i in index])
+                columns = list(df.columns)
+                headers = index + columns
+                headers_sql_txt = ", ".join([f'"{i}"' for i in headers])
+                # this is excluding the primary key columns needed to identify the unique rows.
+                update_column_stmt = ", ".join(
+                    [f'"{col}" = EXCLUDED."{col}"' for col in columns]
+                )
+
+                # For the ON CONFLICT clause, postgres requires that the columns have unique constraint
+                query_pk = f"""
+                ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS unique_constraint_for_upsert_{table_name};
+                ALTER TABLE "{sql_table_name}" ADD CONSTRAINT unique_constraint_for_upsert_{table_name} UNIQUE ({index_sql_txt});
+                """
+
+                conn.execute(query_pk)
+
+                # Compose and execute upsert query
+                query_upsert = f"""
+                INSERT INTO "{sql_table_name}" ({headers_sql_txt}) 
+                SELECT {headers_sql_txt} FROM "{temp_table_name}"
+                ON CONFLICT ({index_sql_txt}) DO UPDATE 
+                SET {update_column_stmt};
+                """
+                conn.execute(query_upsert)
+                conn.execute(f"DROP TABLE {temp_table_name};")
+                logging.info(
+                    f"SQL Upsert Function Successful, {len(df)} records added or upserted into {table_name}"
+                )
+                pass
+            except BaseException as error:
+                conn.execute(f"DROP TABLE {temp_table_name};")
+                sentry_sdk.capture_exception(error)
+                logging.error(
+                    f"SQL Upsert Function Failed for EXISTING {table_name} ({len(df)} rows), {error}"
+                )
+                pass
 
 
 def sql_connection(rds_schema: str) -> Engine:
