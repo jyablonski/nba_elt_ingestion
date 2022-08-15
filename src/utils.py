@@ -989,6 +989,7 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
         df = []
         return df
 
+
 # deprecating as of 2022-08-15
 # def scrape_tweets(search_term: str) -> pd.DataFrame:
 #     """
@@ -1002,7 +1003,7 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
 #     Returns:
 #         DataFrame of around 1-2k Tweets
 
-    
+
 #     """
 #     try:
 #         c = twint.Config()
@@ -1134,7 +1135,9 @@ def scrape_tweets_combo() -> pd.DataFrame:
         # this code ignores that column to correctly drop the duplicates
         df_combo = pd.concat([df1, df2])
         df_combo = df_combo.drop_duplicates(
-            subset=df_combo.columns.difference(["scrape_ts", "likes", "retweets", "tweet"])
+            subset=df_combo.columns.difference(
+                ["scrape_ts", "likes", "retweets", "tweet"]
+            )
         )
 
         logging.info(
@@ -1521,9 +1524,7 @@ def write_to_sql_upsert(
     """
     sql_table_name = f"aws_{table_name}_source"
     if len(df) == 0:
-        logging.info(
-            f"{sql_table_name} is empty, not storing to SQL"
-        )
+        logging.info(f"{sql_table_name} is empty, not storing to SQL")
         pass
     else:
         # 2 try except blocks bc in event of an error there needs to be different logic to safely exit out and continue script
@@ -1545,14 +1546,14 @@ def write_to_sql_upsert(
                 )
                 pass
         except BaseException as error:
-                sentry_sdk.capture_exception(error)
-                logging.error(
-                    f"SQL Upsert Function Failed for NEW TABLE {sql_table_name} ({len(df)} rows), {error}"
-                )
-                pass
+            sentry_sdk.capture_exception(error)
+            logging.error(
+                f"SQL Upsert Function Failed for NEW TABLE {sql_table_name} ({len(df)} rows), {error}"
+            )
+            pass
         else:
             try:
-            # If it already exists...
+                # If it already exists...
                 temp_table_name = f"temp_{uuid.uuid4().hex[:6]}"
                 df.to_sql(temp_table_name, conn, index=True)
 

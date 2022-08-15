@@ -177,7 +177,11 @@ if __name__ == "__main__":
         )
 
         write_to_sql_upsert(
-            connection, "twitter_tweepy_data", twitter_tweepy_data, "upsert", ["tweet_id"],
+            connection,
+            "twitter_tweepy_data",
+            twitter_tweepy_data,
+            "upsert",
+            ["tweet_id"],
         )
         # write_to_sql_upsert(connection, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
 
