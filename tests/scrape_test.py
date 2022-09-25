@@ -11,12 +11,12 @@ from tests.schema import *
 
 # SCHEMA VALIDATION + ROW COUNT TESTS
 def test_player_stats(player_stats_data):
-    assert len(player_stats_data) == 384
+    assert len(player_stats_data) == 630
     assert player_stats_data.dtypes.to_dict() == stats_schema
 
 
 def test_boxscores(boxscores_data):
-    assert len(boxscores_data) == 171
+    assert len(boxscores_data) == 145
     assert boxscores_data.dtypes.to_dict() == boxscores_schema
 
 
@@ -31,27 +31,27 @@ def test_odds(odds_data):
 
 
 def test_injuries(injuries_data):
-    assert len(injuries_data) == 65
+    assert len(injuries_data) == 17
     assert injuries_data.dtypes.to_dict() == injury_schema
 
 
 def test_transactions(transactions_data):
-    assert len(transactions_data) == 77
+    assert len(transactions_data) == 1313
     assert transactions_data.dtypes.to_dict() == transactions_schema
 
 
 def test_advanced_stats(advanced_stats_data):
-    assert len(advanced_stats_data) == 31
+    assert len(advanced_stats_data) == 30
     assert advanced_stats_data.dtypes.to_dict() == adv_stats_schema
 
 
 def test_shooting_stats(shooting_stats_data):
-    assert len(shooting_stats_data) == 592
+    assert len(shooting_stats_data) == 605
     assert shooting_stats_data.dtypes.to_dict() == shooting_stats_schema
 
 
 def test_pbp(pbp_transformed_data):
-    assert len(pbp_transformed_data) == 1184
+    assert len(pbp_transformed_data) == 100
     assert pbp_transformed_data.dtypes.to_dict() == pbp_data_schema
 
 
@@ -62,11 +62,6 @@ def test_reddit_comment(reddit_comments_data):
 
 def test_fake_schema(boxscores_data):
     assert boxscores_data.dtypes.to_dict() != boxscores_schema_fake
-
-
-# def test_twitter(twitter_stats_data):
-#     assert len(twitter_stats_data) == 1286
-#     assert twitter_stats_data.dtypes.to_dict() == twitter_data_schema
 
 
 def test_twitter_tweepy(twitter_tweepy_data):
@@ -87,3 +82,12 @@ def test_clean_player_names(clean_player_names_data):
     assert clean_player_names_data["player"][2] == "Gary Payton"
     assert clean_player_names_data["player"][3] == "Robert Williams"
     assert clean_player_names_data["player"][4] == "Lonnie Walker"
+
+
+def test_add_sentiment_analysis(add_sentiment_analysis_df):
+    assert len(add_sentiment_analysis_df) == 1000
+    assert add_sentiment_analysis_df["compound"][0] == 0.0
+    assert add_sentiment_analysis_df["neg"][0] == 0.0
+    assert add_sentiment_analysis_df["neu"][0] == 1.0
+    assert add_sentiment_analysis_df["pos"][0] == 0.0
+    assert add_sentiment_analysis_df["sentiment"][0] == 0

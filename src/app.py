@@ -18,11 +18,9 @@ except:
     from schema import *
 
 try:
-    from .utils import *  # this works for tests
+    from .utils import *
 except:
-    from utils import *  # this works for this script
-# https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
-# idfk wat im doin but it works
+    from utils import *
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,10 +29,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-
 logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.2")
-# logging.warning("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.2")
-# logging.error("STARTING NBA ELT PIPELINE SCRIPT Version: 1.6.2")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -71,64 +66,33 @@ def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
         return df
 
 
-logging.info("Starting Logging Function")
-
 logging.info("LOADED FUNCTIONS")
-
-today = datetime.now().date()
-todaytime = datetime.now()
-yesterday = today - timedelta(1)
-day = (datetime.now() - timedelta(1)).day
-month = (datetime.now() - timedelta(1)).month
-year = (datetime.now() - timedelta(1)).year
-
-if today < datetime(2022, 4, 11).date():
-    season_type = "Regular Season"
-elif (today >= datetime(2022, 4, 11).date()) & (today < datetime(2022, 4, 16).date()):
-    season_type = "Play-In"
-else:
-    season_type = "Playoffs"
 
 if __name__ == "__main__":
     logging.info("STARTING WEB SCRAPE")
 
     # STEP 1: Extract Raw Data
-    # stats_raw = get_player_stats_data()
-    # boxscores_raw = get_boxscores_data()
-    injury_data_raw = get_injuries_data()
-    transactions_raw = get_transactions_data()
-    # adv_stats_raw = get_advanced_stats_data()
-    # odds_raw = get_odds_data()
+    # stats = get_player_stats_data()
+    # boxscores = get_boxscores_data()
+    injury_data = get_injuries_data()
+    transactions = get_transactions_data()
+    # adv_stats = get_advanced_stats_data()
+    # odds = get_odds_data()
     reddit_data = get_reddit_data("nba")  # doesnt need transformation
-    # opp_stats_raw = get_opp_stats_data()
+    # opp_stats = get_opp_stats_data()
     # schedule = schedule_scraper("2022", ["april", "may", "june"])
-    # shooting_stats_raw = get_shooting_stats_data()
-    # twitter_data = scrape_tweets("nba")
+    # shooting_stats = get_shooting_stats_data()
     twitter_tweepy_data = scrape_tweets_combo()
+    reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
+    # pbp_data = get_pbp_data(
+    #     boxscores
+    # )  # this uses the transformed boxscores
 
     logging.info("FINISHED WEB SCRAPE")
 
-    # STEP 2: Transform data
-    logging.info("STARTING DATA TRANSFORMATIONS")
-
-    # stats = get_player_stats_transformed(stats_raw)
-    # boxscores = get_boxscores_transformed(boxscores_raw)
-    injury_data = get_injuries_transformed(injury_data_raw)
-    transactions = get_transactions_transformed(transactions_raw)
-    # adv_stats = get_advanced_stats_transformed(adv_stats_raw)
-    # odds = get_odds_transformed(odds_raw)
-    reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
-    # pbp_data = get_pbp_data_transformed(
-    #     boxscores
-    # )  # this uses the transformed boxscores
-    # opp_stats = get_opp_stats_transformed(opp_stats_raw)
-    # shooting_stats = get_shooting_stats_transformed(shooting_stats_raw)
-
-    logging.info("FINISHED DATA TRANSFORMATIONS")
-
     logging.info("STARTING SCHEMA VALIDATION")
 
-    # STEP 3: Validating Schemas - 1 for each SQL Write
+    # STEP 2: Validating Schemas - 1 for each SQL Write
     # stats = validate_schema(stats, stats_cols)
     # adv_stats = validate_schema(adv_stats, adv_stats_cols)
     # boxscores = validate_schema(boxscores, boxscores_cols)
@@ -148,7 +112,7 @@ if __name__ == "__main__":
 
     logging.info("STARTING SQL STORING")
 
-    # STEP 4: Append Transformed Data to SQL
+    # STEP 3: Append Transformed Data to SQL
     conn = sql_connection(os.environ.get("RDS_SCHEMA"))
 
     with conn.connect() as connection:
@@ -187,7 +151,7 @@ if __name__ == "__main__":
 
     conn.dispose()
 
-    # STEP 5: Write to S3
+    # STEP 4: Write to S3
     # write_to_s3("stats", stats)
     # write_to_s3("boxscores", boxscores)
     write_to_s3("injury_data", injury_data)
@@ -203,12 +167,11 @@ if __name__ == "__main__":
     # write_to_s3("schedule", schedule)
     # write_to_s3("shooting_stats", shooting_stats)
 
-    # STEP 6: Grab Logs from previous steps & send email out detailing notable events
+    # STEP 5: Grab Logs from previous steps & send email out detailing notable events
     logs = pd.read_csv("logs/example.log", sep=r"\\t", engine="python", header=None)
     logs = logs.rename(columns={0: "errors"})
     logs = logs.query("errors.str.contains('Failed')", engine="python")
 
-    # STEP 7: Send Email
+    # STEP 6: Send Email
     send_aws_email(logs)
-
-logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.6.2")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.6.2")

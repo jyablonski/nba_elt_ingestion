@@ -1,3 +1,13 @@
+import socket
+
+
+def guard(*args, **kwargs):
+    raise Exception("you're using the internet hoe")
+
+
+socket.socket = guard
+
+from datetime import datetime, timedelta
 import os
 import pickle
 import requests
@@ -8,10 +18,9 @@ import pandas as pd
 import numpy as np
 import boto3
 
-# import moto
-from datetime import datetime, timedelta
 from src.utils import *
 
+# pytest tests/scrape_test.py::test_player_stats - use this to test 1 at a time yeet
 ## Testing transformation functions from utils.py with custom csv + pickle object fixtures with edge cases
 
 # mock s3 / mock ses
@@ -27,124 +36,151 @@ def aws_credentials():
 
 @pytest.fixture(scope="session")
 def setup_database():
-    """ Fixture to set up an empty in-memory database """
+    """Fixture to set up an empty in-memory database"""
     conn = sqlite3.connect(":memory:")
     yield conn
 
 
-@pytest.fixture(scope="session")
-def player_stats_data():
+@pytest.fixture(scope="function")
+def player_stats_data(mocker):
     """
-    Fixture to load player stats data from a csv file for testing.
+    Fixture to load player stats data from an html file for testing.
     """
-    fname = os.path.join(
-        os.path.dirname(__file__), "fixture_csvs/player_stats_data.csv"
-    )
-    stats = pd.read_csv(fname)
-    stats = get_player_stats_transformed(stats)
-    return stats
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/stats_html.html")
+    with open(fname, "rb") as fp:
+        mock_content = fp.read()
 
+    mocker.patch("src.utils.requests.get").return_value.content = mock_content
 
-@pytest.fixture(scope="session")
-def boxscores_data():
-    """
-    Fixture to load boxscores data from a csv file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/boxscores_data.csv")
-    df = pd.read_csv(fname)
-    day = (datetime.now() - timedelta(1)).day
-    month = (datetime.now() - timedelta(1)).month
-    year = (datetime.now() - timedelta(1)).year
-    season_type = "Regular Season"
-    df = get_boxscores_transformed(df)
+    df = get_player_stats_data()
     return df
 
 
-@pytest.fixture(scope="session")
-def opp_stats_data():
+@pytest.fixture(scope="function")
+def boxscores_data(mocker):
     """
-    Fixture to load team opponent stats data from a csv file for testing.
+    Fixture to load boxscores data from an html file for testing.
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/opp_stats_data.csv")
-    df = pd.read_csv(fname)
-    df = get_opp_stats_transformed(df)
-    return df
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/boxscores_html.html")
+    with open(fname, "rb") as fp:
+        mock_content = fp.read()
+
+    mocker.patch("src.utils.requests.get").return_value.content = mock_content
+
+    boxscores = get_boxscores_data()
+    return boxscores
 
 
-@pytest.fixture(scope="session")
-def injuries_data():
+@pytest.fixture(scope="function")
+def opp_stats_data(mocker):
     """
-    Fixture to load injuries data from a csv file for testing.
+    Fixture to load team opponent stats data from a pickle file for testing.
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/injuries_data.csv")
-    df = pd.read_csv(fname)
-    df = get_injuries_transformed(df)
-    return df
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/opp_stats.pickle")
+    with open(fname, "rb") as fp:
+        df = pickle.load(fp)
+
+    mocker.patch("src.utils.pd.read_html").return_value = df
+
+    opp_stats = get_opp_stats_data()
+    return opp_stats
 
 
-@pytest.fixture(scope="session")
-def transactions_data():
+@pytest.fixture(scope="function")
+def injuries_data(mocker):
     """
-    Fixture to load transactions data from a csv file for testing.
+    Fixture to load injuries data from a pickle file for testing.
     """
-    fname = os.path.join(
-        os.path.dirname(__file__), "fixture_csvs/transactions_data.csv"
-    )
-    transactions = pd.read_csv(fname)
-    transactions = get_transactions_transformed(transactions)
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/injuries_dump.pickle")
+    with open(fname, "rb") as fp:
+        df = pickle.load(fp)
+
+    mocker.patch("src.utils.pd.read_html").return_value = df
+
+    injuries = get_injuries_data()
+    return injuries
+
+
+@pytest.fixture(scope="function")
+def transactions_data(mocker):
+    """
+    Fixture to load transactions data from an html file for testing.
+    """
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/transactions_html.html")
+    with open(fname, "rb") as fp:
+        mock_content = fp.read()
+
+    mocker.patch("src.utils.requests.get").return_value.content = mock_content
+
+    transactions = get_transactions_data()
     return transactions
 
 
-@pytest.fixture(scope="session")
-def advanced_stats_data():
+@pytest.fixture(scope="function")
+def advanced_stats_data(mocker):
     """
-    Fixture to load team advanced stats data from a csv file for testing.
+    Fixture to load team advanced stats data from a pickle file for testing.
     """
-    fname = os.path.join(
-        os.path.dirname(__file__), "fixture_csvs/advanced_stats_data.csv"
-    )
-    df = pd.read_csv(fname)
-    df = get_advanced_stats_transformed(df)
-    return df
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/opp_stats.pickle")
+    with open(fname, "rb") as fp:
+        df = pickle.load(fp)
+
+    mocker.patch("src.utils.pd.read_html").return_value = df
+
+    adv_stats = get_advanced_stats_data()
+    return adv_stats
 
 
-@pytest.fixture(scope="session")
-def shooting_stats_data():
+# with open('pbp_data.pickle', 'wb') as handle:
+# pickle.dump(df, handle)
+
+
+@pytest.fixture(scope="function")
+def shooting_stats_data(mocker):
     """
-    Fixture to load shooting stats data from a csv file for testing.
+    Fixture to load shooting stats data from a pickle file for testing.
     """
-    fname = os.path.join(
-        os.path.dirname(__file__), "fixture_csvs/shooting_stats_data.csv"
-    )
-    shooting_stats = pd.read_csv(fname)
-    shooting_stats = get_shooting_stats_transformed(shooting_stats)
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/shooting_stats.pickle")
+    with open(fname, "rb") as fp:
+        df = pickle.load(fp)
+
+    mocker.patch("src.utils.pd.read_html").return_value = df
+
+    shooting_stats = get_shooting_stats_data()
     return shooting_stats
 
 
 # has to be pickle bc odds data can be returned in list of 1 or 2 objects
-@pytest.fixture(scope="session")
-def odds_data():
+@pytest.fixture(scope="function")
+def odds_data(mocker):
     """
-    Fixture to load odds data from a csv file for testing.
+    Fixture to load odds data from a pickle file for testing.
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/odds_data")
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/odds_data.pickle")
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
-    day = (datetime.now() - timedelta(1)).day
-    month = (datetime.now() - timedelta(1)).month
-    year = (datetime.now() - timedelta(1)).year
-    df = get_odds_transformed(df)
-    return df
+
+    mocker.patch("src.utils.pd.read_html").return_value = df
+
+    odds = get_odds_data()
+    return odds
 
 
-@pytest.fixture(scope="session")
-def pbp_transformed_data():
+@pytest.fixture(scope="function")
+def pbp_transformed_data(mocker):
     """
     Fixture to load boxscores data from a csv file for PBP Transform testing.
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/pbp_data.csv")
-    boxscores = pd.read_csv(fname, parse_dates=["date"])
-    pbp_transformed = get_pbp_data_transformed(boxscores)
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/boxscores_data.csv")
+    boxscores_df = pd.read_csv(fname)
+    boxscores_df["date"] = pd.to_datetime(boxscores_df["date"])
+
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/pbp_data.pickle")
+    with open(fname, "rb") as fp:
+        df = pickle.load(fp)
+
+    mocker.patch("src.utils.pd.read_html").return_value = df
+    pbp_transformed = get_pbp_data(boxscores_df)
     return pbp_transformed
 
 
@@ -163,7 +199,7 @@ def schedule_data(mocker):
     Fixture to load schedule data from an html file for testing.
     *** THIS WORKS FOR ANY REQUESTS.GET MOCKING IN THE FUTURE ***
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/schedule.html")
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/schedule.html")
     with open(fname, "rb") as fp:
         mock_content = fp.read()
 
@@ -180,9 +216,7 @@ def reddit_comments_data(mocker):
     """
     Fixture to load reddit_comments data from a csv file for testing.
     """
-    fname = os.path.join(
-        os.path.dirname(__file__), "fixture_csvs/reddit_comments_data.csv"
-    )
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/reddit_comments_data.csv")
     with open(fname, "rb") as fp:
         reddit_comments_fixture = pd.read_csv(
             fname, index_col=0
@@ -200,41 +234,15 @@ def reddit_comments_data(mocker):
     return reddit_comments_data
 
 
-# @pytest.fixture()
-# def twitter_stats_data(mocker):
-#     fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/nba_tweets.csv")
-#     twitter_csv = pd.read_csv(fname)
-
-#     df = mocker.patch(
-#         "src.utils.pd.read_csv"
-#     )  # mock the return value for the csv to use my fixture
-#     df.return_value = twitter_csv
-
-#     twint_mock = mocker.patch(
-#         "src.utils.twint.run.Search"
-#     )  # mock the twitter scrape so it doesnt run
-#     twint_mock.return_value = 1
-#     twitter_data = scrape_tweets("nba")
-#     return twitter_data
-
-
 @pytest.fixture()
 def twitter_tweepy_data(mocker):
-    fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/tweepy_tweets.csv")
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/tweepy_tweets.csv")
     twitter_csv = pd.read_csv(fname)
 
     mocker.patch("src.utils.tweepy.OAuthHandler").return_value = 1
-
-    # mocker.patch(
-    #     "src.utils.tweepy.API"
-    # ).return_value = 1
-
     mocker.patch("src.utils.tweepy.API.search_tweets").return_value = 1
-
     mocker.patch("src.utils.tweepy.Cursor").return_value = 1
-
     mocker.patch("src.utils.tweepy.Cursor").return_value.items().return_value = 1
-
     mocker.patch("src.utils.pd.DataFrame").return_value = twitter_csv
 
     twitter_data = scrape_tweets_tweepy(
@@ -260,39 +268,10 @@ def clean_player_names_data():
     return df
 
 
-##### NEW TESTS
+@pytest.fixture(scope="session")
+def add_sentiment_analysis_df():
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/reddit_comments_data.csv")
+    df = pd.read_csv(fname)
 
-# @pytest.fixture()
-# def player_stats_html_get(mocker):
-#     fname = os.path.join(os.path.dirname(__file__), "fixture_csvs/stats_html.html")
-#     with open(fname, "rb") as fp:
-#         html_data = fp.read()
-
-#     html = mocker.patch("utils.requests.get")
-#     html.content = PropertyMock(return_value = html_data)
-#     html.return_value = html_data
-
-#     stats_html_get = get_player_stats_data()
-#     return stats_html_get
-
-# @pytest.fixture(scope="session")
-# def schedule_upsert_data_1():
-#     """
-#     Fixture to load team advanced stats data from a csv file for testing.
-#     """
-#     fname = os.path.join(
-#         os.path.dirname(__file__), "fixture_csvs/schedule_upsert_data.csv"
-#     )
-#     df = pd.read_csv(fname, nrows = 2)
-#     return df
-
-# @pytest.fixture(scope="session")
-# def schedule_upsert_data_2():
-#     """
-#     Fixture to load team advanced stats data from a csv file for testing.
-#     """
-#     fname = os.path.join(
-#         os.path.dirname(__file__), "fixture_csvs/schedule_upsert_data.csv"
-#     )
-#     df = pd.read_csv(fname, skiprows = [1, 2])
-#     return df
+    comments = add_sentiment_analysis(df, "comment")
+    return comments
