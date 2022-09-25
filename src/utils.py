@@ -24,19 +24,55 @@ from tweepy import OAuthHandler
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
-today = datetime.now().date()
-todaytime = datetime.now()
-yesterday = today - timedelta(1)
-day = (datetime.now() - timedelta(1)).day
-month = (datetime.now() - timedelta(1)).month
-year = (datetime.now() - timedelta(1)).year
 
-if today < datetime(2022, 4, 11).date():
-    season_type = "Regular Season"
-elif (today >= datetime(2022, 4, 11).date()) & (today < datetime(2022, 4, 16).date()):
-    season_type = "Play-In"
-else:
-    season_type = "Playoffs"
+def get_season_type(todays_date: datetime.date = datetime.now().date()) -> str:
+    """
+    Function to generate Season Type for a given Date.  Defaults to today's date.
+
+    Args:
+        todays_date (date): The Date to generate a Season Type for
+
+    Returns:
+        The Season Type for Given Date
+    """
+    if todays_date < datetime(2023, 4, 9).date():
+        season_type = "Regular Season"
+    elif (todays_date >= datetime(2023, 4, 9).date()) & (
+        todays_date < datetime(2023, 4, 16).date()
+    ):
+        season_type = "Play-In"
+    else:
+        season_type = "Playoffs"
+
+    return season_type
+
+
+def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame:
+    """
+    Function to add Sentiment Analysis columns via nltk Vader Lexicon.
+
+    Args:
+        df (pd.DataFrame): the Pandas DataFrame
+
+        sentiment_col (str): The Column in the DataFrame to run Sentiment Analysis on (comments / tweets etc).
+
+    Returns:
+        The same DataFrame but with the Sentiment Analysis columns attached.
+    """
+    try:
+        analyzer = SentimentIntensityAnalyzer()
+        df["compound"] = [
+            analyzer.polarity_scores(x)["compound"] for x in df[sentiment_col]
+        ]
+        df["neg"] = [analyzer.polarity_scores(x)["neg"] for x in df[sentiment_col]]
+        df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df[sentiment_col]]
+        df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df[sentiment_col]]
+        df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
+        return df
+    except BaseException as e:
+        logging.error(f"Error Occurred while adding Sentiment Analysis, {e}")
+        sentry_sdk.capture_exception(e)
+        raise e
 
 
 def get_leading_zeroes(month: int) -> str:
@@ -45,7 +81,7 @@ def get_leading_zeroes(month: int) -> str:
 
     Args:
         month (int): The month integer
-    
+
     Returns:
         The same month integer with a leading 0 if it is less than 10 (Nov/Dec aka 11/12 unaffected).
     """
@@ -62,7 +98,7 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
 
     Args:
         df (DataFrame): The DataFrame you wish to alter
-    
+
     Returns:
         df with transformed player names
     """
@@ -97,18 +133,26 @@ def get_player_stats_data() -> pd.DataFrame:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_per_game.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
-
         headers = [th.getText() for th in soup.findAll("tr", limit=2)[0].findAll("th")]
         headers = headers[1:]
-
         rows = soup.findAll("tr")[1:]
         player_stats = [
             [td.getText() for td in rows[i].findAll("td")] for i in range(len(rows))
         ]
-
         stats = pd.DataFrame(player_stats, columns=headers)
+        stats["PTS"] = pd.to_numeric(stats["PTS"])
+        stats = stats.query("Player == Player").reset_index()
+        stats["Player"] = (
+            stats["Player"]
+            .str.normalize("NFKD")
+            .str.encode("ascii", errors="ignore")
+            .str.decode("utf-8")
+        )
+        stats.columns = stats.columns.str.lower()
+        stats["scrape_date"] = datetime.now().date()
+        stats = stats.drop("index", axis=1)
         logging.info(
-            f"General Stats Extraction Function Successful, retrieving {len(stats)} updated rows"
+            f"General Stats Transformation Function Successful, retrieving {len(stats)} updated rows"
         )
         return stats
     except BaseException as error:
@@ -118,57 +162,27 @@ def get_player_stats_data() -> pd.DataFrame:
         return df
 
 
-def get_player_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Web Scrape function w/ BS4 that transforms aggregate player season stats.  Player names get accents removed.
-
-    Args:
-        df (DataFrame): Raw Data Frame for Player Stats
-
-    Returns:
-        DataFrame of Player Aggregate Season stats
-    """
-    try:
-        df["PTS"] = pd.to_numeric(df["PTS"])
-        df = df.query("Player == Player").reset_index()
-        df["Player"] = (
-            df["Player"]
-            .str.normalize("NFKD")
-            .str.encode("ascii", errors="ignore")
-            .str.decode("utf-8")
-        )
-        df.columns = df.columns.str.lower()
-        df["scrape_date"] = datetime.now().date()
-        df = df.drop("index", axis=1)
-        logging.info(
-            f"General Stats Transformation Function Successful, retrieving {len(df)} updated rows"
-        )
-        return df
-    except BaseException as error:
-        logging.error(f"General Stats Transformation Function Failed, {error}")
-        sentry_sdk.capture_exception(error)
-        df = []
-        return df
-
-
 def get_boxscores_data(
-    month: int = month, day: int = day, year: int = year
+    month: int = (datetime.now() - timedelta(1)).month,
+    day: int = (datetime.now() - timedelta(1)).day,
+    year: int = (datetime.now() - timedelta(1)).year,
 ) -> pd.DataFrame:
     """
     Function that grabs box scores from a given date in mmddyyyy format - defaults to yesterday.  values can be ex. 1 or 01.
     Can't use read_html for this so this is raw web scraping baby.
 
     Args:
-        month (string): month value of the game played (0 - 12)
+        month (int): month value of the game played (0 - 12)
 
-        day (string): day value of the game played (1 - 31)
+        day (int): day value of the game played (1 - 31)
 
-        year (string): year value of the game played (2021)
+        year (int): year value of the game played (2021)
 
     Returns:
         DataFrame of Player Aggregate Season stats
     """
     url = f"https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={month}&day={day}&year={year}&type=all"
+    season_type = get_season_type()
 
     try:
         html = requests.get(url).content
@@ -195,33 +209,7 @@ def get_boxscores_data(
         ]
 
         df = pd.DataFrame(player_stats, columns=headers)
-        return df
-    except IndexError as error:
-        logging.warning(
-            f"Box Score Extraction Function Failed, {error}, no data available for {year}-{month}-{day}"
-        )
-        sentry_sdk.capture_exception(error)
-        df = []
-        return df
-    except BaseException as error:
-        logging.error(f"Box Score Extraction Function Failed, {error}")
-        sentry_sdk.capture_exception(error)
-        df = []
-        return df
 
-
-def get_boxscores_transformed(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Transformation Function for boxscores that gets stored to SQL and is used as an input for PBP Function.
-    Player names get accents removed & team acronyms get normalized here.
-
-    Args:
-        df (DataFrame): Raw Boxscores DataFrame
-
-    Returns:
-        DataFrame of transformed boxscores.
-    """
-    try:
         df[
             [
                 "FGM",
@@ -283,20 +271,21 @@ def get_boxscores_transformed(df: pd.DataFrame) -> pd.DataFrame:
             .str.encode("ascii", errors="ignore")
             .str.decode("utf-8")
         )
+        df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
             f"Box Score Transformation Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
         )
         return df
-    except TypeError as error:
+    except IndexError as error:
         logging.warning(
-            f"Box Score Transformation Function Failed, {error}, no data available for {year}-{month}-{day}"
+            f"Box Score Extraction Function Failed, {error}, no data available for {year}-{month}-{day}"
         )
         sentry_sdk.capture_exception(error)
         df = []
         return df
     except BaseException as error:
-        logging.error(f"Box Score Transformation Function Logic Failed, {error}")
+        logging.error(f"Box Score Extraction Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = []
         return df
@@ -312,31 +301,13 @@ def get_opp_stats_data() -> pd.DataFrame:
     Returns:
         Pandas DataFrame of all current team opponent stats
     """
+    year = (datetime.now() - timedelta(1)).year
+    month = (datetime.now() - timedelta(1)).month
+    day = (datetime.now() - timedelta(1)).day
+
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2022.html"
         df = pd.read_html(url)[5]
-        logging.info(
-            f"Opp Stats Web Scrape Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
-        )
-        return df
-    except BaseException as error:
-        logging.error(f"Opp Stats Web Scrape Function Failed, {error}")
-        sentry_sdk.capture_exception(error)
-        df = []
-        return df
-
-
-def get_opp_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Transformation Function for Opponent Stats.
-
-    Args:
-        df (DataFrame): The Raw Opponent Stats DataFrame
-
-    Returns:
-        DataFrame of transformed Opponent Stats Data
-    """
-    try:
         df = df[["Team", "FG%", "3P%", "3P", "PTS"]]
         df = df.rename(
             columns={
@@ -355,7 +326,7 @@ def get_opp_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         )
         return df
     except BaseException as error:
-        logging.error(f"Opp Stats Function Failed, {error}")
+        logging.error(f"Opp Stats Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = []
         return df
@@ -374,28 +345,6 @@ def get_injuries_data() -> pd.DataFrame:
     try:
         url = "https://www.basketball-reference.com/friv/injuries.fcgi"
         df = pd.read_html(url)[0]
-        logging.info(
-            f"Injury Web Scrape Function Successful, retrieving {len(df)} rows"
-        )
-        return df
-    except BaseException as error:
-        logging.error(f"Injury Web Scrape Function Failed, {error}")
-        sentry_sdk.capture_exception(error)
-        df = []
-        return df
-
-
-def get_injuries_transformed(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Transformation Function for injuries function
-
-    Args:
-        df (DataFrame): Raw Injuries DataFrame
-
-    Returns:
-        Pandas DataFrame of all current player injuries & their associated team
-    """
-    try:
         df = df.rename(columns={"Update": "Date"})
         df.columns = df.columns.str.lower()
         df["scrape_date"] = datetime.now().date()
@@ -411,7 +360,7 @@ def get_injuries_transformed(df: pd.DataFrame) -> pd.DataFrame:
         )
         return df
     except BaseException as error:
-        logging.error(f"Injury Transformation Function Failed, {error}")
+        logging.error(f"Injury Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = []
         return df
@@ -428,7 +377,7 @@ def get_transactions_data() -> pd.DataFrame:
         Pandas DataFrame of all season transactions, trades, player waives etc.
     """
     try:
-        url = "https://www.basketball-reference.com/leagues/NBA_2022_transactions.html"
+        url = "https://www.basketball-reference.com/leagues/NBA_2023_transactions.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
         # theres a bunch of garbage in the first 50 rows - no matter what
@@ -448,29 +397,6 @@ def get_transactions_data() -> pd.DataFrame:
             mylist = []
 
         transactions = pd.DataFrame(rows)
-        logging.info(
-            f"Transactions Web Scrape Function Successful, retrieving {len(transactions)} rows"
-        )
-        return transactions
-    except BaseException as error:
-        logging.error(f"Transaction Web Scrape Function Failed, {error}")
-        sentry_sdk.capture_exception(error)
-        df = []
-        return df
-
-
-def get_transactions_transformed(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Transformation function for Transactions data
-
-    Args:
-        df (DataFrame): Raw Transactions DataFrame
-
-    Returns:
-        Pandas DataFrame of all Transactions data 
-    """
-    transactions = df
-    try:
         transactions.columns = ["Date", "Transaction"]
         transactions = transactions.query(
             'Date == Date & Date != ""'
@@ -488,7 +414,7 @@ def get_transactions_transformed(df: pd.DataFrame) -> pd.DataFrame:
         )
         return transactions
     except BaseException as error:
-        logging.error(f"Transaction Transformation Function Failed, {error}")
+        logging.error(f"Transaction Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = []
         return df
@@ -508,28 +434,6 @@ def get_advanced_stats_data() -> pd.DataFrame:
         url = "https://www.basketball-reference.com/leagues/NBA_2022.html"
         df = pd.read_html(url)
         df = pd.DataFrame(df[10])
-        logging.info(
-            f"Advanced Stats Web Scrape Function Successful, retrieving updated data for 30 Teams"
-        )
-        return df
-    except BaseException as error:
-        logging.error(f"Advanced Stats Web Scrape Function Failed, {error}")
-        sentry_sdk.capture_exception(error)
-        df = []
-        return df
-
-
-def get_advanced_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Transformation function for Advanced Stats
-
-    Args:
-        df (DataFrame): Raw Advanced Stats DataFrame
-
-    Returns:
-        Pandas DataFrame of all Advanced Stats data 
-    """
-    try:
         df.drop(columns=df.columns[0], axis=1, inplace=True)
         df.columns = [
             "Team",
@@ -574,7 +478,7 @@ def get_advanced_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
         )
         return df
     except BaseException as error:
-        logging.error(f"Advanced Stats Transformation Function Failed, {error}")
+        logging.error(f"Advanced Stats Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = []
         return df
@@ -593,29 +497,6 @@ def get_shooting_stats_data() -> pd.DataFrame:
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2022_shooting.html"
         df = pd.read_html(url)[0]
-        logging.info(
-            f"Shooting Stats Web Scrape Function Successful, retrieving {len(df)} rows for Shooting Stats"
-        )
-        return df
-    except BaseException as error:
-        logging.error(f"Shooting Stats Web Scrape Function Failed, {error}")
-        sentry_sdk.capture_exception(error)
-        df = []
-        return df
-
-
-def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Web Scrape Transformation function for Shooting Stats.
-    This has some multi index bullshit attached in the beginning if it screws up the future - that's probably it.
-
-    Args:
-        df (DataFrame): The Raw Shooting Stats DF
-
-    Returns:
-        DataFrame of Transformed Shooting Stats
-    """
-    try:
         df.columns = df.columns.to_flat_index()
         df = df.rename(
             columns={
@@ -688,9 +569,9 @@ def get_shooting_stats_transformed(df: pd.DataFrame) -> pd.DataFrame:
             f"Shooting Stats Transformation Function Successful, retrieving {len(df)} rows"
         )
         return df
-    except BaseException as e:
-        logging.error(f"Shooting Stats Transformation Function Failed, {e}")
-        sentry_sdk.capture_exception(e)
+    except BaseException as error:
+        logging.error(f"Shooting Stats Web Scrape Function Failed, {error}")
+        sentry_sdk.capture_exception(error)
         df = []
         return df
 
@@ -707,149 +588,150 @@ def get_odds_data() -> pd.DataFrame:
     Returns:
         Pandas DataFrame of NBA moneyline + spread odds for upcoming games for that day
     """
+    year = (datetime.now() - timedelta(1)).year
+
     try:
         url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
         df = pd.read_html(url)
-        logging.info(
-            f"Odds Web Scrape Function Successful {len(df)} day, retrieving {len(df)} day objects"
-        )
-        return df
+        if len(df) == 0:
+            logging.info(f"Odds Transformation Failed, no Odds Data available.")
+            df = []
+            return df
+        else:
+            try:
+                data1 = df[0].copy()
+                data1.columns.values[0] = "Tomorrow"
+                date_try = str(year) + " " + data1.columns[0]
+                data1["date"] = np.where(
+                    date_try == "2022 Tomorrow",
+                    datetime.now().date(),  # if the above is true, then return this
+                    str(year) + " " + data1.columns[0],  # if false then return this
+                )
+                # )
+                date_try = data1["date"].iloc[0]
+                data1.reset_index(drop=True)
+                data1["Tomorrow"] = data1["Tomorrow"].str.replace(
+                    "LA Clippers", "LAC Clippers", regex=True
+                )
+
+                data1["Tomorrow"] = data1["Tomorrow"].str.replace(
+                    "AM", "AM ", regex=True
+                )
+                data1["Tomorrow"] = data1["Tomorrow"].str.replace(
+                    "PM", "PM ", regex=True
+                )
+                data1["Time"] = data1["Tomorrow"].str.split().str[0]
+                data1["datetime1"] = (
+                    pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data1["Time"])
+                    - timedelta(hours=6)
+                    + timedelta(days=1)
+                )
+                if len(df) > 1:  # if more than 1 day's data appears then do this
+                    data2 = df[1].copy()
+                    data2.columns.values[0] = "Tomorrow"
+                    data2.reset_index(drop=True)
+                    data2["Tomorrow"] = data2["Tomorrow"].str.replace(
+                        "LA Clippers", "LAC Clippers", regex=True
+                    )
+                    data2["Tomorrow"] = data2["Tomorrow"].str.replace(
+                        "AM", "AM ", regex=True
+                    )
+                    data2["Tomorrow"] = data2["Tomorrow"].str.replace(
+                        "PM", "PM ", regex=True
+                    )
+                    data2["Time"] = data2["Tomorrow"].str.split().str[0]
+                    data2["datetime1"] = (
+                        pd.to_datetime(
+                            date_try.strftime("%Y-%m-%d") + " " + data2["Time"]
+                        )
+                        - timedelta(hours=6)
+                        + timedelta(days=1)
+                    )
+                    data2["date"] = data2["datetime1"].dt.date
+
+                    data = data1.append(data2).reset_index(drop=True)
+                    data["SPREAD"] = data["SPREAD"].str[:-4]
+                    data["TOTAL"] = data["TOTAL"].str[:-4]
+                    data["TOTAL"] = data["TOTAL"].str[2:]
+                    data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
+                    data["Tomorrow"] = pd.DataFrame(
+                        [
+                            str(line).strip("[").strip("]").replace("'", "")
+                            for line in data["Tomorrow"]
+                        ]
+                    )
+                    data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
+                    data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
+                    data.columns = data.columns.str.lower()
+                    data = data[
+                        [
+                            "tomorrow",
+                            "spread",
+                            "total",
+                            "moneyline",
+                            "date",
+                            "datetime1",
+                        ]
+                    ]
+                    data = data.rename(columns={data.columns[0]: "team"})
+                    data = data.query(
+                        "date == date.min()"
+                    )  # only grab games from upcoming day
+                    logging.info(
+                        f"Odds Transformation Function Successful {len(df)} day, retrieving {len(data)} rows"
+                    )
+                    return data
+                else:  # if there's only 1 day of data then just use that
+                    data = data1.reset_index(drop=True)
+                    data["SPREAD"] = data["SPREAD"].str[:-4]
+                    data["TOTAL"] = data["TOTAL"].str[:-4]
+                    data["TOTAL"] = data["TOTAL"].str[2:]
+                    data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
+                    data["Tomorrow"] = pd.DataFrame(
+                        [
+                            str(line).strip("[").strip("]").replace("'", "")
+                            for line in data["Tomorrow"]
+                        ]
+                    )
+                    data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
+                    data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
+                    data.columns = data.columns.str.lower()
+                    data = data[
+                        [
+                            "tomorrow",
+                            "spread",
+                            "total",
+                            "moneyline",
+                            "date",
+                            "datetime1",
+                        ]
+                    ]
+                    data = data.rename(columns={data.columns[0]: "team"})
+                    data = data.query(
+                        "date == date.min()"
+                    )  # only grab games from upcoming day
+                    logging.info(
+                        f"Odds Transformation Successful {len(df)} day, retrieving {len(data)} rows"
+                    )
+                    return data
+            except BaseException as error:
+                logging.error(
+                    f"Odds Transformation Failed for {len(df)} day objects, {error}"
+                )
+                sentry_sdk.capture_exception(error)
+                data = []
+                return data
     except (
         BaseException,
         ValueError,
     ) as error:  # valueerror fucked shit up apparently idfk
-        logging.error(f"Odds Function Failed, {error}")
+        logging.error(f"Odds Function Web Scrape Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = []
         return df
 
 
-# import pickle
-# with open('tests/fixture_csvs/odds_data', 'wb') as fp:
-#     pickle.dump(df, fp)
-
-
-def get_odds_transformed(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Transformation function for Odds Data
-
-    Args:
-        df (DataFrame): Raw Odds DataFrame
-
-    Returns:
-        Pandas DataFrame of all Odds Data 
-    """
-    if len(df) == 0:
-        logging.info(f"Odds Transformation Failed, no Odds Data available.")
-        df = []
-        return df
-    else:
-        try:
-            data1 = df[0].copy()
-            data1.columns.values[0] = "Tomorrow"
-            date_try = str(year) + " " + data1.columns[0]
-            data1["date"] = np.where(
-                date_try == "2022 Tomorrow",
-                datetime.now().date(),  # if the above is true, then return this
-                str(year) + " " + data1.columns[0],  # if false then return this
-            )
-            # )
-            date_try = data1["date"].iloc[0]
-            data1.reset_index(drop=True)
-            data1["Tomorrow"] = data1["Tomorrow"].str.replace(
-                "LA Clippers", "LAC Clippers", regex=True
-            )
-
-            data1["Tomorrow"] = data1["Tomorrow"].str.replace("AM", "AM ", regex=True)
-            data1["Tomorrow"] = data1["Tomorrow"].str.replace("PM", "PM ", regex=True)
-            data1["Time"] = data1["Tomorrow"].str.split().str[0]
-            data1["datetime1"] = (
-                pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data1["Time"])
-                - timedelta(hours=6)
-                + timedelta(days=1)
-            )
-            if len(df) > 1:  # if more than 1 day's data appears then do this
-                data2 = df[1].copy()
-                data2.columns.values[0] = "Tomorrow"
-                data2.reset_index(drop=True)
-                data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-                    "LA Clippers", "LAC Clippers", regex=True
-                )
-                data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-                    "AM", "AM ", regex=True
-                )
-                data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-                    "PM", "PM ", regex=True
-                )
-                data2["Time"] = data2["Tomorrow"].str.split().str[0]
-                data2["datetime1"] = (
-                    pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data2["Time"])
-                    - timedelta(hours=6)
-                    + timedelta(days=1)
-                )
-                data2["date"] = data2["datetime1"].dt.date
-
-                data = data1.append(data2).reset_index(drop=True)
-                data["SPREAD"] = data["SPREAD"].str[:-4]
-                data["TOTAL"] = data["TOTAL"].str[:-4]
-                data["TOTAL"] = data["TOTAL"].str[2:]
-                data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
-                data["Tomorrow"] = pd.DataFrame(
-                    [
-                        str(line).strip("[").strip("]").replace("'", "")
-                        for line in data["Tomorrow"]
-                    ]
-                )
-                data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
-                data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
-                data.columns = data.columns.str.lower()
-                data = data[
-                    ["tomorrow", "spread", "total", "moneyline", "date", "datetime1"]
-                ]
-                data = data.rename(columns={data.columns[0]: "team"})
-                data = data.query(
-                    "date == date.min()"
-                )  # only grab games from upcoming day
-                logging.info(
-                    f"Odds Transformation Function Successful {len(df)} day, retrieving {len(data)} rows"
-                )
-                return data
-            else:  # if there's only 1 day of data then just use that
-                data = data1.reset_index(drop=True)
-                data["SPREAD"] = data["SPREAD"].str[:-4]
-                data["TOTAL"] = data["TOTAL"].str[:-4]
-                data["TOTAL"] = data["TOTAL"].str[2:]
-                data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
-                data["Tomorrow"] = pd.DataFrame(
-                    [
-                        str(line).strip("[").strip("]").replace("'", "")
-                        for line in data["Tomorrow"]
-                    ]
-                )
-                data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
-                data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
-                data.columns = data.columns.str.lower()
-                data = data[
-                    ["tomorrow", "spread", "total", "moneyline", "date", "datetime1"]
-                ]
-                data = data.rename(columns={data.columns[0]: "team"})
-                data = data.query(
-                    "date == date.min()"
-                )  # only grab games from upcoming day
-                logging.info(
-                    f"Odds Transformation Function Successful {len(df)} day, retrieving {len(data)} rows"
-                )
-                return data
-        except BaseException as error:
-            logging.error(
-                f"Odds Transformation Function Failed for {len(df)} day objects, {error}"
-            )
-            sentry_sdk.capture_exception(error)
-            data = []
-            return data
-
-
-def get_reddit_data(sub: str) -> pd.DataFrame:
+def get_reddit_data(sub: str = "nba") -> pd.DataFrame:
     """
     Web Scrape function w/ PRAW that grabs top ~27 top posts from a given subreddit.
     Left sub as an argument in case I want to scrape multi subreddits in the future (r/nba, r/nbadiscussion, r/sportsbook etc)
@@ -880,8 +762,8 @@ def get_reddit_data(sub: str) -> pd.DataFrame:
                     str(f"https://www.reddit.com{post.permalink}"),
                     post.num_comments,
                     post.selftext,
-                    today,
-                    todaytime,
+                    datetime.now().date(),
+                    datetime.now(),
                 ]
             )
         posts = pd.DataFrame(
@@ -967,14 +849,7 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
 
         df = df.astype({"author": str})
         # adding sentiment analysis columns
-        analyzer = SentimentIntensityAnalyzer()
-        df["compound"] = [
-            analyzer.polarity_scores(x)["compound"] for x in df["comment"]
-        ]
-        df["neg"] = [analyzer.polarity_scores(x)["neg"] for x in df["comment"]]
-        df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["comment"]]
-        df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["comment"]]
-        df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
+        df = add_sentiment_analysis(df, "comment")
 
         df["edited"] = np.where(
             df["edited"] == False, 0, 1
@@ -988,66 +863,6 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
         sentry_sdk.capture_exception(e)
         df = []
         return df
-
-
-# deprecating as of 2022-08-15
-# def scrape_tweets(search_term: str) -> pd.DataFrame:
-#     """
-#     Twitter Scrape function using twint to grab between 1,000 and 2,000 tweets about the search parameter.
-#     It has to like write to a fkn csv then read from csv, idk, thx for the OOP.
-#     The twint package is no longer updated so probably want to use official Twitter API for this.
-
-#     Args:
-#         search_term (str): The term to search Tweets for.
-
-#     Returns:
-#         DataFrame of around 1-2k Tweets
-
-
-#     """
-#     try:
-#         c = twint.Config()
-#         c.Search = search_term
-#         c.Limit = 2500  # number of Tweets to scrape
-#         c.Store_csv = True  # store tweets in a csv file
-#         c.Output = f"{search_term}_tweets.csv"  # path to csv file
-#         c.Hide_output = True
-
-#         twint.run.Search(c)
-#         df = pd.read_csv(f"{search_term}_tweets.csv")
-#         df = df[
-#             [
-#                 "id",
-#                 "created_at",
-#                 "date",
-#                 "username",
-#                 "tweet",
-#                 "language",
-#                 "link",
-#                 "likes_count",
-#                 "retweets_count",
-#                 "replies_count",
-#             ]
-#         ].drop_duplicates()
-#         df["scrape_date"] = datetime.now().date()
-#         df["scrape_ts"] = datetime.now()
-#         df = df.query('language=="en"').groupby("id").agg("last")
-
-#         analyzer = SentimentIntensityAnalyzer()
-#         df["compound"] = [analyzer.polarity_scores(x)["compound"] for x in df["tweet"]]
-#         df["neg"] = [analyzer.polarity_scores(x)["neg"] for x in df["tweet"]]
-#         df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["tweet"]]
-#         df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["tweet"]]
-#         df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
-#         logging.info(
-#             f"Twitter Tweet Extraction Success, retrieving {len(df)} total tweets"
-#         )
-#         return df
-#     except BaseException as e:
-#         logging.error(f"Twitter Tweet Extraction Failed, {e}")
-#         sentry_sdk.capture_exception(e)
-#         df = []
-#         return df
 
 
 def scrape_tweets_tweepy(
@@ -1101,13 +916,7 @@ def scrape_tweets_tweepy(
                 ignore_index=True,
             )
 
-        analyzer = SentimentIntensityAnalyzer()
-        df["compound"] = [analyzer.polarity_scores(x)["compound"] for x in df["tweet"]]
-        df["neg"] = [analyzer.polarity_scores(x)["neg"] for x in df["tweet"]]
-        df["neu"] = [analyzer.polarity_scores(x)["neu"] for x in df["tweet"]]
-        df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df["tweet"]]
-        df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
-
+        df = add_sentiment_analysis(df, "tweet")
         logging.info(f"Twitter Scrape Successful, retrieving {len(df)} Tweets")
         return df
     except BaseException as e:
@@ -1151,14 +960,14 @@ def scrape_tweets_combo() -> pd.DataFrame:
         return df
 
 
-def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
+def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that uses aliases via boxscores function
     to scrape the pbp data iteratively for each game played the previous day.
     It assumes there is a location column in the df being passed in.
 
     Args:
-        df (DataFrame) - the DataFrame result from running the boxscores function.
+        df (DataFrame) - The Boxscores DataFrame
 
     Returns:
         All PBP Data for the games in the input df
@@ -1288,7 +1097,8 @@ def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
                     df["scoreHome"] = df["scoreHome"].fillna(method="ffill")
                     df["scoreHome"] = df["scoreHome"].fillna(0)
                     df["marginScore"] = df["scoreHome"] - df["scoreAway"]
-                    df["Date"] = yesterday
+                    df["Date"] = datetime.now().date() - timedelta(days=1)
+                    df["scrape_date"] = datetime.now().date()
                     df = df.rename(
                         columns={
                             df.columns[0]: "timeQuarter",
@@ -1302,7 +1112,7 @@ def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
                     "(awayscore.notnull()) | (homescore.notnull())", engine="python"
                 )
                 logging.info(
-                    f"PBP Data Transformation Function Successful, retrieving {len(pbp_list)} rows for {year}-{month}-{day}"
+                    f"PBP Data Transformation Function Successful, retrieving {len(pbp_list)} rows for {datetime.now().date()}"
                 )
                 # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
                 return pbp_list
@@ -1314,7 +1124,7 @@ def get_pbp_data_transformed(df: pd.DataFrame) -> pd.DataFrame:
         else:
             df = []
             logging.warning(
-                f"PBP Transformation Function Failed, no data available for {year}-{month}-{day}"
+                f"PBP Transformation Function Failed, no data available for {datetime.now().date()}"
             )
             return df
     except BaseException as error:
@@ -1332,10 +1142,10 @@ def schedule_scraper(year: str, month_list: List[str]) -> pd.DataFrame:
         year (str) - The year to scrape
 
         month_list (list) - List of full-month names to scrape
-    
+
     Returns:
         DataFrame of Schedule Data to be stored.
-    
+
     """
     try:
         schedule_df = pd.DataFrame()
@@ -1427,7 +1237,7 @@ def write_to_s3(
 
     """
     month_prefix = get_leading_zeroes(datetime.now().month)
-    # df['file_name'] = f'{file_name}-{today}.parquet'
+    # df['file_name'] = f'{file_name}-{datetime.now().date()}.parquet'
     try:
         if len(df) == 0:
             logging.info(f"Not storing {file_name} to s3 because it's empty.")
@@ -1437,21 +1247,21 @@ def write_to_s3(
                 df=df,
                 # 2022-06-21 - use this updated s3 naming convention next season
                 # f"s3://{bucket}/{file_name}/validated/year={datetime.now().year}/month={month_prefix}/{file_name}-{today}.parquet"
-                path=f"s3://{bucket}/{file_name}/validated/year={datetime.now().year}/month={month_prefix}/{file_name}-{today}.parquet",
+                path=f"s3://{bucket}/{file_name}/validated/year={datetime.now().year}/month={month_prefix}/{file_name}-{datetime.now().date()}.parquet",
                 index=False,
             )
             logging.info(
-                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{today}.parquet)"
+                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{datetime.now().date()}.parquet)"
             )
             pass
         else:
             wr.s3.to_parquet(
                 df=df,
-                path=f"s3://{bucket}/{file_name}/invalidated/year={datetime.now().year}/month={month_prefix}/{file_name}-{today}.parquet",
+                path=f"s3://{bucket}/{file_name}/invalidated/year={datetime.now().year}/month={month_prefix}/{file_name}-{datetime.now().date()}.parquet",
                 index=False,
             )
             logging.info(
-                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/invalidated/{month_prefix}/{file_name}-{today}.parquet)"
+                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/invalidated/{month_prefix}/{file_name}-{datetime.now().date()}.parquet)"
             )
             pass
     except BaseException as error:
@@ -1474,7 +1284,7 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
         table_type (str): Whether the table should replace or append to an existing SQL Table under that name
 
     Returns:
-        Writes the Pandas DataFrame to a Table in Snowflake in the {nba_source} Schema we connected to.
+        Writes the Pandas DataFrame to a Table in the Schema we connected to.
 
     """
     try:
@@ -1641,7 +1451,7 @@ def send_aws_email(logs: pd.DataFrame) -> None:
     sender = os.environ.get("USER_EMAIL")
     recipient = os.environ.get("USER_EMAIL")
     aws_region = "us-east-1"
-    subject = f"NBA ELT PIPELINE - {str(len(logs))} Alert Fails for {str(today)}"
+    subject = f"NBA ELT PIPELINE - {str(len(logs))} Alert Fails for {str(datetime.now().date())}"
     body_html = message = f"""\
 <h3>Errors:</h3>
                    {logs.to_html()}"""
@@ -1650,13 +1460,26 @@ def send_aws_email(logs: pd.DataFrame) -> None:
     client = boto3.client("ses", region_name=aws_region)
     try:
         response = client.send_email(
-            Destination={"ToAddresses": [recipient,],},
+            Destination={
+                "ToAddresses": [
+                    recipient,
+                ],
+            },
             Message={
                 "Body": {
-                    "Html": {"Charset": charset, "Data": body_html,},
-                    "Text": {"Charset": charset, "Data": body_html,},
+                    "Html": {
+                        "Charset": charset,
+                        "Data": body_html,
+                    },
+                    "Text": {
+                        "Charset": charset,
+                        "Data": body_html,
+                    },
                 },
-                "Subject": {"Charset": charset, "Data": subject,},
+                "Subject": {
+                    "Charset": charset,
+                    "Data": subject,
+                },
             },
             Source=sender,
         )

@@ -20,7 +20,7 @@ def test_player_stats_sql(setup_database, player_stats_data):
     )
     df_len = len(list(cursor.execute("SELECT * FROM aws_player_stats_data_source")))
     cursor.close()
-    assert df_len == 384
+    assert df_len == 630
 
 
 # table has to get created from ^ first, other wise this will error out.
@@ -29,7 +29,7 @@ def test_write_to_sql(setup_database, player_stats_data):
     player_stats_data.schema = "Validated"
     write_to_sql(conn, "player_stats_data", player_stats_data, "append")
     df_len = len(list(conn.execute("SELECT * FROM aws_player_stats_data_source")))
-    assert df_len == 384
+    assert df_len == 630
 
 
 def test_write_to_sql_no_data(setup_database):

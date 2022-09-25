@@ -1,4 +1,4 @@
-# Version: 1.6.2
+# Version: 1.7.0
 
 # ![Tests](https://github.com/jyablonski/python_docker/actions/workflows/prod_test.yml/badge.svg)
 # ![ECR Deployment](https://github.com/jyablonski/python_docker/actions/workflows/prod_deploy.yml/badge.svg)
@@ -13,3 +13,5 @@
     * [Terraform](https://github.com/jyablonski/aws_terraform)
     * [Airflow Proof of Concept](https://github.com/jyablonski/nba_elt_airflow)
     * [ML Pipeline](https://github.com/jyablonski/nba_elt_mlflow)
+    * [REST API](https://github.com/jyablonski/nba_elt_rest_api)
+    * [GraphQL API](https://github.com/jyablonski/graphql_praq)

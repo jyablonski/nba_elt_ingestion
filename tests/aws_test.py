@@ -57,6 +57,7 @@ def test_write_to_s3_validated(player_stats_data):
         == f"player_stats_data/validated/year={datetime.now().year}/month={month_prefix}/player_stats_data-{today}.parquet"
     )
 
+
 @mock_s3
 def test_write_to_s3_invalidated(player_stats_data):
     conn = boto3.resource("s3", region_name="us-east-1")

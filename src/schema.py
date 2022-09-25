@@ -61,6 +61,7 @@ boxscores_cols = [
     "date",
     "type",
     "season",
+    "scrape_date",
 ]
 
 injury_cols = ["player", "team", "date", "description", "scrape_date"]
@@ -88,6 +89,7 @@ pbp_cols = [
     "scorehome",
     "marginscore",
     "date",
+    "scrape_date",
 ]
 
 reddit_cols = [
