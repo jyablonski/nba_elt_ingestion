@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import hashlib
 import logging
 import os
 import requests
@@ -848,12 +849,23 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
         )
 
         df = df.astype({"author": str})
+        df = df.query('author != "None"')  # remove deleted comments rip
+        df = (
+            df.sort_values("score").groupby(["author", "comment", "url"]).tail(1)
+        )  # remove duplicates, grab comment with highest score
         # adding sentiment analysis columns
         df = add_sentiment_analysis(df, "comment")
 
         df["edited"] = np.where(
             df["edited"] == False, 0, 1
         )  # if edited, then 1, else 0
+        df["md5_pk"] = df.apply(
+            lambda x: hashlib.md5(
+                (str(x["author"]) + str(x["comment"]) + str(x["url"])).encode("utf8")
+            ).hexdigest(),
+            axis=1,
+        )
+        # this hash function lines up with the md5 fucntion in postgres
         logging.info(
             f"Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls"
         )
@@ -1134,7 +1146,7 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
         return data
 
 
-def schedule_scraper(year: str, month_list: List[str]) -> pd.DataFrame:
+def schedule_scraper(year: str, month_list: List[str] = ["october", "november", "december", "january", "february", "march", "april"]) -> pd.DataFrame:
     """
     Web Scrape Function to scrape Schedule data by iterating through a list of months
 

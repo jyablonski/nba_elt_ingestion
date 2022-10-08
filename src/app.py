@@ -116,19 +116,42 @@ if __name__ == "__main__":
     conn = sql_connection(os.environ.get("RDS_SCHEMA"))
 
     with conn.connect() as connection:
-        # write_to_sql(connection, "stats", stats, "append")
-        # write_to_sql(connection, "boxscores", boxscores, "append")
-        # write_to_sql(connection, "adv_stats", adv_stats, "append")
-        # write_to_sql(connection, "odds", odds, "append")
-        write_to_sql(connection, "reddit_data", reddit_data, "append")
-        write_to_sql(connection, "reddit_comment_data", reddit_comment_data, "append")
-        # write_to_sql(connection, "pbp_data", pbp_data, "append")
-        # write_to_sql(connection, "opp_stats", opp_stats, "append")
-        # write_to_sql(connection, "twitter_data", twitter_data, "append")
-        # write_to_sql(connection, "schedule", schedule, "append")
-        # write_to_sql(connection, "shooting_stats", shooting_stats, "append")
-
-        # UPSERT TABLES
+        # new upserts
+        # write_to_sql_upsert(connection, "stats", stats, "upsert", ["player"])
+        # write_to_sql_upsert(
+        #     connection, "boxscores", boxscores, "upsert", ["player", "date"]
+        # )
+        # write_to_sql_upsert(connection, "adv_stats", adv_stats, "upsert", ["team"])
+        # write_to_sql_upsert(connection, "odds", odds, "upsert", ["team", "date"])
+        # write_to_sql_upsert(
+        #     connection,
+        #     "pbp_data",
+        #     pbp_data,
+        #     "upsert",
+        #     [
+        #         "hometeam",
+        #         "awayteam",
+        #         "date",
+        #         "timequarter",
+        #         "numberperiod",
+        #         "descriptionplayvisitor",
+        #         "descriptionplayhome",
+        #     ],
+        # )
+        # write_to_sql_upsert(connection, "opp_stats", opp_stats, "upsert", ["team"])
+        # write_to_sql_upsert(
+        #     connection, "shooting_stats", shooting_stats, "upsert", ["player"]
+        # )
+        write_to_sql_upsert(
+            connection, "reddit_data", reddit_data, "upsert", ["reddit_url"]
+        )
+        write_to_sql_upsert(
+            connection,
+            "reddit_comment_data",
+            reddit_comment_data,
+            "upsert",
+            ["md5_pk"],
+        )
         write_to_sql_upsert(
             connection, "transactions", transactions, "upsert", ["date", "transaction"]
         )
@@ -162,7 +185,6 @@ if __name__ == "__main__":
     write_to_s3("reddit_comment_data", reddit_comment_data)
     # write_to_s3("pbp_data", pbp_data)
     # write_to_s3("opp_stats", opp_stats)
-    # write_to_s3("twitter_data", twitter_data)
     write_to_s3("twitter_tweepy_data", twitter_tweepy_data)
     # write_to_s3("schedule", schedule)
     # write_to_s3("shooting_stats", shooting_stats)
