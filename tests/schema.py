@@ -160,6 +160,7 @@ reddit_comment_data_schema = {
     "neu": np.dtype("float64"),
     "pos": np.dtype("float64"),
     "sentiment": np.dtype("int64"),
+    "md5_pk": np.dtype("O"),
 }
 
 odds_schema = {

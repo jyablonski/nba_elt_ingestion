@@ -119,6 +119,7 @@ reddit_comment_cols = [
     "neu",
     "pos",
     "sentiment",
+    "md5_pk",
 ]
 
 odds_cols = ["team", "spread", "total", "moneyline", "date", "datetime1"]
