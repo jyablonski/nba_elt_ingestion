@@ -1146,7 +1146,18 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
         return data
 
 
-def schedule_scraper(year: str, month_list: List[str] = ["october", "november", "december", "january", "february", "march", "april"]) -> pd.DataFrame:
+def schedule_scraper(
+    year: str,
+    month_list: List[str] = [
+        "october",
+        "november",
+        "december",
+        "january",
+        "february",
+        "march",
+        "april",
+    ],
+) -> pd.DataFrame:
     """
     Web Scrape Function to scrape Schedule data by iterating through a list of months
 
@@ -1419,7 +1430,13 @@ def write_to_sql_upsert(
                 pass
 
 
-def sql_connection(rds_schema: str) -> Engine:
+def sql_connection(
+    rds_schema: str,
+    RDS_USER: str = os.environ.get("RDS_USER"),
+    RDS_PW: str = os.environ.get("RDS_PW"),
+    RDS_IP: str = os.environ.get("IP"),
+    RDS_DB: str = os.environ.get("RDS_DB"),
+) -> Engine:
     """
     SQL Connection function to define the SQL Driver + connection variables needed to connect to the DB.
     This doesn't actually make the connection, use conn.connect() in a context manager to create 1 re-usable connection
@@ -1430,10 +1447,6 @@ def sql_connection(rds_schema: str) -> Engine:
     Returns:
         SQL Connection variable to a specified schema in my PostgreSQL DB
     """
-    RDS_USER = os.environ.get("RDS_USER")
-    RDS_PW = os.environ.get("RDS_PW")
-    RDS_IP = os.environ.get("IP")
-    RDS_DB = os.environ.get("RDS_DB")
     try:
         connection = create_engine(
             f"postgresql+psycopg2://{RDS_USER}:{RDS_PW}@{RDS_IP}:5432/{RDS_DB}",
