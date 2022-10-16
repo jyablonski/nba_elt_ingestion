@@ -1,5 +1,5 @@
-CREATE SCHEMA test_schema;
-SET search_path TO test_schema;
+CREATE SCHEMA nba_source;
+SET search_path TO nba_source;
 
 DROP TABLE IF EXISTS aws_players_source;
 CREATE TABLE aws_players_source
