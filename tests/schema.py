@@ -166,7 +166,7 @@ reddit_comment_data_schema = {
 odds_schema = {
     "team": np.dtype("O"),
     "spread": np.dtype("O"),
-    "total": np.dtype("O"),
+    "total": np.dtype("int64"),
     "moneyline": np.dtype("int64"),
     "date": np.dtype("O"),
     "datetime1": np.dtype("<M8[ns]"),

@@ -26,7 +26,7 @@ def test_opp_stats(opp_stats_data):
 
 
 def test_odds(odds_data):
-    assert len(odds_data) == 26
+    assert len(odds_data) == 24
     assert odds_data.dtypes.to_dict() == odds_schema
 
 
