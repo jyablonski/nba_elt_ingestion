@@ -129,6 +129,7 @@ def get_player_stats_data() -> pd.DataFrame:
     Returns:
         DataFrame of Player Aggregate Season stats
     """
+    # stats = stats.rename(columns={"fg%": "fg_pct", "3p%": "3p_pct", "2p%": "2p_pct", "efg%": "efg_pct", "ft%": "ft_pct"})
     try:
         year_stats = 2023
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_per_game.html"
@@ -579,9 +580,64 @@ def get_shooting_stats_data() -> pd.DataFrame:
         df = []
         return df
 
+def scrape_odds():
+    """
+    Function to web scrape Gambling Odds from cover.com
+
+    Args:
+        None
+
+    Returns:
+        DataFrame of Gambling Odds for Today's Games
+    """
+    try:
+        url = "https://www.covers.com/sport/basketball/nba/odds"
+        df = pd.read_html(url)
+        odds = df[0]
+        odds['spread'] = df[3]['Unnamed: 1']
+        odds['moneyline'] = df[1]['Unnamed: 1']
+        odds = odds[['Time (ET)', 'Game (ET)', 'spread', 'moneyline']]
+        odds = odds.rename(columns={"Time (ET)": "datetime1", "Game (ET)": "team"})
+        odds = odds.query("datetime1.str.contains('Today')", engine='python').copy()
+        start_times = odds['datetime1']
+        odds['spread'] = odds['spread'].str.replace("PK", "-1.0")
+        odds['spread'] = odds['spread'].str.replace("-105", "")
+        odds['spread'] = odds['spread'].str.replace("-110", "")
+        odds['spread'] = odds['spread'].str.replace("-115", "")
+        odds['spread'] = odds['spread'].str.replace("-120", "")
+        odds['spread'] = odds['spread'].str.replace("-125", "")
+        odds['datetime1'] = odds['datetime1'].str.replace("Today, ", "")
+        odds_split = odds[['datetime1', 'team', 'spread', 'moneyline']]
+        odds_final = odds_split.copy()
+        # turning the space separated elements in a list, then exploding that list
+        odds_final['team'] = odds_final['team'].str.split(" ", n = 1, expand = False)
+        odds_final['spread'] = odds_final['spread'].str.split(" ", n = 1, expand = False)
+        odds_final['moneyline'] = odds_final['moneyline'].str.split(" ", n = 1, expand = False)
+        # # odds_final.set_index(['teams'])
+        odds_final = odds_final.explode(['team', 'spread', 'moneyline']).reset_index()
+        odds_final = odds_final.drop('index', axis =1)
+        odds_final['date'] = datetime.now().date()
+        odds_final['spread'] = odds_final['spread'].str.strip() # strip trailing and leading spaces
+        odds_final['moneyline'] = odds_final['moneyline'].str.strip()
+        odds_final['datetime1'] = (pd.to_datetime(str(datetime.now().date()) + " " + odds_final['datetime1']))
+        odds_final['total'] = 200
+        odds_final["team"] = odds_final["team"].str.replace("BK", "BKN")
+        odds_final['moneyline'] = odds_final['moneyline'].str.replace("+", "", regex = True)
+        odds_final['moneyline'] = odds_final['moneyline'].astype('int')
+        odds_final = odds_final[['team', 'spread', 'total', 'moneyline', 'date', 'datetime1']]
+
+        logging.info(f"Odds Scrape Successful, returning {len(odds_final)} records from {len(odds_final) / 2} games Today")
+        return odds_final
+    except BaseException as e:
+        logging.error(f"Odds Function Web Scrape Failed, {e}")
+        sentry_sdk.capture_exception(e)
+        df = []
+        return df
 
 def get_odds_data() -> pd.DataFrame:
     """
+    *********** DEPRECATED AS OF 2022-10-19 ***********
+
     Web Scrape function w/ pandas read_html that grabs current day's nba odds in raw format.
     There are 2 objects [0], [1] if the days are split into 2.
     AWS ECS operates in UTC time so the game start times are actually 5-6+ hours ahead of what they actually are, so there are 2 html tables.
@@ -595,7 +651,7 @@ def get_odds_data() -> pd.DataFrame:
     year = (datetime.now() - timedelta(1)).year
 
     try:
-        url = "https://sportsbook.draftkings.com/leagues/basketball/88670846?category=game-lines&subcategory=game"
+        url = "https://sportsbook.draftkings.com/leagues/basketball/nba"
         df = pd.read_html(url)
         if len(df) == 0:
             logging.info(f"Odds Transformation Failed, no Odds Data available.")

@@ -156,13 +156,13 @@ def odds_data(mocker):
     """
     Fixture to load odds data from a pickle file for testing.
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/odds_data.pickle")
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/scrape_odds.pickle")
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 
     mocker.patch("src.utils.pd.read_html").return_value = df
 
-    odds = get_odds_data()
+    odds = scrape_odds()
     return odds
 
 

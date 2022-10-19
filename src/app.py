@@ -29,7 +29,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.7.3")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.8.0")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     injury_data = get_injuries_data()
     transactions = get_transactions_data()
     adv_stats = get_advanced_stats_data()
-    odds = get_odds_data()
+    odds = scrape_odds()
     reddit_data = get_reddit_data("nba")  # doesnt need transformation
     opp_stats = get_opp_stats_data()
     # schedule = schedule_scraper("2022", ["april", "may", "june"])
@@ -103,6 +103,7 @@ if __name__ == "__main__":
     reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
     odds = validate_schema(odds, odds_cols)
     twitter_tweepy_data = validate_schema(twitter_tweepy_data, twitter_tweepy_cols)
+    transactions = validate_schema(transactions, transactions_cols)
     # schedule = validate_schema(schedule, schedule_cols)
     shooting_stats = validate_schema(shooting_stats, shooting_stats_cols)
 
@@ -114,12 +115,9 @@ if __name__ == "__main__":
     conn = sql_connection(os.environ.get("RDS_SCHEMA"))
 
     with conn.connect() as connection:
-        # new upserts
-        write_to_sql_upsert(connection, "stats", stats, "upsert", ["player"])
         write_to_sql_upsert(
             connection, "boxscores", boxscores, "upsert", ["player", "date"]
         )
-        write_to_sql_upsert(connection, "adv_stats", adv_stats, "upsert", ["team"])
         write_to_sql_upsert(connection, "odds", odds, "upsert", ["team", "date"])
         write_to_sql_upsert(
             connection,
@@ -168,6 +166,12 @@ if __name__ == "__main__":
             "upsert",
             ["tweet_id"],
         )
+        
+        # cant upsert on these bc the column names have % and i kept getting issues
+        # even after changing the col names to _pct instead etc.  no clue dude fk it
+        write_to_sql(connection, "stats", stats, "append")
+        write_to_sql(connection, "adv_stats", adv_stats, "append")
+
         # write_to_sql_upsert(connection, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
 
     conn.dispose()
@@ -194,4 +198,4 @@ if __name__ == "__main__":
 
     # STEP 6: Send Email
     send_aws_email(logs)
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.7.3")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.8.0")
