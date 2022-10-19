@@ -130,7 +130,7 @@ def get_player_stats_data() -> pd.DataFrame:
         DataFrame of Player Aggregate Season stats
     """
     try:
-        year_stats = 2022
+        year_stats = 2023
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_per_game.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
@@ -305,9 +305,10 @@ def get_opp_stats_data() -> pd.DataFrame:
     year = (datetime.now() - timedelta(1)).year
     month = (datetime.now() - timedelta(1)).month
     day = (datetime.now() - timedelta(1)).day
+    year_stats = 2023
 
     try:
-        url = "https://www.basketball-reference.com/leagues/NBA_2022.html"
+        url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
         df = pd.read_html(url)[5]
         df = df[["Team", "FG%", "3P%", "3P", "PTS"]]
         df = df.rename(
@@ -431,8 +432,9 @@ def get_advanced_stats_data() -> pd.DataFrame:
     Returns:
         DataFrame of all current Team Advanced Stats
     """
+    year_stats = 2023
     try:
-        url = "https://www.basketball-reference.com/leagues/NBA_2022.html"
+        url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
         df = pd.read_html(url)
         df = pd.DataFrame(df[10])
         df.drop(columns=df.columns[0], axis=1, inplace=True)
@@ -495,8 +497,9 @@ def get_shooting_stats_data() -> pd.DataFrame:
     Returns:
         DataFrame of raw shooting stats
     """
+    year_stats = 2023
     try:
-        url = "https://www.basketball-reference.com/leagues/NBA_2022_shooting.html"
+        url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_shooting.html"
         df = pd.read_html(url)[0]
         df.columns = df.columns.to_flat_index()
         df = df.rename(

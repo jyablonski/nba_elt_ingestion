@@ -8,3 +8,4 @@
 .pytest_cache
 great_expectations
 logs/
+odds-local.csv
