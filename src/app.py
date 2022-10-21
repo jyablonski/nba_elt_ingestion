@@ -29,7 +29,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.8.0")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.8.2")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -84,9 +84,7 @@ if __name__ == "__main__":
     shooting_stats = get_shooting_stats_data()
     twitter_tweepy_data = scrape_tweets_combo()
     reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
-    pbp_data = get_pbp_data(
-        boxscores
-    )  # this uses the transformed boxscores
+    pbp_data = get_pbp_data(boxscores)  # this uses the transformed boxscores
 
     logging.info("FINISHED WEB SCRAPE")
 
@@ -166,7 +164,7 @@ if __name__ == "__main__":
             "upsert",
             ["tweet_id"],
         )
-        
+
         # cant upsert on these bc the column names have % and i kept getting issues
         # even after changing the col names to _pct instead etc.  no clue dude fk it
         write_to_sql(connection, "stats", stats, "append")
@@ -198,4 +196,4 @@ if __name__ == "__main__":
 
     # STEP 6: Send Email
     send_aws_email(logs)
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.8.0")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.8.2")
