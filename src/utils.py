@@ -580,6 +580,7 @@ def get_shooting_stats_data() -> pd.DataFrame:
         df = []
         return df
 
+
 def scrape_odds():
     """
     Function to web scrape Gambling Odds from cover.com
@@ -594,45 +595,63 @@ def scrape_odds():
         url = "https://www.covers.com/sport/basketball/nba/odds"
         df = pd.read_html(url)
         odds = df[0]
-        odds['spread'] = df[3]['Unnamed: 1']
-        odds['moneyline'] = df[1]['Unnamed: 1']
-        odds = odds[['Time (ET)', 'Game (ET)', 'spread', 'moneyline']]
+        odds["spread"] = df[3]["Unnamed: 1"]
+        odds["moneyline"] = df[1]["Unnamed: 1"]
+        odds = odds[["Time (ET)", "Game (ET)", "spread", "moneyline"]]
         odds = odds.rename(columns={"Time (ET)": "datetime1", "Game (ET)": "team"})
-        odds = odds.query("datetime1.str.contains('Today')", engine='python').copy()
-        start_times = odds['datetime1']
-        odds['spread'] = odds['spread'].str.replace("PK", "-1.0")
-        odds['spread'] = odds['spread'].str.replace("-105", "")
-        odds['spread'] = odds['spread'].str.replace("-110", "")
-        odds['spread'] = odds['spread'].str.replace("-115", "")
-        odds['spread'] = odds['spread'].str.replace("-120", "")
-        odds['spread'] = odds['spread'].str.replace("-125", "")
-        odds['datetime1'] = odds['datetime1'].str.replace("Today, ", "")
-        odds_split = odds[['datetime1', 'team', 'spread', 'moneyline']]
+        odds = odds.query("datetime1.str.contains('Today')", engine="python").copy()
+        start_times = odds["datetime1"]
+        odds["spread"] = odds["spread"].str.replace("PK", "-1.0")
+        odds["spread"] = odds["spread"].str.replace("95", "")
+        # + is a special character, have to escape it with \ and set regex = true to avoiod an error
+        odds["spread"] = odds["spread"].str.replace("\+95", "", regex=True)
+        odds["spread"] = odds["spread"].str.replace("100", "")
+        odds["spread"] = odds["spread"].str.replace("\+100", "", regex=True)
+        odds["spread"] = odds["spread"].str.replace("-105", "")
+        odds["spread"] = odds["spread"].str.replace("-110", "")
+        odds["spread"] = odds["spread"].str.replace("-115", "")
+        odds["spread"] = odds["spread"].str.replace("-120", "")
+        odds["spread"] = odds["spread"].str.replace("-125", "")
+        odds["datetime1"] = odds["datetime1"].str.replace("Today, ", "")
+        odds_split = odds[["datetime1", "team", "spread", "moneyline"]]
         odds_final = odds_split.copy()
         # turning the space separated elements in a list, then exploding that list
-        odds_final['team'] = odds_final['team'].str.split(" ", n = 1, expand = False)
-        odds_final['spread'] = odds_final['spread'].str.split(" ", n = 1, expand = False)
-        odds_final['moneyline'] = odds_final['moneyline'].str.split(" ", n = 1, expand = False)
+        odds_final["team"] = odds_final["team"].str.split(" ", n=1, expand=False)
+        odds_final["spread"] = odds_final["spread"].str.split(" ", n=1, expand=False)
+        odds_final["moneyline"] = odds_final["moneyline"].str.split(
+            " ", n=1, expand=False
+        )
         # # odds_final.set_index(['teams'])
-        odds_final = odds_final.explode(['team', 'spread', 'moneyline']).reset_index()
-        odds_final = odds_final.drop('index', axis =1)
-        odds_final['date'] = datetime.now().date()
-        odds_final['spread'] = odds_final['spread'].str.strip() # strip trailing and leading spaces
-        odds_final['moneyline'] = odds_final['moneyline'].str.strip()
-        odds_final['datetime1'] = (pd.to_datetime(str(datetime.now().date()) + " " + odds_final['datetime1']))
-        odds_final['total'] = 200
+        odds_final = odds_final.explode(["team", "spread", "moneyline"]).reset_index()
+        odds_final = odds_final.drop("index", axis=1)
+        odds_final["date"] = datetime.now().date()
+        odds_final["spread"] = odds_final[
+            "spread"
+        ].str.strip()  # strip trailing and leading spaces
+        odds_final["moneyline"] = odds_final["moneyline"].str.strip()
+        odds_final["datetime1"] = pd.to_datetime(
+            str(datetime.now().date()) + " " + odds_final["datetime1"]
+        )
+        odds_final["total"] = 200
         odds_final["team"] = odds_final["team"].str.replace("BK", "BKN")
-        odds_final['moneyline'] = odds_final['moneyline'].str.replace("+", "", regex = True)
-        odds_final['moneyline'] = odds_final['moneyline'].astype('int')
-        odds_final = odds_final[['team', 'spread', 'total', 'moneyline', 'date', 'datetime1']]
+        odds_final["moneyline"] = odds_final["moneyline"].str.replace(
+            "+", "", regex=True
+        )
+        odds_final["moneyline"] = odds_final["moneyline"].astype("int")
+        odds_final = odds_final[
+            ["team", "spread", "total", "moneyline", "date", "datetime1"]
+        ]
 
-        logging.info(f"Odds Scrape Successful, returning {len(odds_final)} records from {len(odds_final) / 2} games Today")
+        logging.info(
+            f"Odds Scrape Successful, returning {len(odds_final)} records from {len(odds_final) / 2} games Today"
+        )
         return odds_final
     except BaseException as e:
         logging.error(f"Odds Function Web Scrape Failed, {e}")
         sentry_sdk.capture_exception(e)
         df = []
         return df
+
 
 def get_odds_data() -> pd.DataFrame:
     """
@@ -1544,26 +1563,13 @@ def send_aws_email(logs: pd.DataFrame) -> None:
     client = boto3.client("ses", region_name=aws_region)
     try:
         response = client.send_email(
-            Destination={
-                "ToAddresses": [
-                    recipient,
-                ],
-            },
+            Destination={"ToAddresses": [recipient,],},
             Message={
                 "Body": {
-                    "Html": {
-                        "Charset": charset,
-                        "Data": body_html,
-                    },
-                    "Text": {
-                        "Charset": charset,
-                        "Data": body_html,
-                    },
+                    "Html": {"Charset": charset, "Data": body_html,},
+                    "Text": {"Charset": charset, "Data": body_html,},
                 },
-                "Subject": {
-                    "Charset": charset,
-                    "Data": subject,
-                },
+                "Subject": {"Charset": charset, "Data": subject,},
             },
             Source=sender,
         )

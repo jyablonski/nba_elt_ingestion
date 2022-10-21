@@ -276,12 +276,14 @@ def add_sentiment_analysis_df():
     comments = add_sentiment_analysis(df, "comment")
     return comments
 
+
 # postgres
 @pytest.fixture()
 def players_df():
     """Small Players Fixture for Postgres Testing."""
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/postgres_players_fixture.csv")
+    fname = os.path.join(
+        os.path.dirname(__file__), "fixtures/postgres_players_fixture.csv"
+    )
     df = pd.read_csv(fname)
 
     return df
-

@@ -84,9 +84,7 @@ if __name__ == "__main__":
     shooting_stats = get_shooting_stats_data()
     twitter_tweepy_data = scrape_tweets_combo()
     reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
-    pbp_data = get_pbp_data(
-        boxscores
-    )  # this uses the transformed boxscores
+    pbp_data = get_pbp_data(boxscores)  # this uses the transformed boxscores
 
     logging.info("FINISHED WEB SCRAPE")
 
@@ -166,7 +164,7 @@ if __name__ == "__main__":
             "upsert",
             ["tweet_id"],
         )
-        
+
         # cant upsert on these bc the column names have % and i kept getting issues
         # even after changing the col names to _pct instead etc.  no clue dude fk it
         write_to_sql(connection, "stats", stats, "append")
