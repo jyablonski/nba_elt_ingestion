@@ -41,6 +41,7 @@ def test_write_to_sql_no_data(setup_database):
     df_len = len(list(conn.execute("SELECT * FROM aws_player_stats_data_source")))
     assert len(player_stats_data) == 0
 
+
 def test_example_postgres(players_df):
     conn = sql_connection("nba_source", "postgres", "postgres", "localhost", "postgres")
 
@@ -48,7 +49,7 @@ def test_example_postgres(players_df):
         sql = "SELECT count(*) FROM nba_source.aws_players_source"
         results = pd.read_sql_query(sql=sql, con=connection)
 
-        write_to_sql_upsert(connection, 'players', players_df, 'upsert', ['player'])
+        write_to_sql_upsert(connection, "players", players_df, "upsert", ["player"])
 
         sql_upsert = "SELECT avg_ppg FROM nba_source.aws_players_source where player = 'Stephen Curry'"
         results_upsert = pd.read_sql_query(sql=sql_upsert, con=connection)
@@ -56,6 +57,8 @@ def test_example_postgres(players_df):
         sql_upsert_count = "SELECT count(*) FROM nba_source.aws_players_source"
         results_upsert_count = pd.read_sql_query(sql=sql_upsert_count, con=connection)
 
-        assert results['count'][0] == 3
-        assert results_upsert['avg_ppg'][0] == 29.2 # check value got updated
-        assert results_upsert_count['count'][0] == 3 # check row count is still the same
+        assert results["count"][0] == 3
+        assert results_upsert["avg_ppg"][0] == 29.2  # check value got updated
+        assert (
+            results_upsert_count["count"][0] == 3
+        )  # check row count is still the same
