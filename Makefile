@@ -13,7 +13,9 @@ venv:
 
 .PHONY: test
 test:
-	pytest
+	@docker-compose -f docker/docker-compose-postgres.yml up -d
+	@pytest -v
+	@docker-compose -f docker/docker-compose-postgres.yml down
 
 .PHONY: docker-build
 docker-build:
