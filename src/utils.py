@@ -603,6 +603,8 @@ def scrape_odds():
         start_times = odds["datetime1"]
         odds["spread"] = odds["spread"].str.replace("PK", "-1.0")
         odds["spread"] = odds["spread"].str.replace("\+ ", "", regex=True)
+        odds["spread"] = odds["spread"].str.replace(" \+ ", "", regex=True)
+        odds["spread"] = odds["spread"].str.replace(" \+", "", regex=True)
         odds["spread"] = odds["spread"].str.replace("95", "")
         # + is a special character, have to escape it with \ and set regex = true to avoiod an error
         odds["spread"] = odds["spread"].str.replace("\+95", "", regex=True)
