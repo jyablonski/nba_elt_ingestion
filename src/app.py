@@ -29,7 +29,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.8.5")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.8.4")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
