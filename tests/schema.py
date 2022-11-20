@@ -129,7 +129,7 @@ pbp_data_schema = {
     "scoreaway": np.dtype("float64"),
     "scorehome": np.dtype("float64"),
     "marginscore": np.dtype("float64"),
-    "date": np.dtype("O"),
+    "date": np.dtype("<M8[ns]"),
     "scrape_date": np.dtype("O"),
 }
 
