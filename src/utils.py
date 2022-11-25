@@ -1066,7 +1066,14 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
         All PBP Data for the games in the input df
 
     """
-    game_date = df['date'][0]
+    if len(df) > 0:
+        game_date = df['date'][0]
+    else:
+        df = []
+        logging.warning(
+            f"PBP Transformation Function Failed, no data available for {datetime.now().date()}"
+        )
+        return df
     try:
         if len(df) > 0:
             yesterday_hometeams = (
