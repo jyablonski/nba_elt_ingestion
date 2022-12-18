@@ -412,6 +412,7 @@ def get_transactions_data() -> pd.DataFrame:
         transactions.columns = transactions.columns.str.lower()
         transactions = transactions[["date", "transaction"]]
         transactions["scrape_date"] = datetime.now().date()
+        transactions = transactions.drop_duplicates()
         logging.info(
             f"Transactions Transformation Function Successful, retrieving {len(transactions)} rows"
         )

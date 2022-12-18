@@ -9,3 +9,4 @@
 great_expectations
 logs/
 odds-local.csv
+src/*.csv
