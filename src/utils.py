@@ -358,6 +358,7 @@ def get_injuries_data() -> pd.DataFrame:
             .str.decode("utf-8")
         )
         df = clean_player_names(df)
+        df = df.drop_duplicates()
         logging.info(
             f"Injury Transformation Function Successful, retrieving {len(df)} rows"
         )
