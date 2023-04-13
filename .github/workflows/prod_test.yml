@@ -5,7 +5,7 @@ on:
 
 jobs:
   pytest_build:
-    name: Run Pytest & Deploy to coveralls.io
+    name: Test Pipeline
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the Repo
@@ -35,6 +35,16 @@ jobs:
         run: |
           pipenv install --dev
           pipenv run python -m nltk.downloader vader_lexicon
+
+      - name: Create and populate .coveralls.yml file
+        env:
+          repo_token: ${{ secrets.repo_token }}
+        run: |
+          touch .coveralls.yml
+          echo repo_token: "$repo_token" >> .coveralls.yml
+          mkdir logs
+          cat > logs/example.log
+        shell: bash
 
       - name: Start Postgres
         run: make start-postgres
