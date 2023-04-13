@@ -3,14 +3,13 @@ import hashlib
 import logging
 import os
 import requests
-from typing import List, Optional
+from typing import List
 import uuid
 
 import awswrangler as wr
 import boto3
 from bs4 import BeautifulSoup
 from botocore.exceptions import ClientError
-import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 import numpy as np
 import pandas as pd
@@ -20,7 +19,6 @@ from sqlalchemy import exc, create_engine
 from sqlalchemy.engine.base import Engine
 import sentry_sdk
 import tweepy
-from tweepy import OAuthHandler
 
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
@@ -28,10 +26,10 @@ sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
 def get_season_type(todays_date: datetime.date = datetime.now().date()) -> str:
     """
-    Function to generate Season Type for a given Date.  Defaults to today's date.
+    Function to generate Season Type for a given Date.
 
     Args:
-        todays_date (date): The Date to generate a Season Type for
+        todays_date (date): The Date to generate a Season Type for.  Defaults to today's date.
 
     Returns:
         The Season Type for Given Date
@@ -39,7 +37,7 @@ def get_season_type(todays_date: datetime.date = datetime.now().date()) -> str:
     if todays_date < datetime(2023, 4, 9).date():
         season_type = "Regular Season"
     elif (todays_date >= datetime(2023, 4, 9).date()) & (
-        todays_date < datetime(2023, 4, 16).date()
+        todays_date < datetime(2023, 4, 15).date()
     ):
         season_type = "Play-In"
     else:
@@ -50,10 +48,10 @@ def get_season_type(todays_date: datetime.date = datetime.now().date()) -> str:
 
 def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame:
     """
-    Function to add Sentiment Analysis columns via nltk Vader Lexicon.
+    Function to add Sentiment Analysis columns to a DataFrame via nltk Vader Lexicon.
 
     Args:
-        df (pd.DataFrame): the Pandas DataFrame
+        df (pd.DataFrame): The Pandas DataFrame
 
         sentiment_col (str): The Column in the DataFrame to run Sentiment Analysis on (comments / tweets etc).
 
@@ -78,10 +76,11 @@ def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame
 
 def get_leading_zeroes(month: int) -> str:
     """
-    Function to add leading zeroes to a month (1 (January) -> 01) for the write_to_s3 function.
+    Function to add leading zeroes to a month (1 (January) -> 01).
+    Used in the the `write_to_s3` function.
 
     Args:
-        month (int): The month integer
+        month (int): The month integer (created from `datetime.now().month`)
 
     Returns:
         The same month integer with a leading 0 if it is less than 10 (Nov/Dec aka 11/12 unaffected).
@@ -601,17 +600,26 @@ def scrape_odds():
         odds["moneyline"] = df[1]["Unnamed: 1"]
         odds = odds[["Time (ET)", "Game (ET)", "spread", "moneyline"]]
         odds = odds.rename(columns={"Time (ET)": "datetime1", "Game (ET)": "team"})
-        odds = odds.query("datetime1.str.contains('Today')", engine="python").copy()
-        start_times = odds["datetime1"]
+        odds = (
+            odds.query("datetime1 != 'FINAL'", engine="python")
+            .query("datetime1 == datetime1")
+            .query("datetime1.str.contains('Today')", engine="python")
+            .copy()
+        )
+        # ^ this logic removes old games, removes null rows, and filters to only grab records for today's games
+        if len(odds) == 0:
+            logging.info("No Odds Records available for today's games")
+            return []
+
+        # each row has data for both teams, so i filter it down by using the whitespace
         odds["spread"] = odds["spread"].str.replace("PK", "-1.0")
-        odds["spread"] = odds["spread"].str.replace("\+ ", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace(" \+ ", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace(" \+", "", regex=True)
+        odds["spread"] = odds["spread"].str.replace("\\+ ", "", regex=True)
+        odds["spread"] = odds["spread"].str.replace(" \\+ ", "", regex=True)
+        odds["spread"] = odds["spread"].str.replace(" \\+", "", regex=True)
         odds["spread"] = odds["spread"].str.replace("95", "")
-        # + is a special character, have to escape it with \ and set regex = true to avoiod an error
-        odds["spread"] = odds["spread"].str.replace("\+95", "", regex=True)
+        odds["spread"] = odds["spread"].str.replace("\\+95", "", regex=True)
         odds["spread"] = odds["spread"].str.replace("100", "")
-        odds["spread"] = odds["spread"].str.replace("\+100", "", regex=True)
+        odds["spread"] = odds["spread"].str.replace("\\+100", "", regex=True)
         odds["spread"] = odds["spread"].str.replace("-105", "")
         odds["spread"] = odds["spread"].str.replace("-110", "")
         odds["spread"] = odds["spread"].str.replace("-115", "")
@@ -948,7 +956,8 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
             ).hexdigest(),
             axis=1,
         )
-        # this hash function lines up with the md5 fucntion in postgres
+        # this hash function lines up with the md5 function in postgres
+        # this is needed for the upsert to work on it.
         logging.info(
             f"Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls"
         )
@@ -981,11 +990,6 @@ def scrape_tweets_tweepy(
         os.environ.get("twitter_consumer_api_secret"),
     )
 
-    # auth.set_access_token(
-    #     os.environ.get("twitter_access_api_key"),
-    #     os.environ.get("twitter_access_api_secret"),
-    # )
-
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
     df = pd.DataFrame()
@@ -993,7 +997,6 @@ def scrape_tweets_tweepy(
         for tweet in tweepy.Cursor(  # result_type can be mixed, recent, or popular.
             api.search_tweets, search_parameter, count=count, result_type=result_type
         ).items(count):
-            # print(status)
             df = df.append(
                 {
                     "created_at": tweet._json["created_at"],
@@ -1069,7 +1072,7 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
 
     """
     if len(df) > 0:
-        game_date = df['date'][0]
+        game_date = df["date"][0]
     else:
         df = []
         logging.warning(
@@ -1576,13 +1579,26 @@ def send_aws_email(logs: pd.DataFrame) -> None:
     client = boto3.client("ses", region_name=aws_region)
     try:
         response = client.send_email(
-            Destination={"ToAddresses": [recipient,],},
+            Destination={
+                "ToAddresses": [
+                    recipient,
+                ],
+            },
             Message={
                 "Body": {
-                    "Html": {"Charset": charset, "Data": body_html,},
-                    "Text": {"Charset": charset, "Data": body_html,},
+                    "Html": {
+                        "Charset": charset,
+                        "Data": body_html,
+                    },
+                    "Text": {
+                        "Charset": charset,
+                        "Data": body_html,
+                    },
                 },
-                "Subject": {"Charset": charset, "Data": subject,},
+                "Subject": {
+                    "Charset": charset,
+                    "Data": subject,
+                },
             },
             Source=sender,
         )
