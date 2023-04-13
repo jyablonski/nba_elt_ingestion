@@ -53,7 +53,9 @@ jobs:
         run: pipenv run pytest --cov --cov-report xml
 
       - name: Coveralls
-        run: coveralls
+        run: |
+          pip install coveralls==3.3.1
+          coveralls
       
       - name: Stop Postgres
         run: make stop-postgres
