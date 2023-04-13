@@ -34,6 +34,7 @@ jobs:
         if: steps.pipenv-cache.outputs.cache-hit != 'true'
         run: |
           pipenv install --dev
+          pipenv shell
           python -m nltk.downloader vader_lexicon
 
       - name: Start Postgres
