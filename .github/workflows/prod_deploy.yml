@@ -28,7 +28,7 @@ jobs:
     - name: configure aws credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        role-to-assume: ${{ env.IAM_ROLE_ECR }}            # use full arn
+        role-to-assume: ${{ env.IAM_ROLE }}            # use full arn
         role-session-name: python-docker-cicd
         aws-region: ${{ env.AWS_REGION }}
 
