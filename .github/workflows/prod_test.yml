@@ -3,9 +3,6 @@ name: Prod Test - PR
 on:
   pull_request:
 
-# env: 
-#   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}"
-
 jobs:
   pytest_build:
     name: Test Pipeline
