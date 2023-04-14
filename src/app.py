@@ -1,16 +1,7 @@
-from datetime import datetime, timedelta
 import logging
 import os
 
-import awswrangler as wr
-import boto3
-from botocore.exceptions import ClientError
-from bs4 import BeautifulSoup
-import numpy as np
 import pandas as pd
-import praw
-import requests
-from sqlalchemy import exc, create_engine
 
 try:
     from .schema import *
@@ -29,7 +20,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.8.9")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.9.0")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -80,7 +71,7 @@ if __name__ == "__main__":
     odds = scrape_odds()
     reddit_data = get_reddit_data("nba")  # doesnt need transformation
     opp_stats = get_opp_stats_data()
-    # schedule = schedule_scraper("2022", ["april", "may", "june"])
+    schedule = schedule_scraper("2023", ["april", "may", "june"])
     shooting_stats = get_shooting_stats_data()
     twitter_tweepy_data = scrape_tweets_combo()
     reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
@@ -102,7 +93,7 @@ if __name__ == "__main__":
     odds = validate_schema(odds, odds_cols)
     twitter_tweepy_data = validate_schema(twitter_tweepy_data, twitter_tweepy_cols)
     transactions = validate_schema(transactions, transactions_cols)
-    # schedule = validate_schema(schedule, schedule_cols)
+    schedule = validate_schema(schedule, schedule_cols)
     shooting_stats = validate_schema(shooting_stats, shooting_stats_cols)
 
     logging.info("FINISHED SCHEMA VALIDATION")
@@ -170,7 +161,7 @@ if __name__ == "__main__":
         write_to_sql(connection, "stats", stats, "append")
         write_to_sql(connection, "adv_stats", adv_stats, "append")
 
-        # write_to_sql_upsert(connection, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
+        write_to_sql_upsert(connection, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
 
     conn.dispose()
 
@@ -186,7 +177,7 @@ if __name__ == "__main__":
     write_to_s3("pbp_data", pbp_data)
     write_to_s3("opp_stats", opp_stats)
     write_to_s3("twitter_tweepy_data", twitter_tweepy_data)
-    # write_to_s3("schedule", schedule)
+    write_to_s3("schedule", schedule)
     write_to_s3("shooting_stats", shooting_stats)
 
     # STEP 5: Grab Logs from previous steps & send email out detailing notable events
@@ -196,4 +187,4 @@ if __name__ == "__main__":
 
     # STEP 6: Send Email
     send_aws_email(logs)
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.8.9")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.9.0")

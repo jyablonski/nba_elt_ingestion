@@ -7,16 +7,12 @@ def guard(*args, **kwargs):
 
 socket.socket = guard
 
-from datetime import datetime, timedelta
 import os
 import pickle
-import requests
-import pytest
-import pytest_mock
 import sqlite3
+
 import pandas as pd
-import numpy as np
-import boto3
+import pytest
 
 from src.utils import *
 
@@ -287,3 +283,23 @@ def players_df():
     df = pd.read_csv(fname)
 
     return df
+
+
+def test_get_season_type():
+    regular_season = get_season_type(date(2023, 4, 8))
+    play_in = get_season_type(date(2023, 4, 15))
+    playoffs = get_season_type(date(2023, 4, 21))
+
+    assert regular_season == "Regular Season"
+    assert play_in == "Play-In"
+    assert playoffs == "Playoffs"
+
+
+def test_get_leading_zeroes():
+    month_1 = get_leading_zeroes(date(2023, 1, 1).month)
+    month_9 = get_leading_zeroes(date(2023, 9, 1).month)
+    month_10 = get_leading_zeroes(date(2023, 10, 1).month)
+
+    assert month_1 == "01"
+    assert month_9 == "09"
+    assert month_10 == 10

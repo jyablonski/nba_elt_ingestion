@@ -1,11 +1,9 @@
 from datetime import datetime
 
-import awswrangler as wr
+
 import boto3
 from moto import mock_ses, mock_s3
-import numpy as np
 import pandas as pd
-import pytest
 
 from src.utils import (
     write_to_s3,
@@ -16,27 +14,45 @@ from src.utils import (
 
 
 @mock_ses
-def test_ses_email(aws_credentials):
+def test_ses_email(aws_credentials, mocker):
     ses = boto3.client("ses", region_name="us-east-1")
     logs = pd.DataFrame({"errors": ["ex1", "ex2", "ex3"]})
+
+    mocker.patch("src.utils.boto3.client").return_value = ses
     send_aws_email(logs)
+
+    send_quota = ses.get_send_quota()
+
     assert ses.verify_email_identity(EmailAddress="jyablonski9@gmail.com")
+    assert send_quota["ResponseMetadata"]["HTTPStatusCode"] == 200
 
 
 @mock_ses
-def test_ses_execution_logs(aws_credentials):
+def test_ses_execution_logs(aws_credentials, mocker):
     ses = boto3.client("ses", region_name="us-east-1")
     logs = pd.DataFrame({"errors": ["ex1", "ex2", "ex3"]})
+
+    mocker.patch("src.utils.boto3.client").return_value = ses
     execute_email_function(logs)
+
+    send_quota = ses.get_send_quota()
+
     assert ses.verify_email_identity(EmailAddress="jyablonski9@gmail.com")
+    assert send_quota["ResponseMetadata"]["HTTPStatusCode"] == 200
 
 
 @mock_ses
-def test_ses_execution_no_logs(aws_credentials):
+def test_ses_execution_no_logs(aws_credentials, mocker):
     ses = boto3.client("ses", region_name="us-east-1")
     logs = pd.DataFrame({"errors": []})
-    send_aws_email(logs)
+
+    mocker.patch("src.utils.boto3.client").return_value = ses
+    execute_email_function(logs)
+
+    send_quota = ses.get_send_quota()
+
     assert ses.verify_email_identity(EmailAddress="jyablonski9@gmail.com")
+    assert send_quota["ResponseMetadata"]["HTTPStatusCode"] == 200
 
 
 @mock_s3

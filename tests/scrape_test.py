@@ -1,12 +1,3 @@
-from datetime import datetime
-
-import awswrangler as wr
-import boto3
-from moto import mock_ses, mock_s3
-import numpy as np
-import pandas as pd
-import pytest
-
 from tests.schema import *
 
 # SCHEMA VALIDATION + ROW COUNT TESTS
