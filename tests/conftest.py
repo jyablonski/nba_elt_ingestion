@@ -14,7 +14,10 @@ import sqlite3
 import pandas as pd
 import pytest
 
+# from unittest import mock
+
 from src.utils import *
+from src.app import validate_schema
 
 # pytest tests/scrape_test.py::test_player_stats - use this to test 1 at a time yeet
 ## Testing transformation functions from utils.py with custom csv + pickle object fixtures with edge cases
@@ -31,9 +34,9 @@ def aws_credentials():
 
 
 @pytest.fixture(scope="session")
-def setup_database():
+def postgres_conn():
     """Fixture to set up an empty in-memory database"""
-    conn = sqlite3.connect(":memory:")
+    conn = sql_connection("nba_source", "postgres", "postgres", "localhost", "postgres")
     yield conn
 
 
@@ -49,6 +52,7 @@ def player_stats_data(mocker):
     mocker.patch("src.utils.requests.get").return_value.content = mock_content
 
     df = get_player_stats_data()
+    df.schema = "Validated"
     return df
 
 
@@ -124,6 +128,7 @@ def advanced_stats_data(mocker):
     mocker.patch("src.utils.pd.read_html").return_value = df
 
     adv_stats = get_advanced_stats_data()
+    adv_stats.schema = "Validated"
     return adv_stats
 
 
@@ -204,6 +209,10 @@ def schedule_data(mocker):
     mocker.patch("src.utils.requests.get").return_value.content = mock_content
 
     schedule = schedule_scraper("2022", ["february", "march"])
+
+    schedule = schedule.drop_duplicates(
+        subset=["away_team", "home_team", "proper_date"]
+    )
     return schedule
 
 
@@ -244,6 +253,7 @@ def twitter_tweepy_data(mocker):
     twitter_data = scrape_tweets_tweepy(
         search_parameter="nba", count=1, result_type="popular"
     )
+    twitter_data = twitter_data.drop_duplicates(subset=["tweet_id"])
     return twitter_data
 
 
@@ -303,3 +313,14 @@ def test_get_leading_zeroes():
     assert month_1 == "01"
     assert month_9 == "09"
     assert month_10 == 10
+
+
+# never got this workin fk it
+@pytest.fixture()
+def mock_globals_df(mocker):
+
+    mocker.patch("src.app.globals").return_value = {"df": "df"}
+    df = pd.DataFrame({"df": [1, 2], "b": [3, 4]})
+
+    df = validate_schema(df, ["a", "b"])
+    return df

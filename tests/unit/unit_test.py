@@ -1,5 +1,36 @@
-from tests.schema import *
+import pandas as pd
+import pytest
 
+from tests.schema import *
+from src.app import validate_schema
+
+# add in new test rows if you add in new name replacement conditions
+def test_clean_player_names(clean_player_names_data):
+    assert len(clean_player_names_data) == 5
+    assert clean_player_names_data["player"][0] == "Marcus Morris"
+    assert clean_player_names_data["player"][1] == "Kelly Oubre"
+    assert clean_player_names_data["player"][2] == "Gary Payton"
+    assert clean_player_names_data["player"][3] == "Robert Williams"
+    assert clean_player_names_data["player"][4] == "Lonnie Walker"
+
+
+def test_add_sentiment_analysis(add_sentiment_analysis_df):
+    assert len(add_sentiment_analysis_df) == 1000
+    assert add_sentiment_analysis_df["compound"][0] == 0.0
+    assert add_sentiment_analysis_df["neg"][0] == 0.0
+    assert add_sentiment_analysis_df["neu"][0] == 1.0
+    assert add_sentiment_analysis_df["pos"][0] == 0.0
+    assert add_sentiment_analysis_df["sentiment"][0] == 0
+
+
+def test_validate_schema():
+    # Create a sample DataFrame and schema for testing
+    with pytest.raises(IndexError):
+        df = pd.DataFrame(data={"col1": [1, 2], "col2": [3, 4]})
+        validate_schema(df, ["col1", "col3"])
+
+
+# 2023-04-15 update: these are basically obsolete now after adding integration tests but i'm keepin em in.
 # SCHEMA VALIDATION + ROW COUNT TESTS
 def test_player_stats(player_stats_data):
     assert len(player_stats_data) == 630
@@ -57,29 +88,10 @@ def test_fake_schema(boxscores_data):
 
 
 def test_twitter_tweepy(twitter_tweepy_data):
-    assert len(twitter_tweepy_data) == 1061
+    assert len(twitter_tweepy_data) == 1060
     assert twitter_tweepy_data.dtypes.to_dict() == twitter_tweepy_schema
 
 
 def test_schedule(schedule_data):
-    assert len(schedule_data) == 458
+    assert len(schedule_data) == 229
     assert schedule_data.dtypes.to_dict() == schedule_schema
-
-
-# add in new test rows if you add in new name replacement conditions
-def test_clean_player_names(clean_player_names_data):
-    assert len(clean_player_names_data) == 5
-    assert clean_player_names_data["player"][0] == "Marcus Morris"
-    assert clean_player_names_data["player"][1] == "Kelly Oubre"
-    assert clean_player_names_data["player"][2] == "Gary Payton"
-    assert clean_player_names_data["player"][3] == "Robert Williams"
-    assert clean_player_names_data["player"][4] == "Lonnie Walker"
-
-
-def test_add_sentiment_analysis(add_sentiment_analysis_df):
-    assert len(add_sentiment_analysis_df) == 1000
-    assert add_sentiment_analysis_df["compound"][0] == 0.0
-    assert add_sentiment_analysis_df["neg"][0] == 0.0
-    assert add_sentiment_analysis_df["neu"][0] == 1.0
-    assert add_sentiment_analysis_df["pos"][0] == 0.0
-    assert add_sentiment_analysis_df["sentiment"][0] == 0
