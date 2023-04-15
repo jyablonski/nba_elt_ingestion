@@ -161,7 +161,13 @@ if __name__ == "__main__":
         write_to_sql(connection, "stats", stats, "append")
         write_to_sql(connection, "adv_stats", adv_stats, "append")
 
-        write_to_sql_upsert(connection, "schedule", schedule, "upsert", ["away_team", "home_team", "proper_date"])
+        write_to_sql_upsert(
+            connection,
+            "schedule",
+            schedule,
+            "upsert",
+            ["away_team", "home_team", "proper_date"],
+        )
 
     conn.dispose()
 
