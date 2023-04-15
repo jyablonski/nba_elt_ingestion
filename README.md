@@ -1,6 +1,6 @@
 # Version: 1.9.1
 
-![Tests](https://github.com/jyablonski/python_docker/actions/workflows/prod_test.yml/badge.svg) ![ECR Deployment](https://github.com/jyablonski/python_docker/actions/workflows/prod_deploy.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jyablonski/python_docker/badge.svg?branch=master)](https://coveralls.io/github/jyablonski/python_docker?branch=master) ![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)
+![Tests](https://github.com/jyablonski/python_docker/actions/workflows/test.yml/badge.svg) ![ECR Deployment](https://github.com/jyablonski/python_docker/actions/workflows/deploy.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jyablonski/python_docker/badge.svg?branch=master)](https://coveralls.io/github/jyablonski/python_docker?branch=master) ![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)
 
 ### Python Ingestion Resources for [NBA Project](https://github.com/jyablonski/NBA-Dashboard)
 
