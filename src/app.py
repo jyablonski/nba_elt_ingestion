@@ -69,12 +69,12 @@ if __name__ == "__main__":
     transactions = get_transactions_data()
     adv_stats = get_advanced_stats_data()
     odds = scrape_odds()
-    reddit_data = get_reddit_data("nba")  # doesnt need transformation
+    # reddit_data = get_reddit_data("nba")  # doesnt need transformation
     opp_stats = get_opp_stats_data()
     schedule = schedule_scraper("2023", ["april", "may", "june"])
     shooting_stats = get_shooting_stats_data()
     twitter_tweepy_data = scrape_tweets_combo()
-    reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
+    # reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
     pbp_data = get_pbp_data(boxscores)  # this uses the transformed boxscores
 
     logging.info("FINISHED WEB SCRAPE")
@@ -88,8 +88,8 @@ if __name__ == "__main__":
     injury_data = validate_schema(injury_data, injury_cols)
     opp_stats = validate_schema(opp_stats, opp_stats_cols)
     pbp_data = validate_schema(pbp_data, pbp_cols)
-    reddit_data = validate_schema(reddit_data, reddit_cols)
-    reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
+    # reddit_data = validate_schema(reddit_data, reddit_cols)
+    # reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
     odds = validate_schema(odds, odds_cols)
     twitter_tweepy_data = validate_schema(twitter_tweepy_data, twitter_tweepy_cols)
     transactions = validate_schema(transactions, transactions_cols)
@@ -127,16 +127,16 @@ if __name__ == "__main__":
         write_to_sql_upsert(
             connection, "shooting_stats", shooting_stats, "upsert", ["player"]
         )
-        write_to_sql_upsert(
-            connection, "reddit_data", reddit_data, "upsert", ["reddit_url"]
-        )
-        write_to_sql_upsert(
-            connection,
-            "reddit_comment_data",
-            reddit_comment_data,
-            "upsert",
-            ["md5_pk"],
-        )
+        # write_to_sql_upsert(
+        #     connection, "reddit_data", reddit_data, "upsert", ["reddit_url"]
+        # )
+        # write_to_sql_upsert(
+        #     connection,
+        #     "reddit_comment_data",
+        #     reddit_comment_data,
+        #     "upsert",
+        #     ["md5_pk"],
+        # )
         write_to_sql_upsert(
             connection, "transactions", transactions, "upsert", ["date", "transaction"]
         )
