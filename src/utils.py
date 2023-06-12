@@ -1579,26 +1579,13 @@ def send_aws_email(logs: pd.DataFrame) -> None:
     client = boto3.client("ses", region_name=aws_region)
     try:
         response = client.send_email(
-            Destination={
-                "ToAddresses": [
-                    recipient,
-                ],
-            },
+            Destination={"ToAddresses": [recipient,],},
             Message={
                 "Body": {
-                    "Html": {
-                        "Charset": charset,
-                        "Data": body_html,
-                    },
-                    "Text": {
-                        "Charset": charset,
-                        "Data": body_html,
-                    },
+                    "Html": {"Charset": charset, "Data": body_html,},
+                    "Text": {"Charset": charset, "Data": body_html,},
                 },
-                "Subject": {
-                    "Charset": charset,
-                    "Data": subject,
-                },
+                "Subject": {"Charset": charset, "Data": subject,},
             },
             Source=sender,
         )
