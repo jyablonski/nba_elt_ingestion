@@ -16,7 +16,7 @@ import pandas as pd
 import praw
 import requests
 from sqlalchemy import exc, create_engine
-from sqlalchemy.engine.base import Engine
+from sqlalchemy.engine.base import Connection, Engine
 import sentry_sdk
 import tweepy
 
@@ -1618,3 +1618,24 @@ def execute_email_function(logs: pd.DataFrame) -> None:
     except BaseException as error:
         logging.error(f"Failed Email Alert, {error}")
         sentry_sdk.capture_exception(error)
+
+
+def get_feature_flags(connection: Connection):
+    flags = pd.read_sql_query(
+        sql="select * from nba_prod.feature_flags;", con=connection
+    )
+
+    print(f"Retrieving {len(flags)} Feature Flags")
+    return flags
+
+
+def check_feature_flag(flag: str, flags_df: pd.DataFrame) -> bool:
+    flags_df = flags_df.query(f"flag == '{flag}'")
+
+    if len(flags_df) > 0 and flags_df["is_enabled"].iloc[0] == 1:
+        print(f"Feature Flag for {flag} is enabled, continuing")
+        return True
+    else:
+        print(f"Feature Flag for {flag} is disabled, skipping")
+        logging.info(f"Feature Flag for {flag} is disabled, skipping")
+        return False
