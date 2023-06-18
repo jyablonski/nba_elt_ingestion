@@ -61,21 +61,27 @@ logging.info("LOADED FUNCTIONS")
 
 if __name__ == "__main__":
     logging.info("STARTING WEB SCRAPE")
+    conn = sql_connection(os.environ.get("RDS_SCHEMA"))
+    feature_flags = get_feature_flags(conn)
 
     # STEP 1: Extract Raw Data
-    stats = get_player_stats_data()
-    boxscores = get_boxscores_data()
-    injury_data = get_injuries_data()
-    transactions = get_transactions_data()
-    adv_stats = get_advanced_stats_data()
-    odds = scrape_odds()
+    stats = get_player_stats_data(feature_flags_df=feature_flags)
+    boxscores = get_boxscores_data(feature_flags_df=feature_flags)
+    injury_data = get_injuries_data(feature_flags_df=feature_flags)
+    transactions = get_transactions_data(feature_flags_df=feature_flags)
+    adv_stats = get_advanced_stats_data(feature_flags_df=feature_flags)
+    odds = scrape_odds(feature_flags_df=feature_flags)
     # reddit_data = get_reddit_data("nba")  # doesnt need transformation
-    opp_stats = get_opp_stats_data()
-    schedule = schedule_scraper("2023", ["april", "may", "june"])
-    shooting_stats = get_shooting_stats_data()
-    twitter_tweepy_data = scrape_tweets_combo()
+    opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
+    schedule = schedule_scraper(
+        feature_flags_df=feature_flags, year="2023", month_list=["april", "may", "june"]
+    )
+    shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
+    twitter_tweepy_data = scrape_tweets_combo(feature_flags_df=feature_flags)
     # reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
-    pbp_data = get_pbp_data(boxscores)  # this uses the transformed boxscores
+    pbp_data = get_pbp_data(
+        feature_flags_df=feature_flags, df=boxscores
+    )  # this uses the transformed boxscores
 
     logging.info("FINISHED WEB SCRAPE")
 
@@ -101,8 +107,6 @@ if __name__ == "__main__":
     logging.info("STARTING SQL STORING")
 
     # STEP 3: Append Transformed Data to SQL
-    conn = sql_connection(os.environ.get("RDS_SCHEMA"))
-
     with conn.connect() as connection:
         write_to_sql_upsert(
             connection, "boxscores", boxscores, "upsert", ["player", "date"]
