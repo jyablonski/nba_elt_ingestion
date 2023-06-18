@@ -7,9 +7,9 @@ def guard(*args, **kwargs):
 
 socket.socket = guard
 
+from datetime import date
 import os
 import pickle
-import sqlite3
 
 import pandas as pd
 import pytest
@@ -323,4 +323,13 @@ def mock_globals_df(mocker):
     df = pd.DataFrame({"df": [1, 2], "b": [3, 4]})
 
     df = validate_schema(df, ["a", "b"])
+    return df
+
+
+@pytest.fixture(scope="session")
+def feature_flags_dataframe():
+    """
+    Fixture to load player stats data from a csv file for testing.
+    """
+    df = pd.DataFrame(data={"flag": ["season", "playoffs"], "is_enabled": [1, 0]})
     return df

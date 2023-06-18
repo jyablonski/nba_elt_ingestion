@@ -13,9 +13,9 @@ venv:
 
 .PHONY: test
 test:
-	@docker-compose -f docker/docker-compose-postgres.yml up -d
+	@docker compose -f docker/docker-compose-postgres.yml up -d
 	@pytest -v
-	@docker-compose -f docker/docker-compose-postgres.yml down
+	@docker compose -f docker/docker-compose-postgres.yml down
 
 .PHONY: docker-build
 docker-build:
@@ -59,8 +59,8 @@ bump-major:
 
 .PHONY: start-postgres
 start-postgres:
-	@docker-compose -f docker/docker-compose-postgres.yml up -d
+	@docker compose -f docker/docker-compose-postgres.yml up -d
 
 .PHONY: stop-postgres
 stop-postgres:
-	@docker-compose -f docker/docker-compose-postgres.yml down
+	@docker compose -f docker/docker-compose-postgres.yml down
