@@ -337,6 +337,6 @@ VALUES ('season', 1),
        ('transactions', 1),
        ('stats', 1),
        ('adv_stats', 1),
-       ('odds', 1),
+       ('odds', 0),
        ('schedule', 1),
        ('shooting_stats', 1);

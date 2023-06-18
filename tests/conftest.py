@@ -7,7 +7,6 @@ def guard(*args, **kwargs):
 
 socket.socket = guard
 
-from datetime import date
 import os
 import pickle
 
@@ -295,26 +294,6 @@ def players_df():
     return df
 
 
-def test_get_season_type():
-    regular_season = get_season_type(date(2023, 4, 8))
-    play_in = get_season_type(date(2023, 4, 15))
-    playoffs = get_season_type(date(2023, 4, 21))
-
-    assert regular_season == "Regular Season"
-    assert play_in == "Play-In"
-    assert playoffs == "Playoffs"
-
-
-def test_get_leading_zeroes():
-    month_1 = get_leading_zeroes(date(2023, 1, 1).month)
-    month_9 = get_leading_zeroes(date(2023, 9, 1).month)
-    month_10 = get_leading_zeroes(date(2023, 10, 1).month)
-
-    assert month_1 == "01"
-    assert month_9 == "09"
-    assert month_10 == 10
-
-
 # never got this workin fk it
 @pytest.fixture()
 def mock_globals_df(mocker):
@@ -333,3 +312,10 @@ def feature_flags_dataframe():
     """
     df = pd.DataFrame(data={"flag": ["season", "playoffs"], "is_enabled": [1, 0]})
     return df
+
+
+@pytest.fixture(scope="session")
+def get_feature_flags_postgres(postgres_conn):
+    feature_flags = get_feature_flags(postgres_conn)
+
+    return feature_flags
