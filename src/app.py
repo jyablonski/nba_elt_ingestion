@@ -20,7 +20,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.9.2")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.10.0")
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -61,21 +61,29 @@ logging.info("LOADED FUNCTIONS")
 
 if __name__ == "__main__":
     logging.info("STARTING WEB SCRAPE")
+    conn = sql_connection(os.environ.get("RDS_SCHEMA"))
+    feature_flags = get_feature_flags(conn)
 
     # STEP 1: Extract Raw Data
-    stats = get_player_stats_data()
-    boxscores = get_boxscores_data()
-    injury_data = get_injuries_data()
-    transactions = get_transactions_data()
-    adv_stats = get_advanced_stats_data()
-    odds = scrape_odds()
-    # reddit_data = get_reddit_data("nba")  # doesnt need transformation
-    opp_stats = get_opp_stats_data()
-    schedule = schedule_scraper("2023", ["april", "may", "june"])
-    shooting_stats = get_shooting_stats_data()
-    twitter_tweepy_data = scrape_tweets_combo()
-    # reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
-    pbp_data = get_pbp_data(boxscores)  # this uses the transformed boxscores
+    stats = get_player_stats_data(feature_flags_df=feature_flags)
+    boxscores = get_boxscores_data(feature_flags_df=feature_flags)
+    injury_data = get_injuries_data(feature_flags_df=feature_flags)
+    transactions = get_transactions_data(feature_flags_df=feature_flags)
+    adv_stats = get_advanced_stats_data(feature_flags_df=feature_flags)
+    odds = scrape_odds(feature_flags_df=feature_flags)
+    reddit_data = get_reddit_data(feature_flags_df=feature_flags, sub="nba")
+    opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
+    schedule = schedule_scraper(
+        feature_flags_df=feature_flags, year="2023", month_list=["april", "may", "june"]
+    )
+    shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
+    twitter_tweepy_data = scrape_tweets_combo(feature_flags_df=feature_flags)
+    reddit_comment_data = get_reddit_comments(
+        feature_flags_df=feature_flags, urls=reddit_data["reddit_url"]
+    )
+    pbp_data = get_pbp_data(
+        feature_flags_df=feature_flags, df=boxscores
+    )  # this uses the transformed boxscores
 
     logging.info("FINISHED WEB SCRAPE")
 
@@ -88,8 +96,8 @@ if __name__ == "__main__":
     injury_data = validate_schema(injury_data, injury_cols)
     opp_stats = validate_schema(opp_stats, opp_stats_cols)
     pbp_data = validate_schema(pbp_data, pbp_cols)
-    # reddit_data = validate_schema(reddit_data, reddit_cols)
-    # reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
+    reddit_data = validate_schema(reddit_data, reddit_cols)
+    reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
     odds = validate_schema(odds, odds_cols)
     twitter_tweepy_data = validate_schema(twitter_tweepy_data, twitter_tweepy_cols)
     transactions = validate_schema(transactions, transactions_cols)
@@ -101,8 +109,6 @@ if __name__ == "__main__":
     logging.info("STARTING SQL STORING")
 
     # STEP 3: Append Transformed Data to SQL
-    conn = sql_connection(os.environ.get("RDS_SCHEMA"))
-
     with conn.connect() as connection:
         write_to_sql_upsert(
             connection, "boxscores", boxscores, "upsert", ["player", "date"]
@@ -127,16 +133,16 @@ if __name__ == "__main__":
         write_to_sql_upsert(
             connection, "shooting_stats", shooting_stats, "upsert", ["player"]
         )
-        # write_to_sql_upsert(
-        #     connection, "reddit_data", reddit_data, "upsert", ["reddit_url"]
-        # )
-        # write_to_sql_upsert(
-        #     connection,
-        #     "reddit_comment_data",
-        #     reddit_comment_data,
-        #     "upsert",
-        #     ["md5_pk"],
-        # )
+        write_to_sql_upsert(
+            connection, "reddit_data", reddit_data, "upsert", ["reddit_url"]
+        )
+        write_to_sql_upsert(
+            connection,
+            "reddit_comment_data",
+            reddit_comment_data,
+            "upsert",
+            ["md5_pk"],
+        )
         write_to_sql_upsert(
             connection, "transactions", transactions, "upsert", ["date", "transaction"]
         )
@@ -178,8 +184,8 @@ if __name__ == "__main__":
     write_to_s3("transactions", transactions)
     write_to_s3("adv_stats", adv_stats)
     write_to_s3("odds", odds)
-    # write_to_s3("reddit_data", reddit_data)
-    # write_to_s3("reddit_comment_data", reddit_comment_data)
+    write_to_s3("reddit_data", reddit_data)
+    write_to_s3("reddit_comment_data", reddit_comment_data)
     write_to_s3("pbp_data", pbp_data)
     write_to_s3("opp_stats", opp_stats)
     write_to_s3("twitter_tweepy_data", twitter_tweepy_data)
@@ -193,4 +199,4 @@ if __name__ == "__main__":
 
     # STEP 6: Send Email
     send_aws_email(logs)
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.9.2")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.10.0")

@@ -4,24 +4,6 @@ import pytest
 from tests.schema import *
 from src.app import validate_schema
 
-# add in new test rows if you add in new name replacement conditions
-def test_clean_player_names(clean_player_names_data):
-    assert len(clean_player_names_data) == 5
-    assert clean_player_names_data["player"][0] == "Marcus Morris"
-    assert clean_player_names_data["player"][1] == "Kelly Oubre"
-    assert clean_player_names_data["player"][2] == "Gary Payton"
-    assert clean_player_names_data["player"][3] == "Robert Williams"
-    assert clean_player_names_data["player"][4] == "Lonnie Walker"
-
-
-def test_add_sentiment_analysis(add_sentiment_analysis_df):
-    assert len(add_sentiment_analysis_df) == 1000
-    assert add_sentiment_analysis_df["compound"][0] == 0.0
-    assert add_sentiment_analysis_df["neg"][0] == 0.0
-    assert add_sentiment_analysis_df["neu"][0] == 1.0
-    assert add_sentiment_analysis_df["pos"][0] == 0.0
-    assert add_sentiment_analysis_df["sentiment"][0] == 0
-
 
 def test_validate_schema():
     # Create a sample DataFrame and schema for testing

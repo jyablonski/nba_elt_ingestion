@@ -1,4 +1,6 @@
 CREATE SCHEMA nba_source;
+CREATE SCHEMA nba_prod;
+
 SET search_path TO nba_source;
 
 
@@ -312,3 +314,31 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_adv_stats_source
     "att/game" double precision,
     scrape_date date
 );
+
+DROP TABLE IF EXISTS nba_prod.feature_flags;
+CREATE TABLE IF NOT EXISTS nba_prod.feature_flags
+(
+	id serial primary key,
+	flag text,
+	is_enabled integer,
+	created_at timestamp without time zone default now(),
+	modified_at timestamp without time zone default now(),
+    CONSTRAINT flag_unique UNIQUE (flag)
+);
+INSERT INTO nba_prod.feature_flags(flag, is_enabled)
+VALUES ('season', 1),
+       ('playoffs', 1),
+       ('pbp', 1),
+       ('twitter', 1),
+       ('reddit_posts', 1),
+       ('reddit_comments', 1),
+       ('boxscores', 1),
+       ('injuries', 1),
+       ('transactions', 1),
+       ('stats', 1),
+       ('adv_stats', 1),
+       ('opp_stats', 1),
+       ('odds', 1),
+       ('schedule', 1),
+       ('shooting_stats', 1),
+       ('fake', 0);

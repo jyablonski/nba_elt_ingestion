@@ -16,7 +16,7 @@ import pandas as pd
 import praw
 import requests
 from sqlalchemy import exc, create_engine
-from sqlalchemy.engine.base import Engine
+from sqlalchemy.engine.base import Connection, Engine
 import sentry_sdk
 import tweepy
 
@@ -118,16 +118,26 @@ def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
         sentry_sdk.capture_exception(e)
 
 
-def get_player_stats_data() -> pd.DataFrame:
+def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ BS4 that grabs aggregate season stats
 
     Args:
-        None
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
 
     Returns:
         DataFrame of Player Aggregate Season stats
     """
+    feature_flag = "stats"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     # stats = stats.rename(columns={"fg%": "fg_pct", "3p%": "3p_pct", "2p%": "2p_pct", "efg%": "efg_pct", "ft%": "ft_pct"})
     try:
         year_stats = 2023
@@ -159,11 +169,12 @@ def get_player_stats_data() -> pd.DataFrame:
     except BaseException as error:
         logging.error(f"General Stats Extraction Function Failed, {error}")
         sentry_sdk.capture_exception(error)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
 def get_boxscores_data(
+    feature_flags_df: pd.DataFrame,
     month: int = (datetime.now() - timedelta(1)).month,
     day: int = (datetime.now() - timedelta(1)).day,
     year: int = (datetime.now() - timedelta(1)).year,
@@ -173,6 +184,8 @@ def get_boxscores_data(
     Can't use read_html for this so this is raw web scraping baby.
 
     Args:
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+
         month (int): month value of the game played (0 - 12)
 
         day (int): day value of the game played (1 - 31)
@@ -182,6 +195,16 @@ def get_boxscores_data(
     Returns:
         DataFrame of Player Aggregate Season stats
     """
+    feature_flag = "boxscores"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     url = f"https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={month}&day={day}&year={year}&type=all"
     season_type = get_season_type()
 
@@ -283,25 +306,35 @@ def get_boxscores_data(
             f"Box Score Extraction Function Failed, {error}, no data available for {year}-{month}-{day}"
         )
         sentry_sdk.capture_exception(error)
-        df = []
+        df = pd.DataFrame()
         return df
     except BaseException as error:
         logging.error(f"Box Score Extraction Function Failed, {error}")
         sentry_sdk.capture_exception(error)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
-def get_opp_stats_data() -> pd.DataFrame:
+def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all regular season opponent team stats
 
     Args:
-        None
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
 
     Returns:
         Pandas DataFrame of all current team opponent stats
     """
+    feature_flag = "opp_stats"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     year = (datetime.now() - timedelta(1)).year
     month = (datetime.now() - timedelta(1)).month
     day = (datetime.now() - timedelta(1)).day
@@ -330,20 +363,30 @@ def get_opp_stats_data() -> pd.DataFrame:
     except BaseException as error:
         logging.error(f"Opp Stats Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
-def get_injuries_data() -> pd.DataFrame:
+def get_injuries_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all current injuries
 
     Args:
-        None
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
 
     Returns:
         Pandas DataFrame of all current player injuries & their associated team
     """
+    feature_flag = "injuries"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     try:
         url = "https://www.basketball-reference.com/friv/injuries.fcgi"
         df = pd.read_html(url)[0]
@@ -365,20 +408,30 @@ def get_injuries_data() -> pd.DataFrame:
     except BaseException as error:
         logging.error(f"Injury Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
-def get_transactions_data() -> pd.DataFrame:
+def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
 
     Args:
-        None
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
 
     Returns:
         Pandas DataFrame of all season transactions, trades, player waives etc.
     """
+    feature_flag = "transactions"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2023_transactions.html"
         html = requests.get(url).content
@@ -420,20 +473,30 @@ def get_transactions_data() -> pd.DataFrame:
     except BaseException as error:
         logging.error(f"Transaction Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
-def get_advanced_stats_data() -> pd.DataFrame:
+def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all team advanced stats
 
     Args:
-        None
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
 
     Returns:
         DataFrame of all current Team Advanced Stats
     """
+    feature_flag = "adv_stats"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     year_stats = 2023
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
@@ -485,20 +548,30 @@ def get_advanced_stats_data() -> pd.DataFrame:
     except BaseException as error:
         logging.error(f"Advanced Stats Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
-def get_shooting_stats_data() -> pd.DataFrame:
+def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all raw shooting stats
 
     Args:
-        None
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
 
     Returns:
         DataFrame of raw shooting stats
     """
+    feature_flag = "shooting_stats"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     year_stats = 2023
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_shooting.html"
@@ -578,20 +651,30 @@ def get_shooting_stats_data() -> pd.DataFrame:
     except BaseException as error:
         logging.error(f"Shooting Stats Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
-def scrape_odds():
+def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Function to web scrape Gambling Odds from cover.com
 
     Args:
-        None
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
 
     Returns:
         DataFrame of Gambling Odds for Today's Games
     """
+    feature_flag = "odds"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     try:
         url = "https://www.covers.com/sport/basketball/nba/odds"
         df = pd.read_html(url)
@@ -662,7 +745,7 @@ def scrape_odds():
     except BaseException as e:
         logging.error(f"Odds Function Web Scrape Failed, {e}")
         sentry_sdk.capture_exception(e)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
@@ -687,7 +770,7 @@ def get_odds_data() -> pd.DataFrame:
         df = pd.read_html(url)
         if len(df) == 0:
             logging.info(f"Odds Transformation Failed, no Odds Data available.")
-            df = []
+            df = pd.DataFrame()
             return df
         else:
             try:
@@ -811,7 +894,7 @@ def get_odds_data() -> pd.DataFrame:
                     f"Odds Transformation Failed for {len(df)} day objects, {error}"
                 )
                 sentry_sdk.capture_exception(error)
-                data = []
+                data = pd.DataFrame()
                 return data
     except (
         BaseException,
@@ -819,21 +902,33 @@ def get_odds_data() -> pd.DataFrame:
     ) as error:  # valueerror fucked shit up apparently idfk
         logging.error(f"Odds Function Web Scrape Failed, {error}")
         sentry_sdk.capture_exception(error)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
-def get_reddit_data(sub: str = "nba") -> pd.DataFrame:
+def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.DataFrame:
     """
     Web Scrape function w/ PRAW that grabs top ~27 top posts from a given subreddit.
     Left sub as an argument in case I want to scrape multi subreddits in the future (r/nba, r/nbadiscussion, r/sportsbook etc)
 
     Args:
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+
         sub (string): subreddit to query
 
     Returns:
         Pandas DataFrame of all current top posts on r/nba
     """
+    feature_flag = "reddit_posts"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     reddit = praw.Reddit(
         client_id=os.environ.get("reddit_accesskey"),
         client_secret=os.environ.get("reddit_secretkey"),
@@ -881,20 +976,34 @@ def get_reddit_data(sub: str = "nba") -> pd.DataFrame:
     except BaseException as error:
         logging.error(f"Reddit Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
-        data = []
+        data = pd.DataFrame()
         return data
 
 
-def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
+def get_reddit_comments(
+    feature_flags_df: pd.DataFrame, urls: pd.Series
+) -> pd.DataFrame:
     """
     Web Scrape function w/ PRAW that iteratively extracts comments from provided reddit post urls.
 
     Args:
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+
         urls (Series): The (reddit) urls to extract comments from
 
     Returns:
         Pandas DataFrame of all comments from the provided reddit urls
     """
+    feature_flag = "reddit_comments"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     reddit = praw.Reddit(
         client_id=os.environ.get("reddit_accesskey"),
         client_secret=os.environ.get("reddit_secretkey"),
@@ -965,7 +1074,7 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
     except BaseException as e:
         logging.error(f"Reddit Comment Extraction Failed for url {i}, {e}")
         sentry_sdk.capture_exception(e)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
@@ -1020,21 +1129,32 @@ def scrape_tweets_tweepy(
     except BaseException as e:
         logging.error(f"Error Occurred for Scrape Tweets Tweepy, {e}")
         sentry_sdk.capture_exception(e)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
-def scrape_tweets_combo() -> pd.DataFrame:
+def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function to scrape Tweepy Tweets for both popular & mixed tweets
 
     Args:
-        None
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
 
     Returns:
         Pandas DataFrame of both popular and mixed tweets.
     """
+    feature_flag = "twitter"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     try:
+        print("hi")
         df1 = scrape_tweets_tweepy("nba", 1000, "popular")
         df2 = scrape_tweets_tweepy("nba", 5000, "mixed")
 
@@ -1054,27 +1174,39 @@ def scrape_tweets_combo() -> pd.DataFrame:
     except BaseException as e:
         logging.error(f"Error Occurred for Scrape Tweets Combo, {e}")
         sentry_sdk.capture_exception(e)
-        df = []
+        df = pd.DataFrame()
         return df
 
 
-def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
+def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that uses aliases via boxscores function
     to scrape the pbp data iteratively for each game played the previous day.
     It assumes there is a location column in the df being passed in.
 
     Args:
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+
         df (DataFrame) - The Boxscores DataFrame
 
     Returns:
         All PBP Data for the games in the input df
 
     """
+    feature_flag = "pbp"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     if len(df) > 0:
         game_date = df["date"][0]
     else:
-        df = []
+        df = pd.DataFrame()
         logging.warning(
             f"PBP Transformation Function Failed, no data available for {datetime.now().date()}"
         )
@@ -1225,10 +1357,10 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
             except BaseException as error:
                 logging.error(f"PBP Transformation Function Logic Failed, {error}")
                 sentry_sdk.capture_exception(error)
-                df = []
+                df = pd.DataFrame()
                 return df
         else:
-            df = []
+            df = pd.DataFrame()
             logging.warning(
                 f"PBP Transformation Function Failed, no data available for {datetime.now().date()}"
             )
@@ -1236,11 +1368,12 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
     except BaseException as error:
         logging.error(f"PBP Data Transformation Function Failed, {error}")
         sentry_sdk.capture_exception(error)
-        data = []
+        data = pd.DataFrame()
         return data
 
 
 def schedule_scraper(
+    feature_flags_df: pd.DataFrame,
     year: str,
     month_list: List[str] = [
         "october",
@@ -1256,6 +1389,8 @@ def schedule_scraper(
     Web Scrape Function to scrape Schedule data by iterating through a list of months
 
     Args:
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+
         year (str) - The year to scrape
 
         month_list (list) - List of full-month names to scrape
@@ -1264,6 +1399,16 @@ def schedule_scraper(
         DataFrame of Schedule Data to be stored.
 
     """
+    feature_flag = "schedule"
+    feature_flag_check = check_feature_flag(
+        flag=feature_flag, flags_df=feature_flags_df
+    )
+
+    if feature_flag_check == False:
+        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+        df = pd.DataFrame()
+        return df
+
     try:
         schedule_df = pd.DataFrame()
         completed_months = []
@@ -1332,7 +1477,7 @@ def schedule_scraper(
         return schedule_df
     except BaseException as e:
         logging.error(f"Schedule Scraper Function Failed, {e}")
-        df = []
+        df = pd.DataFrame()
         return df
 
 
@@ -1544,7 +1689,9 @@ def sql_connection(
     try:
         connection = create_engine(
             f"postgresql+psycopg2://{RDS_USER}:{RDS_PW}@{RDS_IP}:5432/{RDS_DB}",
-            connect_args={"options": f"-csearch_path={rds_schema}"},
+            # pool_size=0,
+            # max_overflow=20,
+            connect_args={"options": f"-csearch_path={rds_schema}",},
             # defining schema to connect to
             echo=False,
         )
@@ -1618,3 +1765,21 @@ def execute_email_function(logs: pd.DataFrame) -> None:
     except BaseException as error:
         logging.error(f"Failed Email Alert, {error}")
         sentry_sdk.capture_exception(error)
+
+
+def get_feature_flags(connection: Connection):
+    flags = pd.read_sql_query(
+        sql="select * from nba_prod.feature_flags;", con=connection
+    )
+
+    print(f"Retrieving {len(flags)} Feature Flags")
+    return flags
+
+
+def check_feature_flag(flag: str, flags_df: pd.DataFrame) -> bool:
+    flags_df = flags_df.query(f"flag == '{flag}'")
+
+    if len(flags_df) > 0 and flags_df["is_enabled"].iloc[0] == 1:
+        return True
+    else:
+        return False
