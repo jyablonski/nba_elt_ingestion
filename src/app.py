@@ -71,14 +71,16 @@ if __name__ == "__main__":
     transactions = get_transactions_data(feature_flags_df=feature_flags)
     adv_stats = get_advanced_stats_data(feature_flags_df=feature_flags)
     odds = scrape_odds(feature_flags_df=feature_flags)
-    # reddit_data = get_reddit_data("nba")  # doesnt need transformation
+    reddit_data = get_reddit_data(feature_flags_df=feature_flags, sub="nba")
     opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
     schedule = schedule_scraper(
         feature_flags_df=feature_flags, year="2023", month_list=["april", "may", "june"]
     )
     shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
     twitter_tweepy_data = scrape_tweets_combo(feature_flags_df=feature_flags)
-    # reddit_comment_data = get_reddit_comments(reddit_data["reddit_url"])
+    reddit_comment_data = get_reddit_comments(
+        feature_flags_df=feature_flags, urls=reddit_data["reddit_url"]
+    )
     pbp_data = get_pbp_data(
         feature_flags_df=feature_flags, df=boxscores
     )  # this uses the transformed boxscores
@@ -94,8 +96,8 @@ if __name__ == "__main__":
     injury_data = validate_schema(injury_data, injury_cols)
     opp_stats = validate_schema(opp_stats, opp_stats_cols)
     pbp_data = validate_schema(pbp_data, pbp_cols)
-    # reddit_data = validate_schema(reddit_data, reddit_cols)
-    # reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
+    reddit_data = validate_schema(reddit_data, reddit_cols)
+    reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
     odds = validate_schema(odds, odds_cols)
     twitter_tweepy_data = validate_schema(twitter_tweepy_data, twitter_tweepy_cols)
     transactions = validate_schema(transactions, transactions_cols)
@@ -131,16 +133,16 @@ if __name__ == "__main__":
         write_to_sql_upsert(
             connection, "shooting_stats", shooting_stats, "upsert", ["player"]
         )
-        # write_to_sql_upsert(
-        #     connection, "reddit_data", reddit_data, "upsert", ["reddit_url"]
-        # )
-        # write_to_sql_upsert(
-        #     connection,
-        #     "reddit_comment_data",
-        #     reddit_comment_data,
-        #     "upsert",
-        #     ["md5_pk"],
-        # )
+        write_to_sql_upsert(
+            connection, "reddit_data", reddit_data, "upsert", ["reddit_url"]
+        )
+        write_to_sql_upsert(
+            connection,
+            "reddit_comment_data",
+            reddit_comment_data,
+            "upsert",
+            ["md5_pk"],
+        )
         write_to_sql_upsert(
             connection, "transactions", transactions, "upsert", ["date", "transaction"]
         )
@@ -182,8 +184,8 @@ if __name__ == "__main__":
     write_to_s3("transactions", transactions)
     write_to_s3("adv_stats", adv_stats)
     write_to_s3("odds", odds)
-    # write_to_s3("reddit_data", reddit_data)
-    # write_to_s3("reddit_comment_data", reddit_comment_data)
+    write_to_s3("reddit_data", reddit_data)
+    write_to_s3("reddit_comment_data", reddit_comment_data)
     write_to_s3("pbp_data", pbp_data)
     write_to_s3("opp_stats", opp_stats)
     write_to_s3("twitter_tweepy_data", twitter_tweepy_data)
