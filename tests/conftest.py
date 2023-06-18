@@ -9,11 +9,10 @@ socket.socket = guard
 
 import os
 import pickle
+import time
 
 import pandas as pd
 import pytest
-
-# from unittest import mock
 
 from src.utils import *
 from src.app import validate_schema
@@ -37,6 +36,16 @@ def postgres_conn():
     """Fixture to connect to Docker Postgres Container"""
     conn = sql_connection("nba_source", "postgres", "postgres", "localhost", "postgres")
     yield conn
+
+
+@pytest.fixture(scope="session")
+def get_feature_flags_postgres(postgres_conn):
+    # test suite was shitting itself at the very beginning while trying to run this without a `time.sleep()`
+    time.sleep(3)
+    feature_flags = get_feature_flags(postgres_conn)
+
+    # feature_flags.to_parquet('feature_flags.parquet')
+    yield feature_flags
 
 
 @pytest.fixture(scope="function")
@@ -266,7 +275,7 @@ def twitter_tweepy_data(mocker):
     return twitter_data
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def clean_player_names_data():
     df = pd.DataFrame(
         {
@@ -283,7 +292,7 @@ def clean_player_names_data():
     return df
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def add_sentiment_analysis_df():
     fname = os.path.join(os.path.dirname(__file__), "fixtures/reddit_comments_data.csv")
     df = pd.read_csv(fname)
@@ -315,17 +324,10 @@ def mock_globals_df(mocker):
     return df
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def feature_flags_dataframe():
     """
     Fixture to load player stats data from a csv file for testing.
     """
     df = pd.DataFrame(data={"flag": ["season", "playoffs"], "is_enabled": [1, 0]})
     return df
-
-
-@pytest.fixture(scope="session")
-def get_feature_flags_postgres(postgres_conn):
-    feature_flags = get_feature_flags(postgres_conn)
-
-    return feature_flags

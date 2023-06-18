@@ -1685,7 +1685,11 @@ def sql_connection(
     try:
         connection = create_engine(
             f"postgresql+psycopg2://{RDS_USER}:{RDS_PW}@{RDS_IP}:5432/{RDS_DB}",
-            connect_args={"options": f"-csearch_path={rds_schema}"},
+            # pool_size=0,
+            # max_overflow=20,
+            connect_args={
+                "options": f"-csearch_path={rds_schema}",
+            },
             # defining schema to connect to
             echo=False,
         )
