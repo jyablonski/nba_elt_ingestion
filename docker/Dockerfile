@@ -1,25 +1,21 @@
-FROM python:3.9-slim as base
+FROM python:3.11-slim as base
 
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONFAULTHANDLER 1
-
+ENV POETRY_VIRTUALENVS_IN_PROJECT=1 \
+    POETRY_NO_INTERACTION=1
 
 FROM base AS python-deps
 
 COPY docker/install_packages.sh .
+COPY pyproject.toml .
+COPY poetry.lock .
+
 RUN ./install_packages.sh
-
-COPY Pipfile .
-COPY Pipfile.lock .
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
-# this makes it so the build will fail if i dont pipenv lock beforehand
-
+RUN pip install poetry
+RUN poetry install --no-root
 
 FROM base AS runtime
 
-COPY --from=python-deps /.venv /.venv
+COPY --from=python-deps ./.venv ./.venv
 ENV PATH="/.venv/bin:$PATH"
 
 RUN useradd --create-home appuser

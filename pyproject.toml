@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "python-docker"
+version = "1.10.2"
+description = "Example Kimball Modeling Project"
+authors = ["jyablonski9 <jyablonski9@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "1.25.2"
+pandas = "2.0.3"
+boto3 = "^1.28.57"
+praw = "^7.7.1"
+html5lib = "^1.1"
+lxml = "^4.9.3"
+nltk = "^3.8.1"
+psycopg2-binary = "^2.9.8"
+requests = "^2.31.0"
+sqlalchemy = "^2.0.21"
+sentry-sdk = "^1.31.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+coveralls = "^3.3.1"
+pytest = "^7.4.2"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.11.1"
+ipykernel = "^6.25.2"
+moto = "^4.2.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

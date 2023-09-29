@@ -19,7 +19,7 @@ test:
 
 .PHONY: docker-build
 docker-build:
-	docker build -t python_docker_local .
+	docker build -f docker/Dockerfile -t python_docker_local .
 
 .PHONY: docker-run
 docker-run:
