@@ -2,7 +2,6 @@ from src.utils import check_feature_flag
 
 
 def test_get_and_check_feature_flags_postgres(get_feature_flags_postgres):
-
     fake_check = check_feature_flag(flag="fake", flags_df=get_feature_flags_postgres)
     odds_check = check_feature_flag(flag="odds", flags_df=get_feature_flags_postgres)
     playoffs_check = check_feature_flag(

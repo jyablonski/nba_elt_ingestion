@@ -20,7 +20,8 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.10.2")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.11.0")
+
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
@@ -37,9 +38,7 @@ def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
     """
     data_name = [k for k, v in globals().items() if v is df][0]
     try:
-        if (
-            len(df) == 0
-        ):
+        if len(df) == 0:
             logging.error(f"df is empty for Schema Validation, skipping")
             return df
         elif list(df.columns) == schema:
@@ -108,7 +107,7 @@ if __name__ == "__main__":
     logging.info("STARTING SQL STORING")
 
     # STEP 3: Append Transformed Data to SQL
-    with conn.connect() as connection:
+    with conn.begin() as connection:
         write_to_sql_upsert(
             connection, "boxscores", boxscores, "upsert", ["player", "date"]
         )
@@ -198,4 +197,4 @@ if __name__ == "__main__":
 
     # STEP 6: Send Email
     send_aws_email(logs)
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.10.2")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.11.0")

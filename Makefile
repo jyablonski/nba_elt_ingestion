@@ -13,13 +13,16 @@ venv:
 
 .PHONY: test
 test:
-	@docker compose -f docker/docker-compose-postgres.yml up -d
+	@make stop-postgres
+	@make start-postgres
+	@echo Starting Postgres, sleeping for 3 ,,,
+	@sleep 3
 	@pytest -v
-	@docker compose -f docker/docker-compose-postgres.yml down
+	@make stop-postgres
 
 .PHONY: docker-build
 docker-build:
-	docker build -t python_docker_local .
+	docker build -f docker/Dockerfile -t python_docker_local .
 
 .PHONY: docker-run
 docker-run:

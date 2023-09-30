@@ -13,12 +13,14 @@ import time
 
 import pandas as pd
 import pytest
+from sqlalchemy.engine.base import Engine
 
 from src.utils import *
 from src.app import validate_schema
 
 # pytest tests/scrape_test.py::test_player_stats - use this to test 1 at a time yeet
 ## Testing transformation functions from utils.py with custom csv + pickle object fixtures with edge cases
+
 
 # mock s3 / mock ses
 @pytest.fixture(scope="function")
@@ -32,14 +34,21 @@ def aws_credentials():
 
 
 @pytest.fixture(scope="session")
-def postgres_conn():
+def postgres_conn() -> Engine:
     """Fixture to connect to Docker Postgres Container"""
-    conn = sql_connection("nba_source", "postgres", "postgres", "localhost", "postgres")
-    yield conn
+    conn = sql_connection(
+        rds_schema="nba_source",
+        rds_user="postgres",
+        rds_pw="postgres",
+        rds_ip="localhost",
+        rds_db="postgres",
+    )
+    with conn.begin() as conn:
+        yield conn
 
 
 @pytest.fixture(scope="session")
-def get_feature_flags_postgres(postgres_conn):
+def get_feature_flags_postgres(postgres_conn: Engine) -> pd.DataFrame:
     # test suite was shitting itself at the very beginning while trying to run this without a `time.sleep()`
     time.sleep(3)
     feature_flags = get_feature_flags(postgres_conn)
@@ -49,7 +58,7 @@ def get_feature_flags_postgres(postgres_conn):
 
 
 @pytest.fixture(scope="function")
-def player_stats_data(get_feature_flags_postgres, mocker):
+def player_stats_data(get_feature_flags_postgres: pd.DataFrame, mocker) -> pd.DataFrame:
     """
     Fixture to load player stats data from an html file for testing.
     """
@@ -65,7 +74,7 @@ def player_stats_data(get_feature_flags_postgres, mocker):
 
 
 @pytest.fixture(scope="function")
-def boxscores_data(get_feature_flags_postgres, mocker):
+def boxscores_data(get_feature_flags_postgres: pd.DataFrame, mocker) -> pd.DataFrame:
     """
     Fixture to load boxscores data from an html file for testing.
     """
@@ -80,7 +89,7 @@ def boxscores_data(get_feature_flags_postgres, mocker):
 
 
 @pytest.fixture(scope="function")
-def opp_stats_data(get_feature_flags_postgres, mocker):
+def opp_stats_data(get_feature_flags_postgres: pd.DataFrame, mocker) -> pd.DataFrame:
     """
     Fixture to load team opponent stats data from a pickle file for testing.
     """
@@ -95,7 +104,7 @@ def opp_stats_data(get_feature_flags_postgres, mocker):
 
 
 @pytest.fixture(scope="function")
-def injuries_data(get_feature_flags_postgres, mocker):
+def injuries_data(get_feature_flags_postgres: pd.DataFrame, mocker) -> pd.DataFrame:
     """
     Fixture to load injuries data from a pickle file for testing.
     """
@@ -110,7 +119,7 @@ def injuries_data(get_feature_flags_postgres, mocker):
 
 
 @pytest.fixture(scope="function")
-def transactions_data(get_feature_flags_postgres, mocker):
+def transactions_data(get_feature_flags_postgres: pd.DataFrame, mocker) -> pd.DataFrame:
     """
     Fixture to load transactions data from an html file for testing.
     """
@@ -125,7 +134,9 @@ def transactions_data(get_feature_flags_postgres, mocker):
 
 
 @pytest.fixture(scope="function")
-def advanced_stats_data(get_feature_flags_postgres, mocker):
+def advanced_stats_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker
+) -> pd.DataFrame:
     """
     Fixture to load team advanced stats data from a pickle file for testing.
     """
@@ -145,7 +156,9 @@ def advanced_stats_data(get_feature_flags_postgres, mocker):
 
 
 @pytest.fixture(scope="function")
-def shooting_stats_data(get_feature_flags_postgres, mocker):
+def shooting_stats_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker
+) -> pd.DataFrame:
     """
     Fixture to load shooting stats data from a pickle file for testing.
     """
@@ -163,7 +176,7 @@ def shooting_stats_data(get_feature_flags_postgres, mocker):
 
 # has to be pickle bc odds data can be returned in list of 1 or 2 objects
 @pytest.fixture(scope="function")
-def odds_data(get_feature_flags_postgres, mocker):
+def odds_data(get_feature_flags_postgres: pd.DataFrame, mocker) -> pd.DataFrame:
     """
     Fixture to load odds data from a pickle file for testing.
     """
@@ -178,7 +191,9 @@ def odds_data(get_feature_flags_postgres, mocker):
 
 
 @pytest.fixture(scope="function")
-def pbp_transformed_data(get_feature_flags_postgres, mocker):
+def pbp_transformed_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker
+) -> pd.DataFrame:
     """
     Fixture to load boxscores data from a csv file for PBP Transform testing.
     """
@@ -207,7 +222,7 @@ def logs_data():
 
 
 @pytest.fixture()
-def schedule_data(get_feature_flags_postgres, mocker):
+def schedule_data(get_feature_flags_postgres: pd.DataFrame, mocker) -> pd.DataFrame:
     """
     Fixture to load schedule data from an html file for testing.
     *** THIS WORKS FOR ANY REQUESTS.GET MOCKING IN THE FUTURE ***
@@ -233,7 +248,9 @@ def schedule_data(get_feature_flags_postgres, mocker):
 
 
 @pytest.fixture()
-def reddit_comments_data(get_feature_flags_postgres, mocker):
+def reddit_comments_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker
+) -> pd.DataFrame:
     """
     Fixture to load reddit_comments data from a csv file for testing.
     """
@@ -258,7 +275,7 @@ def reddit_comments_data(get_feature_flags_postgres, mocker):
 
 
 @pytest.fixture()
-def twitter_tweepy_data(mocker):
+def twitter_tweepy_data(mocker) -> pd.DataFrame:
     fname = os.path.join(os.path.dirname(__file__), "fixtures/tweepy_tweets.csv")
     twitter_csv = pd.read_csv(fname)
 
@@ -276,7 +293,7 @@ def twitter_tweepy_data(mocker):
 
 
 @pytest.fixture(scope="function")
-def clean_player_names_data():
+def clean_player_names_data() -> pd.DataFrame:
     df = pd.DataFrame(
         {
             "player": [
@@ -293,7 +310,7 @@ def clean_player_names_data():
 
 
 @pytest.fixture(scope="function")
-def add_sentiment_analysis_df():
+def add_sentiment_analysis_df() -> pd.DataFrame:
     fname = os.path.join(os.path.dirname(__file__), "fixtures/reddit_comments_data.csv")
     df = pd.read_csv(fname)
 
@@ -303,7 +320,7 @@ def add_sentiment_analysis_df():
 
 # postgres
 @pytest.fixture()
-def players_df():
+def players_df() -> pd.DataFrame:
     """Small Players Fixture for Postgres Testing."""
     fname = os.path.join(
         os.path.dirname(__file__), "fixtures/postgres_players_fixture.csv"
@@ -315,8 +332,7 @@ def players_df():
 
 # never got this workin fk it
 @pytest.fixture()
-def mock_globals_df(mocker):
-
+def mock_globals_df(mocker) -> pd.DataFrame:
     mocker.patch("src.app.globals").return_value = {"df": "df"}
     df = pd.DataFrame({"df": [1, 2], "b": [3, 4]})
 
@@ -325,7 +341,7 @@ def mock_globals_df(mocker):
 
 
 @pytest.fixture(scope="function")
-def feature_flags_dataframe():
+def feature_flags_dataframe() -> pd.DataFrame:
     """
     Fixture to load player stats data from a csv file for testing.
     """

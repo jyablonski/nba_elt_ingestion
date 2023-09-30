@@ -1,0 +1,14 @@
+source_code:
+- src/*
+- tests/*
+
+cd:
+- .github/workflows/deploy.yml
+- docker/*
+- requirements.txt
+
+ci:
+- .github/workflows/test.yml
+
+dependencies:
+- poetry.lock

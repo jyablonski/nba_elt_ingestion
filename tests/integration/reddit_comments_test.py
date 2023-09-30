@@ -22,4 +22,4 @@ def test_reddit_comment_data_upsert(postgres_conn, reddit_comments_data):
 
     assert (
         count_check_results_after["count"][0] == 998
-    )  # check row count is 999, 998 new and 1 upsert
+    )  # check row count is 998, 997 new and 1 upsert

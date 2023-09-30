@@ -11,16 +11,16 @@ jobs:
       - name: Checkout the Repo
         uses: actions/checkout@v2
 
-      - name: Install Python 3.9
+      - name: Install Python 3.11
         uses: actions/setup-python@v1
         with:
-          python-version: 3.9
+          python-version: 3.11
 
-      - name: Install Pipenv
+      - name: Install Poetry
         run: |
           python -m pip install --upgrade pip
-          pip install pipenv
-      - name: Cache Python 3.9
+          pip install poetry
+      - name: Cache Python 3.11
         uses: actions/cache@v3
         with:
           path: ~/.local/share/virtualenvs
@@ -33,8 +33,8 @@ jobs:
           PIPENV_CACHE_DIR: ~/.local/share/pipcache
         if: steps.pipenv-cache.outputs.cache-hit != 'true'
         run: |
-          pipenv install --dev
-          pipenv run python -m nltk.downloader vader_lexicon
+          poetry install --with dev
+          poetry run python -m nltk.downloader vader_lexicon
 
       - name: Create and populate .coveralls.yml file
         env:
@@ -50,7 +50,7 @@ jobs:
         run: make start-postgres
 
       - name: Run tests with pytest
-        run: pipenv run pytest --cov --cov-report xml
+        run: poetry run pytest --cov --cov-report xml
 
       - name: Coveralls
         env:
