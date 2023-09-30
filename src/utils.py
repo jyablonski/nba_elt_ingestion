@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import praw
 import requests
-from sqlalchemy import exc, create_engine
+from sqlalchemy import exc, create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 import sentry_sdk
 import tweepy
@@ -459,7 +459,7 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         ).reset_index()  # filters out nulls and empty values
         transactions = transactions.explode("Transaction")
         transactions["Date"] = transactions["Date"].str.replace(
-            "?", "Jan 1, 2021", regex=True  # bad data 10-14-21
+            "\\?", "Jan 1, 2023", regex=True  # bad data 10-14-21
         )
         transactions["Date"] = pd.to_datetime(transactions["Date"])
         transactions.columns = transactions.columns.str.lower()
@@ -538,7 +538,7 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df.drop(["bby1", "bby2", "bby3"], axis=1, inplace=True)
         df = df.query('Team != "League Average"').reset_index()
         # Playoff teams get a * next to them ??  fkn stupid, filter it out.
-        df["Team"] = df["Team"].str.replace("*", "", regex=True)
+        df["Team"] = df["Team"].str.replace("\\*", "", regex=True)
         df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
@@ -726,18 +726,18 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         ].str.strip()  # strip trailing and leading spaces
         odds_final["moneyline"] = odds_final["moneyline"].str.strip()
         odds_final["datetime1"] = pd.to_datetime(
-            str(datetime.now().date()) + " " + odds_final["datetime1"]
+            (str(datetime.now().date()) + " " + odds_final["datetime1"]),
+            format="%Y-%m-%d %H:%M %p",
         )
         odds_final["total"] = 200
         odds_final["team"] = odds_final["team"].str.replace("BK", "BKN")
         odds_final["moneyline"] = odds_final["moneyline"].str.replace(
-            "+", "", regex=True
+            "\\+", "", regex=True
         )
         odds_final["moneyline"] = odds_final["moneyline"].astype("int")
         odds_final = odds_final[
             ["team", "spread", "total", "moneyline", "date", "datetime1"]
         ]
-
         logging.info(
             f"Odds Scrape Successful, returning {len(odds_final)} records from {len(odds_final) / 2} games Today"
         )
@@ -824,7 +824,7 @@ def get_odds_data() -> pd.DataFrame:
                     )
                     data2["date"] = data2["datetime1"].dt.date
 
-                    data = data1.append(data2).reset_index(drop=True)
+                    data = pd.concat([data1, data2])
                     data["SPREAD"] = data["SPREAD"].str[:-4]
                     data["TOTAL"] = data["TOTAL"].str[:-4]
                     data["TOTAL"] = data["TOTAL"].str[2:]
@@ -1047,8 +1047,7 @@ def get_reddit_comments(
                 "scrape_ts": datetime.now(),
             }
         )
-
-        df = df.astype({"author": str})
+        # df = df.astype({"author": str})
         df = df.query('author != "None"')  # remove deleted comments rip
         df = (
             df.sort_values("score").groupby(["author", "comment", "url"]).tail(1)
@@ -1101,27 +1100,25 @@ def scrape_tweets_tweepy(
 
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
-    df = pd.DataFrame()
+    full_tweet_df = pd.DataFrame()
     try:
         for tweet in tweepy.Cursor(  # result_type can be mixed, recent, or popular.
             api.search_tweets, search_parameter, count=count, result_type=result_type
         ).items(count):
-            df = df.append(
-                {
-                    "created_at": tweet._json["created_at"],
-                    "tweet_id": tweet._json["id_str"],
-                    "username": tweet._json["user"]["screen_name"],
-                    "user_id": tweet._json["user"]["id"],
-                    "tweet": tweet._json["text"],
-                    "likes": tweet._json["favorite_count"],
-                    "retweets": tweet._json["retweet_count"],
-                    "language": tweet._json["lang"],
-                    "scrape_ts": datetime.now(),
-                    "profile_img": tweet._json["user"]["profile_image_url"],
-                    "url": f"https://twitter.com/twitter/statuses/{tweet._json['id']}",
-                },
-                ignore_index=True,
-            )
+            df = {
+                "created_at": tweet._json["created_at"],
+                "tweet_id": tweet._json["id_str"],
+                "username": tweet._json["user"]["screen_name"],
+                "user_id": tweet._json["user"]["id"],
+                "tweet": tweet._json["text"],
+                "likes": tweet._json["favorite_count"],
+                "retweets": tweet._json["retweet_count"],
+                "language": tweet._json["lang"],
+                "scrape_ts": datetime.now(),
+                "profile_img": tweet._json["user"]["profile_image_url"],
+                "url": f"https://twitter.com/twitter/statuses/{tweet._json['id']}",
+            }
+            full_tweet_df = pd.concat([df, full_tweet_df])
 
         df = add_sentiment_analysis(df, "tweet")
         logging.info(f"Twitter Scrape Successful, retrieving {len(df)} Tweets")
@@ -1343,7 +1340,7 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                             df.columns[6]: "numberPeriod",
                         }
                     )
-                    pbp_list = pbp_list.append(df)
+                    pbp_list = pd.concat([df, pbp_list])
                     df = pd.DataFrame()
                 pbp_list.columns = pbp_list.columns.str.lower()
                 pbp_list = pbp_list.query(
@@ -1439,7 +1436,7 @@ def schedule_scraper(
                 f"Schedule Function Completed for {i}, retrieving {len(schedule)} rows"
             )
             completed_months.append(i)
-            schedule_df = schedule_df.append(schedule)
+            schedule_df = pd.concat([schedule, schedule_df])
 
         schedule_df = schedule_df[
             ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
@@ -1570,7 +1567,11 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
 
 
 def write_to_sql_upsert(
-    conn, table_name: str, df: pd.DataFrame, table_type: str, pd_index: List[str]
+    conn: Engine,
+    table_name: str,
+    df: pd.DataFrame,
+    table_type: str,
+    pd_index: List[str],
 ) -> None:
     """
     SQL Table function to upsert a Pandas DataFrame into a SQL Table.
@@ -1605,11 +1606,13 @@ def write_to_sql_upsert(
             df = df.rename_axis(pd_index)
 
             if not conn.execute(
-                f"""SELECT EXISTS (
+                text(
+                    f"""SELECT EXISTS (
                     SELECT FROM information_schema.tables 
                     WHERE  table_schema = 'nba_source' 
                     AND    table_name   = '{sql_table_name}');
                     """
+                )
             ).first()[0]:
                 # If the table does not exist, we should just use to_sql to create it
                 df.to_sql(sql_table_name, conn)
@@ -1645,7 +1648,7 @@ def write_to_sql_upsert(
                 ALTER TABLE "{sql_table_name}" ADD CONSTRAINT unique_constraint_for_upsert_{table_name} UNIQUE ({index_sql_txt});
                 """
 
-                conn.execute(query_pk)
+                conn.execute(text(query_pk))
 
                 # Compose and execute upsert query
                 query_upsert = f"""
@@ -1654,14 +1657,15 @@ def write_to_sql_upsert(
                 ON CONFLICT ({index_sql_txt}) DO UPDATE 
                 SET {update_column_stmt};
                 """
-                conn.execute(query_upsert)
-                conn.execute(f"DROP TABLE {temp_table_name};")
+                conn.execute(text(query_upsert))
+                conn.execute(text(f"DROP TABLE {temp_table_name};"))
                 logging.info(
                     f"SQL Upsert Function Successful, {len(df)} records added or upserted into {table_name}"
                 )
                 pass
             except BaseException as error:
-                conn.execute(f"DROP TABLE {temp_table_name};")
+                conn.execute(text(f"DROP TABLE {temp_table_name};"))
+
                 sentry_sdk.capture_exception(error)
                 logging.error(
                     f"SQL Upsert Function Failed for EXISTING {table_name} ({len(df)} rows), {error}"
@@ -1671,10 +1675,10 @@ def write_to_sql_upsert(
 
 def sql_connection(
     rds_schema: str,
-    RDS_USER: str = os.environ.get("RDS_USER"),
-    RDS_PW: str = os.environ.get("RDS_PW"),
-    RDS_IP: str = os.environ.get("IP"),
-    RDS_DB: str = os.environ.get("RDS_DB"),
+    rds_user: str = os.environ.get("RDS_USER"),
+    rds_pw: str = os.environ.get("RDS_PW"),
+    rds_ip: str = os.environ.get("IP"),
+    rds_db: str = os.environ.get("RDS_DB"),
 ) -> Engine:
     """
     SQL Connection function to define the SQL Driver + connection variables needed to connect to the DB.
@@ -1687,16 +1691,18 @@ def sql_connection(
         SQL Connection variable to a specified schema in my PostgreSQL DB
     """
     try:
-        connection = create_engine(
-            f"postgresql+psycopg2://{RDS_USER}:{RDS_PW}@{RDS_IP}:5432/{RDS_DB}",
+        engine = create_engine(
+            f"postgresql+psycopg2://{rds_user}:{rds_pw}@{rds_ip}:5432/{rds_db}",
             # pool_size=0,
             # max_overflow=20,
-            connect_args={"options": f"-csearch_path={rds_schema}",},
+            connect_args={
+                "options": f"-csearch_path={rds_schema}",
+            },
             # defining schema to connect to
             echo=False,
         )
         logging.info(f"SQL Connection to schema: {rds_schema} Successful")
-        return connection
+        return engine
     except exc.SQLAlchemyError as e:
         logging.error(f"SQL Connection to schema: {rds_schema} Failed, Error: {e}")
         sentry_sdk.capture_exception(e)
@@ -1726,13 +1732,26 @@ def send_aws_email(logs: pd.DataFrame) -> None:
     client = boto3.client("ses", region_name=aws_region)
     try:
         response = client.send_email(
-            Destination={"ToAddresses": [recipient,],},
+            Destination={
+                "ToAddresses": [
+                    recipient,
+                ],
+            },
             Message={
                 "Body": {
-                    "Html": {"Charset": charset, "Data": body_html,},
-                    "Text": {"Charset": charset, "Data": body_html,},
+                    "Html": {
+                        "Charset": charset,
+                        "Data": body_html,
+                    },
+                    "Text": {
+                        "Charset": charset,
+                        "Data": body_html,
+                    },
                 },
-                "Subject": {"Charset": charset, "Data": subject,},
+                "Subject": {
+                    "Charset": charset,
+                    "Data": subject,
+                },
             },
             Source=sender,
         )
@@ -1767,7 +1786,7 @@ def execute_email_function(logs: pd.DataFrame) -> None:
         sentry_sdk.capture_exception(error)
 
 
-def get_feature_flags(connection: Connection):
+def get_feature_flags(connection: Connection) -> pd.DataFrame:
     flags = pd.read_sql_query(
         sql="select * from nba_prod.feature_flags;", con=connection
     )

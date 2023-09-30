@@ -22,6 +22,7 @@ logging.basicConfig(
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
 logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.11.0")
 
+
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
     """
@@ -37,9 +38,7 @@ def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
     """
     data_name = [k for k, v in globals().items() if v is df][0]
     try:
-        if (
-            len(df) == 0
-        ):
+        if len(df) == 0:
             logging.error(f"df is empty for Schema Validation, skipping")
             return df
         elif list(df.columns) == schema:
