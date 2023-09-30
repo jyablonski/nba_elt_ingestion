@@ -60,7 +60,7 @@ def test_pbp(pbp_transformed_data):
 
 
 def test_reddit_comment(reddit_comments_data):
-    assert len(reddit_comments_data) == 996
+    assert len(reddit_comments_data) == 998
     assert reddit_comments_data.dtypes.to_dict() == reddit_comment_data_schema
     assert reddit_comments_data["md5_pk"][0] == "69e09a5d419de1c16ad5cb156a6d3aac"
 

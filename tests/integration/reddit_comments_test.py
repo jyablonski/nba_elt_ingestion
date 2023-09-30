@@ -21,5 +21,5 @@ def test_reddit_comment_data_upsert(postgres_conn, reddit_comments_data):
     )  # check row count is 1 from the bootstrap
 
     assert (
-        count_check_results_after["count"][0] == 996
-    )  # check row count is 999, 998 new and 1 upsert
+        count_check_results_after["count"][0] == 998
+    )  # check row count is 998, 997 new and 1 upsert

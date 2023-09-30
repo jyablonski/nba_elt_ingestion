@@ -1047,12 +1047,10 @@ def get_reddit_comments(
                 "scrape_ts": datetime.now(),
             }
         )
-        # df = df.astype({"author": str})
+
         df = df.query('author != "None"')  # remove deleted comments rip
-        df = (
-            df.sort_values("score").groupby(["author", "comment", "url"]).tail(1)
-        )  # remove duplicates, grab comment with highest score
-        # adding sentiment analysis columns
+        df["author"] = df["author"].astype(str)
+        df = df.sort_values("score").groupby(["author", "comment", "url"]).tail(1)
         df = add_sentiment_analysis(df, "comment")
 
         df["edited"] = np.where(

@@ -107,7 +107,7 @@ if __name__ == "__main__":
     logging.info("STARTING SQL STORING")
 
     # STEP 3: Append Transformed Data to SQL
-    with conn.connect() as connection:
+    with conn.begin() as connection:
         write_to_sql_upsert(
             connection, "boxscores", boxscores, "upsert", ["player", "date"]
         )
