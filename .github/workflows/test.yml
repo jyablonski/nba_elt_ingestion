@@ -44,18 +44,10 @@ jobs:
           cat > logs/example.log
         shell: bash
 
-      - name: Start Postgres
-        run: make start-postgres
-
-      - name: Run tests with pytest
-        run: poetry run pytest --cov --cov-report xml
+      - name: Run Tests
+        run: |
+          make ci-test
 
       - name: Coveralls
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.repo_token }}
         run: |
-          pip install coveralls==3.3.1
-          coveralls
-      
-      - name: Stop Postgres
-        run: make stop-postgres
+          poetry run coveralls
