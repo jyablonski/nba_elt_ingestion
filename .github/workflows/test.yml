@@ -4,12 +4,6 @@ on:
   pull_request:
 
 env:
-  IP: localhost
-  RDS_USER: postgres
-  RDS_PW: postgres
-  RDS_DB: postgres
-  RDS_SCHEMA: nba_prod
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PYTHON_VERSION: "3.11"
   POETRY_VERSION: "1.6.1"
 
