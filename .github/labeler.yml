@@ -1,11 +1,10 @@
 source_code:
-- src/*
-- tests/*
+- any: ['src/*', 'tests/*']
+  all: ['!src/app.py']
 
 cd:
 - .github/workflows/deploy.yml
 - docker/*
-- requirements.txt
 
 ci:
 - .github/workflows/test.yml
