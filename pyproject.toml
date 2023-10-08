@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "python-docker"
 version = "1.11.1"
-description = "Example Kimball Modeling Project"
+description = "Ingestion Script for NBA ELT Project"
 authors = ["jyablonski9 <jyablonski9@gmail.com>"]
 readme = "README.md"
 
