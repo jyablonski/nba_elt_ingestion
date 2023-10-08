@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-docker"
-version = "1.11.0"
+version = "1.11.1"
 description = "Example Kimball Modeling Project"
 authors = ["jyablonski9 <jyablonski9@gmail.com>"]
 readme = "README.md"
