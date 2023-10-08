@@ -67,3 +67,9 @@ start-postgres:
 .PHONY: stop-postgres
 stop-postgres:
 	@docker compose -f docker/docker-compose-postgres.yml down
+
+.PHONY: ci-test
+ci-test:
+	@make start-postgres
+	@poetry run pytest --cov --cov-report xml
+	@make stop-postgres
