@@ -1,7 +1,21 @@
 import pandas as pd
 import pytest
 
-from tests.schema import *
+from tests.schema import (
+    adv_stats_schema,
+    boxscores_schema,
+    boxscores_schema_fake,
+    injury_schema,
+    odds_schema,
+    opp_stats_schema,
+    pbp_data_schema,
+    reddit_comment_data_schema,
+    schedule_schema,
+    shooting_stats_schema,
+    stats_schema,
+    transactions_schema,
+    twitter_tweepy_schema,
+)
 from src.app import validate_schema
 
 
@@ -12,8 +26,8 @@ def test_validate_schema():
         validate_schema(df, ["col1", "col3"])
 
 
-# 2023-04-15 update: these are basically obsolete now after adding integration tests but i'm keepin em in.
-# SCHEMA VALIDATION + ROW COUNT TESTS
+# 2023-04-15 update: these are basically obsolete now after adding
+# integration tests but i'm keepin em in
 def test_player_stats(player_stats_data):
     assert len(player_stats_data) == 630
     assert player_stats_data.dtypes.to_dict() == stats_schema

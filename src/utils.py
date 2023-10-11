@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 import hashlib
 import logging
 import os
-import requests
 from typing import List
 import uuid
 
@@ -29,7 +28,8 @@ def get_season_type(todays_date: datetime.date = datetime.now().date()) -> str:
     Function to generate Season Type for a given Date.
 
     Args:
-        todays_date (date): The Date to generate a Season Type for.  Defaults to today's date.
+        todays_date (date): The Date to generate a Season Type for.  Defaults to
+            today's date.
 
     Returns:
         The Season Type for Given Date
@@ -53,7 +53,8 @@ def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame
     Args:
         df (pd.DataFrame): The Pandas DataFrame
 
-        sentiment_col (str): The Column in the DataFrame to run Sentiment Analysis on (comments / tweets etc).
+        sentiment_col (str): The Column in the DataFrame to run Sentiment Analysis on
+            (comments / tweets etc).
 
     Returns:
         The same DataFrame but with the Sentiment Analysis columns attached.
@@ -83,7 +84,8 @@ def get_leading_zeroes(month: int) -> str:
         month (int): The month integer (created from `datetime.now().month`)
 
     Returns:
-        The same month integer with a leading 0 if it is less than 10 (Nov/Dec aka 11/12 unaffected).
+        The same month integer with a leading 0 if it is less than 10
+            (Nov/Dec aka 11/12 unaffected).
     """
     if len(str(month)) > 1:
         return month
@@ -123,7 +125,8 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     Web Scrape function w/ BS4 that grabs aggregate season stats
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to
+            check whether to run this function or not
 
     Returns:
         DataFrame of Player Aggregate Season stats
@@ -133,12 +136,13 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
 
-    # stats = stats.rename(columns={"fg%": "fg_pct", "3p%": "3p_pct", "2p%": "2p_pct", "efg%": "efg_pct", "ft%": "ft_pct"})
+    # stats = stats.rename(columns={"fg%": "fg_pct", "3p%": "3p_pct",
+    # "2p%": "2p_pct", "efg%": "efg_pct", "ft%": "ft_pct"})
     try:
         year_stats = 2023
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_per_game.html"
@@ -163,7 +167,10 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         stats["scrape_date"] = datetime.now().date()
         stats = stats.drop("index", axis=1)
         logging.info(
-            f"General Stats Transformation Function Successful, retrieving {len(stats)} updated rows"
+            f"""
+            General Stats Transformation Function Successful,
+            retrieving {len(stats)} updated rows
+            """
         )
         return stats
     except BaseException as error:
@@ -180,11 +187,13 @@ def get_boxscores_data(
     year: int = (datetime.now() - timedelta(1)).year,
 ) -> pd.DataFrame:
     """
-    Function that grabs box scores from a given date in mmddyyyy format - defaults to yesterday.  values can be ex. 1 or 01.
+    Function that grabs box scores from a given date in mmddyyyy
+    format - defaults to yesterday.  values can be ex. 1 or 01.
     Can't use read_html for this so this is raw web scraping baby.
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to
+            check whether to run this function or not
 
         month (int): month value of the game played (0 - 12)
 
@@ -200,7 +209,7 @@ def get_boxscores_data(
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -298,12 +307,18 @@ def get_boxscores_data(
         df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
-            f"Box Score Transformation Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
+            f"""
+            Box Score Transformation Function Successful,
+            retrieving {len(df)} rows for {year}-{month}-{day}
+            """
         )
         return df
     except IndexError as error:
         logging.warning(
-            f"Box Score Extraction Function Failed, {error}, no data available for {year}-{month}-{day}"
+            f"""
+            Box Score Extraction Function Failed, {error},
+            no data available for {year}-{month}-{day}
+            """
         )
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
@@ -317,10 +332,12 @@ def get_boxscores_data(
 
 def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Web Scrape function w/ pandas read_html that grabs all regular season opponent team stats
+    Web Scrape function w/ pandas read_html that grabs all
+        regular season opponent team stats
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame
+            to check whether to run this function or not
 
     Returns:
         Pandas DataFrame of all current team opponent stats
@@ -330,7 +347,7 @@ def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -357,7 +374,10 @@ def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = df.reset_index(drop=True)
         df["scrape_date"] = datetime.now().date()
         logging.info(
-            f"Opp Stats Transformation Function Successful, retrieving {len(df)} rows for {year}-{month}-{day}"
+            f"""
+            Opp Stats Transformation Function Successful,
+            retrieving {len(df)} rows for {year}-{month}-{day}
+            """
         )
         return df
     except BaseException as error:
@@ -372,7 +392,8 @@ def get_injuries_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     Web Scrape function w/ pandas read_html that grabs all current injuries
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check
+            whether to run this function or not
 
     Returns:
         Pandas DataFrame of all current player injuries & their associated team
@@ -382,7 +403,7 @@ def get_injuries_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -417,7 +438,8 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
+            to run this function or not
 
     Returns:
         Pandas DataFrame of all season transactions, trades, player waives etc.
@@ -427,7 +449,7 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -467,7 +489,10 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         transactions["scrape_date"] = datetime.now().date()
         transactions = transactions.drop_duplicates()
         logging.info(
-            f"Transactions Transformation Function Successful, retrieving {len(transactions)} rows"
+            f"""
+            Transactions Transformation Function Successful,
+            retrieving {len(transactions)} rows
+            """
         )
         return transactions
     except BaseException as error:
@@ -482,7 +507,8 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     Web Scrape function w/ pandas read_html that grabs all team advanced stats
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check
+            whether to run this function or not
 
     Returns:
         DataFrame of all current Team Advanced Stats
@@ -492,7 +518,7 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -520,7 +546,7 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             "FTr",
             "3PAr",
             "TS%",
-            "bby1",  # the bby columns are because of hierarchical html formatting - they're just blank columns
+            "bby1",  # the bby columns are because of hierarchical html formatting
             "eFG%",
             "TOV%",
             "ORB%",
@@ -542,7 +568,10 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
-            f"Advanced Stats Transformation Function Successful, retrieving updated data for 30 Teams"
+            """
+            Advanced Stats Transformation Function Successful,
+            retrieving updated data for 30 Teams
+            """
         )
         return df
     except BaseException as error:
@@ -557,7 +586,8 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     Web Scrape function w/ pandas read_html that grabs all raw shooting stats
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
+            to run this function or not
 
     Returns:
         DataFrame of raw shooting stats
@@ -567,7 +597,7 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -645,7 +675,10 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df["scrape_date"] = datetime.now().date()
         df["scrape_ts"] = datetime.now()
         logging.info(
-            f"Shooting Stats Transformation Function Successful, retrieving {len(df)} rows"
+            f"""
+            Shooting Stats Transformation Function Successful,
+            retrieving {len(df)} rows
+            """
         )
         return df
     except BaseException as error:
@@ -660,7 +693,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     Function to web scrape Gambling Odds from cover.com
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
+            to run this function or not
 
     Returns:
         DataFrame of Gambling Odds for Today's Games
@@ -670,7 +704,7 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -689,7 +723,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             .query("datetime1.str.contains('Today')", engine="python")
             .copy()
         )
-        # ^ this logic removes old games, removes null rows, and filters to only grab records for today's games
+        # ^ this logic removes old games, removes null rows, and filters to
+        #  only grab records for today's games
         if len(odds) == 0:
             logging.info("No Odds Records available for today's games")
             return []
@@ -739,7 +774,10 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             ["team", "spread", "total", "moneyline", "date", "datetime1"]
         ]
         logging.info(
-            f"Odds Scrape Successful, returning {len(odds_final)} records from {len(odds_final) / 2} games Today"
+            f"""
+            Odds Scrape Successful, returning {len(odds_final)} records
+            from {len(odds_final) / 2} games Today
+            """
         )
         return odds_final
     except BaseException as e:
@@ -753,9 +791,11 @@ def get_odds_data() -> pd.DataFrame:
     """
     *********** DEPRECATED AS OF 2022-10-19 ***********
 
-    Web Scrape function w/ pandas read_html that grabs current day's nba odds in raw format.
-    There are 2 objects [0], [1] if the days are split into 2.
-    AWS ECS operates in UTC time so the game start times are actually 5-6+ hours ahead of what they actually are, so there are 2 html tables.
+    Web Scrape function w/ pandas read_html that grabs current day's
+        nba odds in raw format. There are 2 objects [0], [1] if the days
+        are split into 2.  AWS ECS operates in UTC time so the game start
+        times are actually 5-6+ hours ahead of what they actually are, so
+        there are 2 html tables.
 
     Args:
         None
@@ -769,7 +809,7 @@ def get_odds_data() -> pd.DataFrame:
         url = "https://sportsbook.draftkings.com/leagues/basketball/nba"
         df = pd.read_html(url)
         if len(df) == 0:
-            logging.info(f"Odds Transformation Failed, no Odds Data available.")
+            logging.info("Odds Transformation Failed, no Odds Data available.")
             df = pd.DataFrame()
             return df
         else:
@@ -853,7 +893,10 @@ def get_odds_data() -> pd.DataFrame:
                         "date == date.min()"
                     )  # only grab games from upcoming day
                     logging.info(
-                        f"Odds Transformation Function Successful {len(df)} day, retrieving {len(data)} rows"
+                        f"""
+                        Odds Transformation Function Successful {len(df)} day,
+                        retrieving {len(data)} rows
+                        """
                     )
                     return data
                 else:  # if there's only 1 day of data then just use that
@@ -886,7 +929,10 @@ def get_odds_data() -> pd.DataFrame:
                         "date == date.min()"
                     )  # only grab games from upcoming day
                     logging.info(
-                        f"Odds Transformation Successful {len(df)} day, retrieving {len(data)} rows"
+                        f"""
+                        Odds Transformation Successful {len(df)} day,
+                        retrieving {len(data)} rows
+                        """
                     )
                     return data
             except BaseException as error:
@@ -909,10 +955,12 @@ def get_odds_data() -> pd.DataFrame:
 def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.DataFrame:
     """
     Web Scrape function w/ PRAW that grabs top ~27 top posts from a given subreddit.
-    Left sub as an argument in case I want to scrape multi subreddits in the future (r/nba, r/nbadiscussion, r/sportsbook etc)
+    Left sub as an argument in case I want to scrape multi subreddits in the future
+    (r/nba, r/nbadiscussion, r/sportsbook etc)
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
+            to run this function or not
 
         sub (string): subreddit to query
 
@@ -924,7 +972,7 @@ def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.Data
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -970,7 +1018,10 @@ def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.Data
         posts.columns = posts.columns.str.lower()
 
         logging.info(
-            f"Reddit Scrape Successful, grabbing 27 Recent popular posts from r/{sub} subreddit"
+            f"""
+            Reddit Scrape Successful, grabbing 27 Recent
+            popular posts from r/{sub} subreddit
+            """
         )
         return posts
     except BaseException as error:
@@ -984,10 +1035,12 @@ def get_reddit_comments(
     feature_flags_df: pd.DataFrame, urls: pd.Series
 ) -> pd.DataFrame:
     """
-    Web Scrape function w/ PRAW that iteratively extracts comments from provided reddit post urls.
+    Web Scrape function w/ PRAW that iteratively extracts comments from provided
+    reddit post urls.
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
+            to run this function or not
 
         urls (Series): The (reddit) urls to extract comments from
 
@@ -999,7 +1052,7 @@ def get_reddit_comments(
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -1054,7 +1107,7 @@ def get_reddit_comments(
         df = add_sentiment_analysis(df, "comment")
 
         df["edited"] = np.where(
-            df["edited"] == False, 0, 1
+            df["edited"] is False, 0, 1
         )  # if edited, then 1, else 0
         df["md5_pk"] = df.apply(
             lambda x: hashlib.md5(
@@ -1065,7 +1118,10 @@ def get_reddit_comments(
         # this hash function lines up with the md5 function in postgres
         # this is needed for the upsert to work on it.
         logging.info(
-            f"Reddit Comment Extraction Success, retrieving {len(df)} total comments from {len(urls)} total urls"
+            f"""
+            Reddit Comment Extraction Success, retrieving {len(df)}
+            total comments from {len(urls)} total urls
+            """
         )
         return df
     except BaseException as e:
@@ -1133,7 +1189,8 @@ def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     Web Scrape function to scrape Tweepy Tweets for both popular & mixed tweets
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
+            to run this function or not
 
     Returns:
         Pandas DataFrame of both popular and mixed tweets.
@@ -1143,7 +1200,7 @@ def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -1163,7 +1220,11 @@ def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         )
 
         logging.info(
-            f"Grabbing {len(df1)} Popular Tweets and {len(df2)} Mixed Tweets for {len(df_combo)} Total, {(len(df1) + len(df2) - len(df_combo))} were duplicates"
+            f"""
+            Grabbing {len(df1)} Popular Tweets and {len(df2)} Mixed Tweets
+            for {len(df_combo)} Total, {(len(df1) + len(df2) - len(df_combo))}
+            were duplicates
+            """
         )
         return df_combo
     except BaseException as e:
@@ -1180,7 +1241,8 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
     It assumes there is a location column in the df being passed in.
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
+            to run this function or not
 
         df (DataFrame) - The Boxscores DataFrame
 
@@ -1193,7 +1255,7 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -1203,7 +1265,10 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
     else:
         df = pd.DataFrame()
         logging.warning(
-            f"PBP Transformation Function Failed, no data available for {datetime.now().date()}"
+            f"""
+            PBP Transformation Function Failed,
+            no data available for {datetime.now().date()}
+            """
         )
         return df
     try:
@@ -1312,9 +1377,16 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                     df["Quarter"] = np.select(conditions, values, default=None)
                     df["Quarter"] = df["Quarter"].fillna(method="ffill")
                     df = df.query(
-                        'Time != "Time" & Time != "2nd Q" & Time != "3rd Q" & Time != "4th Q" & Time != "1st OT" & Time != "2nd OT" & Time != "3rd OT" & Time != "4th OT"'
-                    ).copy()  # use COPY to get rid of the fucking goddamn warning bc we filtered stuf out
-                    # anytime you filter out values w/o copying and run code like the lines below it'll throw a warning.
+                        'Time != "Time" & '
+                        'Time != "2nd Q" & '
+                        'Time != "3rd Q" & '
+                        'Time != "4th Q" & '
+                        'Time != "1st OT" & '
+                        'Time != "2nd OT" & '
+                        'Time != "3rd OT" & '
+                        'Time != "4th OT"'
+                    ).copy()
+                    # use COPY to get rid of the fucking goddamn warning
                     df["HomeTeam"] = i
                     df["HomeTeam"] = df["HomeTeam"].str.replace("PHO", "PHX")
                     df["HomeTeam"] = df["HomeTeam"].str.replace("CHO", "CHA")
@@ -1345,9 +1417,13 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                     "(awayscore.notnull()) | (homescore.notnull())", engine="python"
                 )
                 logging.info(
-                    f"PBP Data Transformation Function Successful, retrieving {len(pbp_list)} rows for {datetime.now().date()}"
+                    f"""
+                    PBP Data Transformation Function Successful,
+                    retrieving {len(pbp_list)} rows for {datetime.now().date()}
+                    """
                 )
-                # filtering only scoring plays here, keep other all other rows in future for lineups stuff etc.
+                # filtering only scoring plays here, keep other all other rows in future
+                # for lineups stuff etc.
                 return pbp_list
             except BaseException as error:
                 logging.error(f"PBP Transformation Function Logic Failed, {error}")
@@ -1357,7 +1433,10 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
         else:
             df = pd.DataFrame()
             logging.warning(
-                f"PBP Transformation Function Failed, no data available for {datetime.now().date()}"
+                f"""
+                PBP Transformation Function Failed, no data available
+                for {datetime.now().date()}
+                """
             )
             return df
     except BaseException as error:
@@ -1384,7 +1463,8 @@ def schedule_scraper(
     Web Scrape Function to scrape Schedule data by iterating through a list of months
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether to run this function or not
+        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
+            to run this function or not
 
         year (str) - The year to scrape
 
@@ -1399,7 +1479,7 @@ def schedule_scraper(
         flag=feature_flag, flags_df=feature_flags_df
     )
 
-    if feature_flag_check == False:
+    if feature_flag_check is False:
         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
         df = pd.DataFrame()
         return df
@@ -1450,12 +1530,18 @@ def schedule_scraper(
         )
 
         logging.info(
-            f"Schedule Function Completed for {' '.join(completed_months)}, retrieving {len(schedule_df)} total rows"
+            f"""
+            Schedule Function Completed for {' '.join(completed_months)},
+            retrieving {len(schedule_df)} total rows
+            """
         )
         return schedule_df
-    except IndexError as index_error:
+    except IndexError:
         logging.info(
-            f"{i} currently has no data in basketball-reference, stopping the function and returning data for {' '.join(completed_months)}"
+            f"""
+            {i} currently has no data in basketball-reference,
+            stopping the function and returning data for {' '.join(completed_months)}
+            """
         )
         schedule_df = schedule_df[
             ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
@@ -1502,8 +1588,6 @@ def write_to_s3(
         elif df.schema == "Validated":
             wr.s3.to_parquet(
                 df=df,
-                # 2022-06-21 - use this updated s3 naming convention next season
-                # f"s3://{bucket}/{file_name}/validated/year={datetime.now().year}/month={month_prefix}/{file_name}-{today}.parquet"
                 path=f"s3://{bucket}/{file_name}/validated/year={datetime.now().year}/month={month_prefix}/{file_name}-{datetime.now().date()}.parquet",
                 index=False,
             )
@@ -1538,7 +1622,8 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
 
         df (DataFrame): The Pandas DataFrame to store in SQL
 
-        table_type (str): Whether the table should replace or append to an existing SQL Table under that name
+        table_type (str): Whether the table should replace or append to an
+            existing SQL Table under that name
 
     Returns:
         Writes the Pandas DataFrame to a Table in the Schema we connected to.
@@ -1574,9 +1659,12 @@ def write_to_sql_upsert(
     """
     SQL Table function to upsert a Pandas DataFrame into a SQL Table.
 
-    Will create a new table if it doesn't exist.  If it does, it will insert new records and upsert new column values onto existing records (if applicable).
+    Will create a new table if it doesn't exist.  If it does, it will
+    insert new records and upsert new column values onto existing
+    records (if applicable).
 
-    You have to do some extra index stuff to the pandas df to specify what the primary key of the records is (this data does not get upserted).
+    You have to do some extra index stuff to the pandas df to specify
+    what the primary key of the records is (this data does not get upserted).
 
     Args:
         conn (SQL Connection): The connection to the SQL DB.
@@ -1587,10 +1675,12 @@ def write_to_sql_upsert(
 
         table_type (str): A placeholder which should always be "upsert"
 
-        pd_index (List[str]): The columns that make up the composite primary key of the SQL Table.
+        pd_index (List[str]): The columns that make up the composite
+            primary key of the SQL Table.
 
     Returns:
-        Upserts any new data in the Pandas DataFrame to the table in Postgres in the {nba_source_dev} schema
+        Upserts any new data in the Pandas DataFrame to the table in Postgres
+            in the {nba_source_dev} schema
 
     """
     sql_table_name = f"aws_{table_name}_source"
@@ -1598,7 +1688,8 @@ def write_to_sql_upsert(
         logging.info(f"{sql_table_name} is empty, not storing to SQL")
         pass
     else:
-        # 2 try except blocks bc in event of an error there needs to be different logic to safely exit out and continue script
+        # 2 try except blocks bc in event of an error there needs to be different
+        # logic to safely exit out and continue script
         try:
             df = df.set_index(pd_index)
             df = df.rename_axis(pd_index)
@@ -1615,13 +1706,19 @@ def write_to_sql_upsert(
                 # If the table does not exist, we should just use to_sql to create it
                 df.to_sql(sql_table_name, conn)
                 print(
-                    f"SQL Upsert Function Successful, {len(df)} records added to a NEW TABLE {sql_table_name}"
+                    f"""
+                    SQL Upsert Function Successful, {len(df)} records
+                    added to a NEW TABLE {sql_table_name}
+                    """
                 )
                 pass
         except BaseException as error:
             sentry_sdk.capture_exception(error)
             logging.error(
-                f"SQL Upsert Function Failed for NEW TABLE {sql_table_name} ({len(df)} rows), {error}"
+                f"""
+                SQL Upsert Function Failed for NEW TABLE {sql_table_name}
+                ({len(df)} rows), {error}
+                """
             )
             pass
         else:
@@ -1635,15 +1732,19 @@ def write_to_sql_upsert(
                 columns = list(df.columns)
                 headers = index + columns
                 headers_sql_txt = ", ".join([f'"{i}"' for i in headers])
-                # this is excluding the primary key columns needed to identify the unique rows.
+                # this is excluding the primary key columns needed to identify
+                # the unique rows.
                 update_column_stmt = ", ".join(
                     [f'"{col}" = EXCLUDED."{col}"' for col in columns]
                 )
 
-                # For the ON CONFLICT clause, postgres requires that the columns have unique constraint
+                # For the ON CONFLICT clause, postgres requires that the columns have
+                # unique constraint
                 query_pk = f"""
-                ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS unique_constraint_for_upsert_{table_name};
-                ALTER TABLE "{sql_table_name}" ADD CONSTRAINT unique_constraint_for_upsert_{table_name} UNIQUE ({index_sql_txt});
+                ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS
+                unique_constraint_for_upsert_{table_name};
+                ALTER TABLE "{sql_table_name}" ADD CONSTRAINT
+                unique_constraint_for_upsert_{table_name} UNIQUE ({index_sql_txt});
                 """
 
                 conn.execute(text(query_pk))
@@ -1658,7 +1759,10 @@ def write_to_sql_upsert(
                 conn.execute(text(query_upsert))
                 conn.execute(text(f"DROP TABLE {temp_table_name};"))
                 logging.info(
-                    f"SQL Upsert Function Successful, {len(df)} records added or upserted into {table_name}"
+                    f"""
+                    SQL Upsert Function Successful, {len(df)} records
+                    added or upserted into {table_name}
+                    """
                 )
                 pass
             except BaseException as error:
@@ -1666,7 +1770,10 @@ def write_to_sql_upsert(
 
                 sentry_sdk.capture_exception(error)
                 logging.error(
-                    f"SQL Upsert Function Failed for EXISTING {table_name} ({len(df)} rows), {error}"
+                    f"""
+                    SQL Upsert Function Failed for EXISTING {table_name}
+                    ({len(df)} rows), {error}
+                    """
                 )
                 pass
 
@@ -1679,8 +1786,11 @@ def sql_connection(
     rds_db: str = os.environ.get("RDS_DB"),
 ) -> Engine:
     """
-    SQL Connection function to define the SQL Driver + connection variables needed to connect to the DB.
-    This doesn't actually make the connection, use conn.connect() in a context manager to create 1 re-usable connection
+    SQL Connection function to define the SQL Driver + connection
+    variables needed to connect to the DB.
+
+    This doesn't actually make the connection, use conn.connect()
+    in a context manager to create 1 re-usable connection
 
     Args:
         rds_schema (str): The Schema in the DB to connect to.
@@ -1709,8 +1819,11 @@ def sql_connection(
 
 def send_aws_email(logs: pd.DataFrame) -> None:
     """
-    Email function utilizing boto3, has to be set up with SES in AWS and env variables passed in via Terraform.
-    The actual email code is copied from aws/boto3 and the subject / message should go in the subject / body_html variables.
+    Email function utilizing boto3, has to be set up with SES in AWS
+    and env variables passed in via Terraform.
+
+    The actual email code is copied from aws/boto3 and the subject &
+    message should go in the subject / body_html variables.
 
     Args:
         logs (DataFrame): The log file name generated by the script.
@@ -1721,8 +1834,10 @@ def send_aws_email(logs: pd.DataFrame) -> None:
     sender = os.environ.get("USER_EMAIL")
     recipient = os.environ.get("USER_EMAIL")
     aws_region = "us-east-1"
-    subject = f"NBA ELT PIPELINE - {str(len(logs))} Alert Fails for {str(datetime.now().date())}"
-    body_html = message = f"""\
+    subject = f"""
+    NBA ELT PIPELINE - {str(len(logs))} Alert Fails for {str(datetime.now().date())}
+    """
+    body_html = f"""\
 <h3>Errors:</h3>
                    {logs.to_html()}"""
 
@@ -1760,17 +1875,20 @@ def send_aws_email(logs: pd.DataFrame) -> None:
         logging.info(response["MessageId"])
 
 
-# DEPRECATING this as of 2022-04-25 - i send emails everyday now regardless of pass or fail
+# DEPRECATING this as of 2022-04-25 - i send emails everyday now regardless
+# of pass or fail
 def execute_email_function(logs: pd.DataFrame) -> None:
     """
     Email function that executes the email function upon script finishing.
-    This is really not necessary; originally thought i wouldn't email if no errors would found but now i send it everyday regardless.
+    This is really not necessary; originally thought i wouldn't email
+    if no errors would found but now i send it everyday regardless.
 
     Args:
         logs (DataFrame): The log file name generated by the script.
 
     Returns:
-        Holds the actual send_email logic and executes if invoked as a script (aka on ECS)
+        Holds the actual send_email logic and executes if invoked as a
+            script (aka on ECS)
     """
     try:
         if len(logs) > 0:

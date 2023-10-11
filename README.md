@@ -4,6 +4,17 @@
 
 Version: 1.11.1
 
+## Ingestion Script
+
+The I
+
+## Tests
+To run tests locally, run `make test`.
+
+The same Test Suite is ran after every commit on a PR via GitHub Actions.
+
+## Project
+
 ![NBA ELT Pipeline Data Flow](https://github.com/jyablonski/python_docker/assets/16946556/0b22bce1-6bb4-4bbb-a2a0-a48a16f2ae58)
 
 1. Links to other Repos providing infrastructure for this Project
