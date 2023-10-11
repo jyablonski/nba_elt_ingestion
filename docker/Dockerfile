@@ -22,12 +22,10 @@ RUN useradd --create-home appuser
 WORKDIR /home/appuser
 USER appuser
 
-COPY src/app.py ./app.py
-COPY src/utils.py ./utils.py
-COPY src/schema.py ./schema.py
+COPY src/ ./src
 
 RUN mkdir logs
 RUN cat > logs/example.log
 RUN ["python3", "-c", "import nltk; nltk.download('vader_lexicon')"]
 
-CMD ["python3", "app.py"]
+CMD ["python3", "-m", "src.app"]

@@ -1809,10 +1809,10 @@ def sql_connection(
             # defining schema to connect to
             echo=False,
         )
-        logging.info(f"SQL Connection to schema: {rds_schema} Successful")
+        logging.info(f"SQL Engine for {rds_ip}:5432/{rds_db}/{rds_schema} created")
         return engine
     except exc.SQLAlchemyError as e:
-        logging.error(f"SQL Connection to schema: {rds_schema} Failed, Error: {e}")
+        logging.error(f"SQL Engine for {rds_ip}:5432/{rds_db}/{rds_schema} failed, {e}")
         sentry_sdk.capture_exception(e)
         return e
 
