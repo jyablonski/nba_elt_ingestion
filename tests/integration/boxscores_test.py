@@ -4,7 +4,8 @@ from src.utils import write_to_sql_upsert
 
 
 def test_boxscores_upsert(postgres_conn, boxscores_data):
-    # postgres_conn.execute(statement="truncate table nba_source.aws_boxscores_source;", con=postgres_conn)
+    # postgres_conn.execute(statement="truncate table
+    # nba_source.aws_boxscores_source;", con=postgres_conn)
 
     count_check = "SELECT count(*) FROM nba_source.aws_boxscores_source"
     count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)

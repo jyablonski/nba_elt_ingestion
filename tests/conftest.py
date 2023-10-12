@@ -1,4 +1,31 @@
+import os
+import pickle
 import socket
+import time
+
+import pandas as pd
+import pytest
+from sqlalchemy.engine.base import Engine
+
+from src.utils import (
+    add_sentiment_analysis,
+    clean_player_names,
+    get_advanced_stats_data,
+    get_boxscores_data,
+    get_feature_flags,
+    get_injuries_data,
+    get_opp_stats_data,
+    get_pbp_data,
+    get_player_stats_data,
+    get_reddit_comments,
+    get_shooting_stats_data,
+    get_transactions_data,
+    schedule_scraper,
+    scrape_odds,
+    scrape_tweets_tweepy,
+    sql_connection,
+)
+from src.app import validate_schema
 
 
 def guard(*args, **kwargs):
@@ -7,19 +34,10 @@ def guard(*args, **kwargs):
 
 socket.socket = guard
 
-import os
-import pickle
-import time
-
-import pandas as pd
-import pytest
-from sqlalchemy.engine.base import Engine
-
-from src.utils import *
-from src.app import validate_schema
-
-# pytest tests/scrape_test.py::test_player_stats - use this to test 1 at a time yeet
-## Testing transformation functions from utils.py with custom csv + pickle object fixtures with edge cases
+# pytest tests/scrape_test.py::test_player_stats - use this
+# to test 1 at a time yeet
+# Testing transformation functions from utils.py with custom
+# csv + pickle object fixtures with edge cases
 
 
 # mock s3 / mock ses
@@ -36,11 +54,17 @@ def aws_credentials():
 @pytest.fixture(scope="session")
 def postgres_conn() -> Engine:
     """Fixture to connect to Docker Postgres Container"""
+    # small override for local + docker testing to work fine
+    if os.environ.get("ENV_TYPE") == "docker_dev":
+        host = "postgres"
+    else:
+        host = "localhost"
+
     conn = sql_connection(
         rds_schema="nba_source",
         rds_user="postgres",
         rds_pw="postgres",
-        rds_ip="localhost",
+        rds_ip=host,
         rds_db="postgres",
     )
     with conn.begin() as conn:
@@ -49,7 +73,8 @@ def postgres_conn() -> Engine:
 
 @pytest.fixture(scope="session")
 def get_feature_flags_postgres(postgres_conn: Engine) -> pd.DataFrame:
-    # test suite was shitting itself at the very beginning while trying to run this without a `time.sleep()`
+    # test suite was shitting itself at the very beginning while trying
+    # to run this without a `time.sleep()`
     time.sleep(3)
     feature_flags = get_feature_flags(postgres_conn)
 
@@ -232,7 +257,8 @@ def schedule_data(get_feature_flags_postgres: pd.DataFrame, mocker) -> pd.DataFr
         mock_content = fp.read()
 
     # IT WORKS
-    # you have to first patch the requests.get response, and subsequently the return value of requests.get(url).content
+    # you have to first patch the requests.get response, and subsequently the
+    # return value of requests.get(url).content
     mocker.patch("src.utils.requests.get").return_value.content = mock_content
 
     schedule = schedule_scraper(
@@ -255,7 +281,7 @@ def reddit_comments_data(
     Fixture to load reddit_comments data from a csv file for testing.
     """
     fname = os.path.join(os.path.dirname(__file__), "fixtures/reddit_comments_data.csv")
-    with open(fname, "rb") as fp:
+    with open(fname, "rb"):
         reddit_comments_fixture = pd.read_csv(
             fname, index_col=0
         )  # literally fuck indexes

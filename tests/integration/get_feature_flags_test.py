@@ -12,7 +12,7 @@ def test_get_and_check_feature_flags_postgres(get_feature_flags_postgres):
     )
 
     assert len(get_feature_flags_postgres) == 16
-    assert fake_check == False
-    assert odds_check == True
-    assert playoffs_check == True
-    assert season_check == True
+    assert fake_check is False
+    assert odds_check is True
+    assert playoffs_check is True
+    assert season_check is True

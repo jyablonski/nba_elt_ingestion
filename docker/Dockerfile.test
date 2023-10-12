@@ -11,7 +11,7 @@ COPY poetry.lock .
 
 RUN ./install_packages.sh
 RUN pip install poetry
-RUN poetry install --no-root
+RUN poetry install --no-root --with dev
 
 FROM base AS runtime
 
@@ -22,10 +22,10 @@ RUN useradd --create-home appuser
 WORKDIR /home/appuser
 USER appuser
 
-COPY src/ ./src
+COPY src/app.py ./app.py
+COPY src/utils.py ./utils.py
+COPY src/schema.py ./schema.py
 
 RUN mkdir logs
 RUN cat > logs/example.log
 RUN ["python3", "-c", "import nltk; nltk.download('vader_lexicon')"]
-
-CMD ["python3", "-m", "src.app"]

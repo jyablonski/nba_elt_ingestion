@@ -1,6 +1,6 @@
 source_code:
-- any: ['src/*', 'tests/*']
-  all: ['!src/app.py']
+- src/*
+- tests/*
 
 cd:
 - .github/workflows/deploy.yml

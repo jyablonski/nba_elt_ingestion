@@ -3,15 +3,43 @@ import os
 
 import pandas as pd
 
-try:
-    from .schema import *
-except:
-    from schema import *
+from src.schema import (
+    adv_stats_cols,
+    boxscores_cols,
+    injury_cols,
+    odds_cols,
+    opp_stats_cols,
+    pbp_cols,
+    reddit_cols,
+    reddit_comment_cols,
+    schedule_cols,
+    shooting_stats_cols,
+    stats_cols,
+    transactions_cols,
+    twitter_tweepy_cols,
+)
 
-try:
-    from .utils import *
-except:
-    from utils import *
+from src.utils import (
+    get_advanced_stats_data,
+    get_boxscores_data,
+    get_feature_flags,
+    get_injuries_data,
+    get_opp_stats_data,
+    get_pbp_data,
+    get_player_stats_data,
+    get_reddit_data,
+    get_reddit_comments,
+    get_shooting_stats_data,
+    get_transactions_data,
+    schedule_scraper,
+    scrape_odds,
+    scrape_tweets_combo,
+    send_aws_email,
+    sql_connection,
+    write_to_sql,
+    write_to_sql_upsert,
+    write_to_s3,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,26 +48,27 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.11.1")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.0")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
 def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
     """
-    Schema Validation function to check whether table columns are correct before writing to SQL.
-    Errors are written to Logs
+    Schema Validation function to check whether table columns are correct before
+    writing to SQL. Errors are written to Logs
 
     Args:
         data_df (pd.DataFrame): The Transformed Pandas DataFrame to check
 
         schema (list):  The corresponding columns of the Pandas DataFrame to be checked
     Returns:
-        The same input DataFrame with a schema attribute that is either validated or invalidated
+        The same input DataFrame with a schema attribute that is either validated or
+            invalidated
     """
     data_name = [k for k, v in globals().items() if v is df][0]
     try:
         if len(df) == 0:
-            logging.error(f"df is empty for Schema Validation, skipping")
+            logging.error("df is empty for Schema Validation, skipping")
             return df
         elif list(df.columns) == schema:
             logging.info(f"Schema Validation Passed for {data_name}")
@@ -197,4 +226,4 @@ if __name__ == "__main__":
 
     # STEP 6: Send Email
     send_aws_email(logs)
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.11.1")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.0")

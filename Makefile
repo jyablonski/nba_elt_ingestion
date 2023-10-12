@@ -5,20 +5,16 @@ lint:
 
 .PHONY: create-venv
 create-venv:
-	pipenv install
+	poetry install
 
 .PHONY: venv
 venv:
-	pipenv shell
+	poetry shell
 
 .PHONY: test
 test:
-	@make stop-postgres
-	@make start-postgres
-	@echo Starting Postgres, sleeping for 3 ,,,
-	@sleep 3
-	@pytest -v
-	@make stop-postgres
+	@docker compose -f docker/docker-compose-test.yml down
+	@docker compose -f docker/docker-compose-test.yml up --exit-code-from ingestion_script_test_runner
 
 .PHONY: docker-build
 docker-build:

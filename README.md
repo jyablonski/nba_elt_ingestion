@@ -2,7 +2,24 @@
 
 ![Tests](https://github.com/jyablonski/python_docker/actions/workflows/test.yml/badge.svg) ![ECR Deployment](https://github.com/jyablonski/python_docker/actions/workflows/deploy.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jyablonski/python_docker/badge.svg?branch=master)](https://coveralls.io/github/jyablonski/python_docker?branch=master) ![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)
 
-Version: 1.11.1
+Version: 1.12.0
+
+## Ingestion Script
+
+The Ingestion Script scrapes from the following sources to extract data and load it to PostgreSQL + S3:
+- basketball-reference
+- DraftKings
+- Reddit Comments
+- Twitter Tweets (RIP Q3 2023)
+
+You'll need to configure your own Database credentials, S3 Bucket, and Reddit API Credentials in order for some of the functionality to work.
+
+## Tests
+To run tests locally, run `make test`.
+
+The same Test Suite is ran after every commit on a PR via GitHub Actions.
+
+## Project
 
 ![NBA ELT Pipeline Data Flow](https://github.com/jyablonski/python_docker/assets/16946556/0b22bce1-6bb4-4bbb-a2a0-a48a16f2ae58)
 
