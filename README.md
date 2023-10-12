@@ -6,7 +6,13 @@ Version: 1.12.0
 
 ## Ingestion Script
 
-The I
+The Ingestion Script scrapes from the following sources to extract data and load it to PostgreSQL + S3:
+- basketball-reference
+- DraftKings
+- Reddit Comments
+- Twitter Tweets (RIP Q3 2023)
+
+You'll need to configure your own Database credentials, S3 Bucket, and Reddit API Credentials in order for some of the functionality to work.
 
 ## Tests
 To run tests locally, run `make test`.
