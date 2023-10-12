@@ -1,5 +1,6 @@
 source_code:
-- any: ['src/*', 'tests/*']
+- src/*
+- tests/*
 
 cd:
 - .github/workflows/deploy.yml
