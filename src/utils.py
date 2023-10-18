@@ -1889,7 +1889,7 @@ def query_logs(log_file: str = "logs/example.log") -> list:
     Small Function to read Logs CSV File and grab Errors
 
     Args:
-        log_file (str): The Name of the Log File
+        log_file (str): Optional String of the Log File Name
 
     Returns:
         List of Error Messages to be passed into Slack Function
@@ -1911,7 +1911,7 @@ def write_to_slack(
     to be setup.
 
     Args:
-        errors (list): The Dictionary of Failed Tasks + their associated errors
+        errors (list): The List of Failed Tasks + their associated errors
 
         webhook_url (str): Optional Parameter to specify the Webhook to send the
             errors to.  Defaults to `os.environ.get("WEBHOOK_URL")`
