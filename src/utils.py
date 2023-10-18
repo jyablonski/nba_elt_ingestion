@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import hashlib
+import json
 import logging
 import os
 from typing import List
@@ -34,10 +35,10 @@ def get_season_type(todays_date: datetime.date = datetime.now().date()) -> str:
     Returns:
         The Season Type for Given Date
     """
-    if todays_date < datetime(2023, 4, 9).date():
+    if todays_date < datetime(2024, 4, 15).date():
         season_type = "Regular Season"
-    elif (todays_date >= datetime(2023, 4, 9).date()) & (
-        todays_date < datetime(2023, 4, 15).date()
+    elif (todays_date >= datetime(2024, 4, 16).date()) & (
+        todays_date < datetime(2024, 4, 21).date()
     ):
         season_type = "Play-In"
     else:
@@ -144,7 +145,7 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     # stats = stats.rename(columns={"fg%": "fg_pct", "3p%": "3p_pct",
     # "2p%": "2p_pct", "efg%": "efg_pct", "ft%": "ft_pct"})
     try:
-        year_stats = 2023
+        year_stats = 2024
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_per_game.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
@@ -168,7 +169,7 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         stats = stats.drop("index", axis=1)
         logging.info(
             f"""
-            General Stats Transformation Function Successful,
+            General Stats Transformation Function Successful, \
             retrieving {len(stats)} updated rows
             """
         )
@@ -307,18 +308,14 @@ def get_boxscores_data(
         df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
-            f"""
-            Box Score Transformation Function Successful,
-            retrieving {len(df)} rows for {year}-{month}-{day}
-            """
+            f"""Box Score Transformation Function Successful, \
+            retrieving {len(df)} rows for {year}-{month}-{day}"""
         )
         return df
     except IndexError as error:
         logging.warning(
-            f"""
-            Box Score Extraction Function Failed, {error},
-            no data available for {year}-{month}-{day}
-            """
+            f"""Box Score Extraction Function Failed, {error}, \
+            no data available for {year}-{month}-{day}"""
         )
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
@@ -355,7 +352,7 @@ def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     year = (datetime.now() - timedelta(1)).year
     month = (datetime.now() - timedelta(1)).month
     day = (datetime.now() - timedelta(1)).day
-    year_stats = 2023
+    year_stats = 2024
 
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
@@ -374,10 +371,8 @@ def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = df.reset_index(drop=True)
         df["scrape_date"] = datetime.now().date()
         logging.info(
-            f"""
-            Opp Stats Transformation Function Successful,
-            retrieving {len(df)} rows for {year}-{month}-{day}
-            """
+            f"""Opp Stats Transformation Function Successful, \
+            retrieving {len(df)} rows for {year}-{month}-{day}"""
         )
         return df
     except BaseException as error:
@@ -455,7 +450,7 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     try:
-        url = "https://www.basketball-reference.com/leagues/NBA_2023_transactions.html"
+        url = "https://www.basketball-reference.com/leagues/NBA_2024_transactions.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
         # theres a bunch of garbage in the first 50 rows - no matter what
@@ -489,10 +484,8 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         transactions["scrape_date"] = datetime.now().date()
         transactions = transactions.drop_duplicates()
         logging.info(
-            f"""
-            Transactions Transformation Function Successful,
-            retrieving {len(transactions)} rows
-            """
+            f"""Transactions Transformation Function Successful, \
+            retrieving {len(transactions)} rows"""
         )
         return transactions
     except BaseException as error:
@@ -523,7 +516,7 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = pd.DataFrame()
         return df
 
-    year_stats = 2023
+    year_stats = 2024
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
         df = pd.read_html(url)
@@ -602,7 +595,7 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = pd.DataFrame()
         return df
 
-    year_stats = 2023
+    year_stats = 2024
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_shooting.html"
         df = pd.read_html(url)[0]
@@ -675,10 +668,8 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df["scrape_date"] = datetime.now().date()
         df["scrape_ts"] = datetime.now()
         logging.info(
-            f"""
-            Shooting Stats Transformation Function Successful,
-            retrieving {len(df)} rows
-            """
+            f"""Shooting Stats Transformation Function Successful, \
+            retrieving {len(df)} rows"""
         )
         return df
     except BaseException as error:
@@ -774,10 +765,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             ["team", "spread", "total", "moneyline", "date", "datetime1"]
         ]
         logging.info(
-            f"""
-            Odds Scrape Successful, returning {len(odds_final)} records
-            from {len(odds_final) / 2} games Today
-            """
+            f"""Odds Scrape Successful, returning {len(odds_final)} records \
+            from {len(odds_final) / 2} games Today"""
         )
         return odds_final
     except BaseException as e:
@@ -893,10 +882,8 @@ def get_odds_data() -> pd.DataFrame:
                         "date == date.min()"
                     )  # only grab games from upcoming day
                     logging.info(
-                        f"""
-                        Odds Transformation Function Successful {len(df)} day,
-                        retrieving {len(data)} rows
-                        """
+                        f"""Odds Transformation Function Successful {len(df)} day, \
+                        retrieving {len(data)} rows"""
                     )
                     return data
                 else:  # if there's only 1 day of data then just use that
@@ -929,10 +916,8 @@ def get_odds_data() -> pd.DataFrame:
                         "date == date.min()"
                     )  # only grab games from upcoming day
                     logging.info(
-                        f"""
-                        Odds Transformation Successful {len(df)} day,
-                        retrieving {len(data)} rows
-                        """
+                        f"""Odds Transformation Successful {len(df)} day, \
+                        retrieving {len(data)} rows"""
                     )
                     return data
             except BaseException as error:
@@ -1018,10 +1003,8 @@ def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.Data
         posts.columns = posts.columns.str.lower()
 
         logging.info(
-            f"""
-            Reddit Scrape Successful, grabbing 27 Recent
-            popular posts from r/{sub} subreddit
-            """
+            f"""Reddit Scrape Successful, grabbing 27 Recent \
+            popular posts from r/{sub} subreddit"""
         )
         return posts
     except BaseException as error:
@@ -1118,10 +1101,8 @@ def get_reddit_comments(
         # this hash function lines up with the md5 function in postgres
         # this is needed for the upsert to work on it.
         logging.info(
-            f"""
-            Reddit Comment Extraction Success, retrieving {len(df)}
-            total comments from {len(urls)} total urls
-            """
+            f"""Reddit Comment Extraction Success, retrieving {len(df)} \
+            total comments from {len(urls)} total urls"""
         )
         return df
     except BaseException as e:
@@ -1206,7 +1187,6 @@ def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     try:
-        print("hi")
         df1 = scrape_tweets_tweepy("nba", 1000, "popular")
         df2 = scrape_tweets_tweepy("nba", 5000, "mixed")
 
@@ -1220,11 +1200,9 @@ def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         )
 
         logging.info(
-            f"""
-            Grabbing {len(df1)} Popular Tweets and {len(df2)} Mixed Tweets
-            for {len(df_combo)} Total, {(len(df1) + len(df2) - len(df_combo))}
-            were duplicates
-            """
+            f"""Grabbing {len(df1)} Popular Tweets and {len(df2)} Mixed Tweets \
+            for {len(df_combo)} Total, {(len(df1) + len(df2) - len(df_combo))} \
+            were duplicates"""
         )
         return df_combo
     except BaseException as e:
@@ -1265,10 +1243,8 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
     else:
         df = pd.DataFrame()
         logging.warning(
-            f"""
-            PBP Transformation Function Failed,
-            no data available for {datetime.now().date()}
-            """
+            f"""PBP Transformation Function Failed, \
+            no data available for {datetime.now().date()}"""
         )
         return df
     try:
@@ -1417,10 +1393,8 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                     "(awayscore.notnull()) | (homescore.notnull())", engine="python"
                 )
                 logging.info(
-                    f"""
-                    PBP Data Transformation Function Successful,
-                    retrieving {len(pbp_list)} rows for {datetime.now().date()}
-                    """
+                    f"""PBP Data Transformation Function Successful, \
+                    retrieving {len(pbp_list)} rows for {datetime.now().date()}"""
                 )
                 # filtering only scoring plays here, keep other all other rows in future
                 # for lineups stuff etc.
@@ -1433,10 +1407,8 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
         else:
             df = pd.DataFrame()
             logging.warning(
-                f"""
-                PBP Transformation Function Failed, no data available
-                for {datetime.now().date()}
-                """
+                f""" PBP Transformation Function Failed, no data available \
+                for {datetime.now().date()}"""
             )
             return df
     except BaseException as error:
@@ -1530,18 +1502,14 @@ def schedule_scraper(
         )
 
         logging.info(
-            f"""
-            Schedule Function Completed for {' '.join(completed_months)},
-            retrieving {len(schedule_df)} total rows
-            """
+            f"""Schedule Function Completed for {' '.join(completed_months)}, \
+            retrieving {len(schedule_df)} total rows"""
         )
         return schedule_df
     except IndexError:
         logging.info(
-            f"""
-            {i} currently has no data in basketball-reference,
-            stopping the function and returning data for {' '.join(completed_months)}
-            """
+            f"""{i} currently has no data in basketball-reference, \
+            stopping the function and returning data for {' '.join(completed_months)}"""
         )
         schedule_df = schedule_df[
             ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
@@ -1705,11 +1673,9 @@ def write_to_sql_upsert(
             ).first()[0]:
                 # If the table does not exist, we should just use to_sql to create it
                 df.to_sql(sql_table_name, conn)
-                print(
-                    f"""
-                    SQL Upsert Function Successful, {len(df)} records
-                    added to a NEW TABLE {sql_table_name}
-                    """
+                logging.info(
+                    f"""SQL Upsert Function Successful, {len(df)} records \
+                    added to a NEW TABLE {sql_table_name}"""
                 )
                 pass
         except BaseException as error:
@@ -1759,10 +1725,8 @@ def write_to_sql_upsert(
                 conn.execute(text(query_upsert))
                 conn.execute(text(f"DROP TABLE {temp_table_name};"))
                 logging.info(
-                    f"""
-                    SQL Upsert Function Successful, {len(df)} records
-                    added or upserted into {table_name}
-                    """
+                    f"""SQL Upsert Function Successful, {len(df)} records \
+                    added or upserted into {table_name}"""
                 )
                 pass
             except BaseException as error:
@@ -1770,10 +1734,8 @@ def write_to_sql_upsert(
 
                 sentry_sdk.capture_exception(error)
                 logging.error(
-                    f"""
-                    SQL Upsert Function Failed for EXISTING {table_name}
-                    ({len(df)} rows), {error}
-                    """
+                    f"""SQL Upsert Function Failed for EXISTING {table_name} \
+                    ({len(df)} rows), {error}"""
                 )
                 pass
 
@@ -1817,6 +1779,7 @@ def sql_connection(
         return e
 
 
+# deprecated as of 2023-10-17 rip
 def send_aws_email(logs: pd.DataFrame) -> None:
     """
     Email function utilizing boto3, has to be set up with SES in AWS
@@ -1907,7 +1870,7 @@ def get_feature_flags(connection: Connection) -> pd.DataFrame:
         sql="select * from nba_prod.feature_flags;", con=connection
     )
 
-    print(f"Retrieving {len(flags)} Feature Flags")
+    logging.info(f"Retrieving {len(flags)} Feature Flags")
     return flags
 
 
@@ -1918,3 +1881,66 @@ def check_feature_flag(flag: str, flags_df: pd.DataFrame) -> bool:
         return True
     else:
         return False
+
+
+def query_logs(log_file: str = "logs/example.log") -> list:
+    """
+    Small Function to read Logs CSV File and grab Errors
+
+    Args:
+        log_file (str): Optional String of the Log File Name
+
+    Returns:
+        List of Error Messages to be passed into Slack Function
+    """
+    logs = pd.read_csv(log_file, sep=r"\\t", engine="python", header=None)
+    logs = logs.rename(columns={0: "errors"})
+    logs = logs.query("errors.str.contains('Failed')", engine="python")
+    logs = logs["errors"].to_list()
+
+    logging.info(f"Returning {len(logs)} Failed Logs")
+    return logs
+
+
+def write_to_slack(
+    errors: list, webhook_url: str = os.environ.get("WEBHOOK_URL")
+) -> int | None:
+    """ "
+    Function to write Errors out to Slack.  Requires a pre-configured `webhook_url`
+    to be setup.
+
+    Args:
+        errors (list): The List of Failed Tasks + their associated errors
+
+        webhook_url (str): Optional Parameter to specify the Webhook to send the
+            errors to.  Defaults to `os.environ.get("WEBHOOK_URL")`
+
+    Returns:
+        None, but writes the Errors to Slack if there are any
+    """
+    try:
+        date = datetime.now().date()
+        num_errors = len(errors)
+        str_dump = "\n".join(errors)
+
+        if num_errors > 0:
+            response = requests.post(
+                webhook_url,
+                data=json.dumps(
+                    {
+                        "text": f"""\U0001F6D1 {num_errors} Errors during NBA ELT \
+                        Ingestion on {date}: \n {str_dump}"""
+                    }
+                ),
+                headers={"Content-Type": "application/json"},
+            )
+            logging.info(
+                f"""Wrote Errors to Slack, Reponse Code {response.status_code}. \
+                  Exiting ..."""
+            )
+            return response.status_code
+        else:
+            logging.info("No Error Logs, not writing to Slack.  Exiting out ...")
+            return None
+    except BaseException as e:
+        raise e(f"Couldn't write to Slack URL Endpoint, {e}")

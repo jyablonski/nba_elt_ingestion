@@ -1,0 +1,105 @@
+[ERROR] 2023-06-18 11:32:11 AM Error Occurred for Scrape Tweets Combo, scrape_tweets_tweepy() missing 1 required positional argument: 'result_type'
+[ERROR] 2023-06-18 11:33:06 AM Error Occurred for Scrape Tweets Combo, scrape_tweets_tweepy() missing 1 required positional argument: 'result_type'
+[ERROR] 2023-06-18 11:33:47 AM Error Occurred for Scrape Tweets Tweepy, 403 Forbidden
+453 - You currently have access to a subset of Twitter API v2 endpoints and limited v1.1 endpoints (e.g. media post, oauth) only. If you need access to this endpoint, you may need a different access level. You can learn more here: https://developer.twitter.com/en/portal/product
+[ERROR] 2023-06-18 11:33:47 AM Error Occurred for Scrape Tweets Tweepy, 403 Forbidden
+453 - You currently have access to a subset of Twitter API v2 endpoints and limited v1.1 endpoints (e.g. media post, oauth) only. If you need access to this endpoint, you may need a different access level. You can learn more here: https://developer.twitter.com/en/portal/product
+[ERROR] 2023-06-18 11:33:47 AM Error Occurred for Scrape Tweets Combo, cannot concatenate object of type '<class 'list'>'; only Series and DataFrame objs are valid
+[INFO] 2023-06-18 11:33:58 AM Feature Flag for shooting_stats is disabled, skipping
+[INFO] 2023-06-18 11:33:58 AM Feature Flag shooting_stats is disabled, skipping function
+[INFO] 2023-06-18 03:47:35 PM STARTING NBA ELT PIPELINE SCRIPT Version: 1.10.0
+[INFO] 2023-06-18 03:47:35 PM LOADED FUNCTIONS
+[INFO] 2023-06-18 03:48:11 PM STARTING WEB SCRAPE
+[INFO] 2023-06-18 03:48:11 PM SQL Connection to schema: nba_source Successful
+[INFO] 2023-06-18 03:48:15 PM Reddit Scrape Successful, grabbing 27 Recent popular posts from r/nba subreddit
+[INFO] 2023-06-18 03:49:27 PM Reddit Comment Extraction Success, retrieving 5330 total comments from 27 total urls
+[INFO] 2023-06-18 03:50:00 PM Schema Validation Passed for reddit_data
+[INFO] 2023-06-18 03:50:00 PM Schema Validation Passed for reddit_comment_data
+[INFO] 2023-06-18 03:50:17 PM SQL Upsert Function Successful, 27 records added or upserted into reddit_data
+[INFO] 2023-06-18 03:50:42 PM SQL Upsert Function Successful, 5330 records added or upserted into reddit_comment_data
+[INFO] 2023-06-18 03:50:51 PM Found credentials in shared credentials file: ~/.aws/credentials
+[INFO] 2023-06-18 03:50:51 PM Storing 27 reddit_data rows to S3 (s3://nba-elt-prod/reddit_data/validated/06/reddit_data-2023-06-18.parquet)
+[INFO] 2023-06-18 03:50:51 PM Found credentials in shared credentials file: ~/.aws/credentials
+[INFO] 2023-06-18 03:50:51 PM Storing 5330 reddit_comment_data rows to S3 (s3://nba-elt-prod/reddit_comment_data/validated/06/reddit_comment_data-2023-06-18.parquet)
+[INFO] 2023-09-30 09:40:52 AM STARTING NBA ELT PIPELINE SCRIPT Version: 1.11.0
+[INFO] 2023-09-30 09:40:57 AM LOADED FUNCTIONS
+[INFO] 2023-09-30 09:41:01 AM STARTING WEB SCRAPE
+[INFO] 2023-09-30 09:41:01 AM SQL Connection to schema: nba_source Successful
+[INFO] 2023-09-30 09:46:36 AM STARTING NBA ELT PIPELINE SCRIPT Version: 1.11.0
+[INFO] 2023-09-30 09:46:36 AM LOADED FUNCTIONS
+[INFO] 2023-09-30 09:46:37 AM STARTING WEB SCRAPE
+[INFO] 2023-09-30 09:46:38 AM SQL Connection to schema: nba_source Successful
+[INFO] 2023-09-30 09:46:49 AM Feature Flag stats is disabled, skipping function
+[INFO] 2023-09-30 09:46:49 AM Feature Flag boxscores is disabled, skipping function
+[INFO] 2023-09-30 09:46:49 AM Feature Flag injuries is disabled, skipping function
+[INFO] 2023-09-30 09:46:49 AM Transactions Transformation Function Successful, retrieving 973 rows
+[INFO] 2023-09-30 09:46:49 AM Feature Flag adv_stats is disabled, skipping function
+[INFO] 2023-09-30 09:46:49 AM Feature Flag odds is disabled, skipping function
+[INFO] 2023-09-30 09:46:51 AM Reddit Scrape Successful, grabbing 27 Recent popular posts from r/nba subreddit
+[INFO] 2023-09-30 09:46:51 AM Feature Flag opp_stats is disabled, skipping function
+[INFO] 2023-09-30 09:46:51 AM Feature Flag schedule is disabled, skipping function
+[INFO] 2023-09-30 09:46:51 AM Feature Flag shooting_stats is disabled, skipping function
+[INFO] 2023-09-30 09:46:51 AM Feature Flag twitter is disabled, skipping function
+[ERROR] 2023-09-30 09:47:34 AM Reddit Comment Extraction Failed for url https://www.reddit.com/r/nba/comments/16w6xdf/people_are_overreacting_that_bucks_defense_is/, '<' not supported between instances of 'Redditor' and 'Redditor'
+[INFO] 2023-09-30 09:47:34 AM Feature Flag pbp is disabled, skipping function
+[INFO] 2023-09-30 09:47:34 AM FINISHED WEB SCRAPE
+[INFO] 2023-09-30 09:47:34 AM STARTING SCHEMA VALIDATION
+[ERROR] 2023-09-30 09:52:57 AM Reddit Comment Extraction Failed for url https://www.reddit.com/r/nba/comments/16w6xdf/people_are_overreacting_that_bucks_defense_is/, '<' not supported between instances of 'Redditor' and 'Redditor'
+[INFO] 2023-09-30 10:02:49 AM Reddit Comment Extraction Success, retrieving 6303 total comments from 27 total urls
+[INFO] 2023-09-30 10:06:21 AM Schema Validation Passed for reddit_comment_data
+[INFO] 2023-09-30 10:06:49 AM General Stats Transformation Function Successful, retrieving 679 updated rows
+[INFO] 2023-09-30 10:06:59 AM Transactions Transformation Function Successful, retrieving 973 rows
+[INFO] 2023-09-30 10:07:02 AM Advanced Stats Transformation Function Successful, retrieving updated data for 30 Teams
+[INFO] 2023-09-30 10:07:07 AM No Odds Records available for today's games
+[INFO] 2023-09-30 10:07:11 AM Opp Stats Transformation Function Successful, retrieving 30 rows for 2023-9-29
+[INFO] 2023-09-30 10:08:28 AM Box Score Transformation Function Successful, retrieving 19 rows for 2023-6-12
+[INFO] 2023-09-30 10:08:33 AM PBP Data Transformation Function Successful, retrieving 107 rows for 2023-09-30
+[INFO] 2023-09-30 10:08:41 AM Schema Validation Passed for stats
+[INFO] 2023-09-30 10:08:41 AM Schema Validation Passed for adv_stats
+[INFO] 2023-09-30 10:08:41 AM Schema Validation Passed for boxscores
+[ERROR] 2023-09-30 10:08:43 AM df is empty for Schema Validation, skipping
+[INFO] 2023-09-30 10:08:48 AM Injury Transformation Function Successful, retrieving 11 rows
+[INFO] 2023-09-30 10:08:51 AM Schema Validation Passed for injury_data
+[INFO] 2023-09-30 10:08:57 AM Schema Validation Passed for opp_stats
+[INFO] 2023-09-30 10:08:57 AM Schema Validation Passed for pbp_data
+[INFO] 2023-09-30 10:08:57 AM Schema Validation Passed for reddit_data
+[INFO] 2023-09-30 10:08:57 AM Schema Validation Passed for reddit_comment_data
+[ERROR] 2023-09-30 10:08:57 AM df is empty for Schema Validation, skipping
+[ERROR] 2023-09-30 10:09:01 AM df is empty for Schema Validation, skipping
+[INFO] 2023-09-30 10:09:03 AM Schema Validation Passed for transactions
+[ERROR] 2023-09-30 10:09:05 AM df is empty for Schema Validation, skipping
+[ERROR] 2023-09-30 10:09:08 AM df is empty for Schema Validation, skipping
+[INFO] 2023-09-30 10:09:11 AM Shooting Stats Transformation Function Successful, retrieving 539 rows
+[INFO] 2023-09-30 10:09:14 AM Schema Validation Passed for shooting_stats
+[INFO] 2023-09-30 10:09:20 AM Schedule Function Completed for april, retrieving 121 rows
+[INFO] 2023-09-30 10:09:21 AM Schedule Function Completed for may, retrieving 34 rows
+[INFO] 2023-09-30 10:09:21 AM Schedule Function Completed for june, retrieving 5 rows
+[INFO] 2023-09-30 10:09:21 AM Schedule Function Completed for april may june, retrieving 160 total rows
+[INFO] 2023-09-30 10:09:25 AM Schema Validation Passed for schedule
+[INFO] 2023-09-30 10:10:36 AM SQL Upsert Function Successful, 11 records added or upserted into injury_data
+[INFO] 2023-09-30 10:11:03 AM SQL Upsert Function Successful, 973 records added or upserted into transactions
+[INFO] 2023-09-30 10:11:16 AM SQL Upsert Function Successful, 30 records added or upserted into opp_stats
+[INFO] 2023-09-30 10:11:16 AM SQL Upsert Function Successful, 539 records added or upserted into shooting_stats
+[INFO] 2023-09-30 10:11:38 AM aws_twitter_tweepy_data_source is empty, not storing to SQL
+[INFO] 2023-09-30 10:11:49 AM Found credentials in shared credentials file: ~/.aws/credentials
+[INFO] 2023-09-30 10:13:22 AM Found credentials in shared credentials file: ~/.aws/credentials
+[ERROR] 2023-09-30 10:13:22 AM S3 Storage Function Failed injury_data, An error occurred (NoSuchBucket) when calling the PutObject operation: The specified bucket does not exist
+[INFO] 2023-09-30 10:13:45 AM Found credentials in shared credentials file: ~/.aws/credentials
+[INFO] 2023-09-30 10:13:46 AM Storing 11 injury_data rows to S3 (s3://jyablonski-nba-elt-prod/injury_data/validated/09/injury_data-2023-09-30.parquet)
+[INFO] 2023-09-30 10:14:38 AM Found credentials in shared credentials file: ~/.aws/credentials
+[INFO] 2023-09-30 10:14:38 AM Storing 19 boxscores rows to S3 (s3://jyablonski-nba-elt-prod/boxscores/validated/09/boxscores-2023-09-30.parquet)
+[INFO] 2023-09-30 10:14:40 AM Found credentials in shared credentials file: ~/.aws/credentials
+[INFO] 2023-09-30 10:14:41 AM Storing 30 adv_stats rows to S3 (s3://jyablonski-nba-elt-prod/adv_stats/validated/09/adv_stats-2023-09-30.parquet)
+[INFO] 2023-09-30 10:14:44 AM Found credentials in shared credentials file: ~/.aws/credentials
+[INFO] 2023-09-30 10:14:45 AM Storing 107 pbp_data rows to S3 (s3://jyablonski-nba-elt-prod/pbp_data/validated/09/pbp_data-2023-09-30.parquet)
+[INFO] 2023-09-30 10:14:45 AM Found credentials in shared credentials file: ~/.aws/credentials
+[INFO] 2023-09-30 10:14:45 AM Storing 30 opp_stats rows to S3 (s3://jyablonski-nba-elt-prod/opp_stats/validated/09/opp_stats-2023-09-30.parquet)
+[INFO] 2023-09-30 10:14:57 AM Found credentials in shared credentials file: ~/.aws/credentials
+[INFO] 2023-09-30 10:14:57 AM Email sent! Message ID:
+[INFO] 2023-09-30 10:14:57 AM 0100018ae6a833e9-896611ae-49b9-4901-9f45-e6fada8175ee-000000
+[INFO] 2023-09-30 10:14:57 AM FINISHED NBA ELT PIPELINE SCRIPT Version: 1.11.0
+[INFO] 2023-10-17 06:34:23 PM STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.1
+[INFO] 2023-10-17 06:36:21 PM STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.1
+[INFO] 2023-10-17 06:36:25 PM STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.1
+[INFO] 2023-10-17 06:44:08 PM STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.1
+[INFO] 2023-10-17 07:06:57 PM STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.1
