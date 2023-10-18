@@ -1937,8 +1937,7 @@ def write_to_slack(
             )
             print(
                 f"""Wrote Errors to Slack, Reponse Code {response.status_code}. \
-                  Exiting ...
-                  """
+                  Exiting ..."""
             )
             return response.status_code
         else:
