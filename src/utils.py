@@ -1187,7 +1187,6 @@ def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     try:
-        print("hi")
         df1 = scrape_tweets_tweepy("nba", 1000, "popular")
         df2 = scrape_tweets_tweepy("nba", 5000, "mixed")
 
@@ -1674,7 +1673,7 @@ def write_to_sql_upsert(
             ).first()[0]:
                 # If the table does not exist, we should just use to_sql to create it
                 df.to_sql(sql_table_name, conn)
-                print(
+                logging.info(
                     f"""SQL Upsert Function Successful, {len(df)} records \
                     added to a NEW TABLE {sql_table_name}"""
                 )
@@ -1871,7 +1870,7 @@ def get_feature_flags(connection: Connection) -> pd.DataFrame:
         sql="select * from nba_prod.feature_flags;", con=connection
     )
 
-    print(f"Retrieving {len(flags)} Feature Flags")
+    logging.info(f"Retrieving {len(flags)} Feature Flags")
     return flags
 
 
@@ -1899,7 +1898,7 @@ def query_logs(log_file: str = "logs/example.log") -> list:
     logs = logs.query("errors.str.contains('Failed')", engine="python")
     logs = logs["errors"].to_list()
 
-    print(f"Returning {len(logs)} Failed Logs")
+    logging.info(f"Returning {len(logs)} Failed Logs")
     return logs
 
 
@@ -1935,13 +1934,13 @@ def write_to_slack(
                 ),
                 headers={"Content-Type": "application/json"},
             )
-            print(
+            logging.info(
                 f"""Wrote Errors to Slack, Reponse Code {response.status_code}. \
                   Exiting ..."""
             )
             return response.status_code
         else:
-            print("No Error Logs, not writing to Slack.  Exiting out ...")
+            logging.info("No Error Logs, not writing to Slack.  Exiting out ...")
             return None
     except BaseException as e:
         raise e(f"Couldn't write to Slack URL Endpoint, {e}")
