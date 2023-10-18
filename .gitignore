@@ -1,6 +1,5 @@
 .env
-.log
-*.log
+logs/
 **pycache**
 .coverage
 .coveralls.yml
