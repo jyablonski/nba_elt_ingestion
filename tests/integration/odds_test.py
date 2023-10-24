@@ -9,7 +9,6 @@ def test_odds_upsert(postgres_conn, odds_data):
     count_check = "SELECT count(*) FROM nba_source.aws_odds_source"
     count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)
 
-    # upsert 24 records
     write_to_sql_upsert(postgres_conn, "odds", odds_data, "upsert", ["team", "date"])
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)
@@ -19,5 +18,5 @@ def test_odds_upsert(postgres_conn, odds_data):
     )  # check row count is 1 from the bootstrap
 
     assert (
-        count_check_results_after["count"][0] == 24
-    )  # check row count is 145, 144 new and 1 upsert
+        count_check_results_after["count"][0] == 5
+    )  # check row count is 5, 4 new and 1 upsert
