@@ -753,7 +753,7 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         odds_final["moneyline"] = odds_final["moneyline"].str.strip()
         odds_final["datetime1"] = pd.to_datetime(
             (str(datetime.now().date()) + " " + odds_final["datetime1"]),
-            format="%Y-%m-%d %H:%M %p",
+            format="%Y-%m-%d %H:%M",
         )
         odds_final["total"] = 200
         odds_final["team"] = odds_final["team"].str.replace("BK", "BKN")
