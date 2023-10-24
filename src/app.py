@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.2")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.3")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -101,9 +101,7 @@ if __name__ == "__main__":
     odds = scrape_odds(feature_flags_df=feature_flags)
     reddit_data = get_reddit_data(feature_flags_df=feature_flags, sub="nba")
     opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
-    schedule = schedule_scraper(
-        feature_flags_df=feature_flags, year="2023", month_list=["april", "may", "june"]
-    )
+    schedule = schedule_scraper(feature_flags_df=feature_flags, year="2024")
     shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
     twitter_tweepy_data = scrape_tweets_combo(feature_flags_df=feature_flags)
     reddit_comment_data = get_reddit_comments(
@@ -224,4 +222,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.2")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.3")

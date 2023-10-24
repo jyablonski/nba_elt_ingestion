@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-docker"
-version = "1.12.2"
+version = "1.12.3"
 description = "Ingestion Script for NBA ELT Project"
 authors = ["jyablonski9 <jyablonski9@gmail.com>"]
 readme = "README.md"
