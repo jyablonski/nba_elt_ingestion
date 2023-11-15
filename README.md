@@ -24,7 +24,7 @@ The same Test Suite is ran after every commit on a PR via GitHub Actions.
 ![NBA ELT Pipeline Data Flow](https://github.com/jyablonski/python_docker/assets/16946556/0b22bce1-6bb4-4bbb-a2a0-a48a16f2ae58)
 
 1. Links to other Repos providing infrastructure for this Project
-    * [Shiny Server](https://github.com/jyablonski/NBA-Dashboard)
+    * [Dash Server](https://github.com/jyablonski/nba_elt_dashboard)
     * [dbt](https://github.com/jyablonski/nba_elt_dbt)
     * [Terraform](https://github.com/jyablonski/aws_terraform)
     * [Airflow Proof of Concept](https://github.com/jyablonski/nba_elt_airflow)
