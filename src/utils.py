@@ -94,30 +94,54 @@ def get_leading_zeroes(month: int) -> str:
         return f"0{month}"
 
 
-def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
+# def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
+#     """
+#     Function to remove suffixes from player names for joining downstream.
+#     Assumes the column name is ['player']
+
+#     Args:
+#         df (DataFrame): The DataFrame you wish to alter
+
+#     Returns:
+#         df with transformed player names
+#     """
+#     try:
+#         df["player"] = df["player"].str.replace(" Jr.", "", regex=True)
+#         df["player"] = df["player"].str.replace(" Sr.", "", regex=True)
+#         df["player"] = df["player"].str.replace(
+#             " III", "", regex=True
+#         )  # III HAS TO GO FIRST, OVER II
+#         df["player"] = df["player"].str.replace(
+#             " II", "", regex=True
+#         )  # Robert Williams III -> Robert WilliamsI
+#         df["player"] = df["player"].str.replace(" IV", "", regex=True)
+#         return df
+#     except BaseException as e:
+#         logging.error(f"Error Occurred with clean_player_names, {e}")
+#         sentry_sdk.capture_exception(e)
+
+
+def clean_player_names(name: str) -> str:
     """
-    Function to remove suffixes from player names for joining downstream.
-    Assumes the column name is ['player']
+    Function to remove suffixes from a player name.
 
     Args:
-        df (DataFrame): The DataFrame you wish to alter
+        name (str): The raw player name you wish to alter.
 
     Returns:
-        df with transformed player names
+        str: Cleaned Name w/ no suffix bs
     """
     try:
-        df["player"] = df["player"].str.replace(" Jr.", "", regex=True)
-        df["player"] = df["player"].str.replace(" Sr.", "", regex=True)
-        df["player"] = df["player"].str.replace(
-            " III", "", regex=True
-        )  # III HAS TO GO FIRST, OVER II
-        df["player"] = df["player"].str.replace(
-            " II", "", regex=True
-        )  # Robert Williams III -> Robert WilliamsI
-        df["player"] = df["player"].str.replace(" IV", "", regex=True)
-        return df
+        cleaned_name = (
+            name.replace(" Jr.", "")
+            .replace(" Sr.", "")
+            .replace(" III", "")  # III HAS TO GO FIRST, OVER II
+            .replace(" II", "")  # or else Robert Williams III -> Robert WilliamsI
+            .replace(" IV", "")
+        )
+        return cleaned_name
     except BaseException as e:
-        logging.error(f"Error Occurred with clean_player_names, {e}")
+        logging.error(f"Error Occurred with Clean Player Names, {e}")
         sentry_sdk.capture_exception(e)
 
 
@@ -415,7 +439,7 @@ def get_injuries_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             .str.encode("ascii", errors="ignore")
             .str.decode("utf-8")
         )
-        df = clean_player_names(df)
+        df["player"] = df["player"].apply(clean_player_names)
         df = df.drop_duplicates()
         logging.info(
             f"Injury Transformation Function Successful, retrieving {len(df)} rows"
@@ -664,7 +688,7 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             .str.encode("ascii", errors="ignore")
             .str.decode("utf-8")
         )
-        df = clean_player_names(df)
+        df["player"] = df["player"].apply(clean_player_names)
         df["scrape_date"] = datetime.now().date()
         df["scrape_ts"] = datetime.now()
         logging.info(
@@ -1928,8 +1952,10 @@ def write_to_slack(
                 webhook_url,
                 data=json.dumps(
                     {
-                        "text": f"""\U0001F6D1 {num_errors} Errors during NBA ELT \
-                        Ingestion on {date}: \n {str_dump}"""
+                        "text": (
+                            f"\U0001F6D1 {num_errors} Errors during NBA ELT "
+                            f"Ingestion on {date}: \n {str_dump}"
+                        )
                     }
                 ),
                 headers={"Content-Type": "application/json"},

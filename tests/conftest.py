@@ -9,7 +9,6 @@ from sqlalchemy.engine.base import Engine
 
 from src.utils import (
     add_sentiment_analysis,
-    clean_player_names,
     get_advanced_stats_data,
     get_boxscores_data,
     get_feature_flags,
@@ -316,23 +315,6 @@ def twitter_tweepy_data(mocker) -> pd.DataFrame:
     )
     twitter_data = twitter_data.drop_duplicates(subset=["tweet_id"])
     return twitter_data
-
-
-@pytest.fixture(scope="function")
-def clean_player_names_data() -> pd.DataFrame:
-    df = pd.DataFrame(
-        {
-            "player": [
-                "Marcus Morris Sr.",
-                "Kelly Oubre Jr.",
-                "Gary Payton II",
-                "Robert Williams III",
-                "Lonnie Walker IV",
-            ]
-        }
-    )
-    df = clean_player_names(df)
-    return df
 
 
 @pytest.fixture(scope="function")
