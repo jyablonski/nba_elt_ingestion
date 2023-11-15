@@ -94,33 +94,6 @@ def get_leading_zeroes(month: int) -> str:
         return f"0{month}"
 
 
-# def clean_player_names(df: pd.DataFrame) -> pd.DataFrame:
-#     """
-#     Function to remove suffixes from player names for joining downstream.
-#     Assumes the column name is ['player']
-
-#     Args:
-#         df (DataFrame): The DataFrame you wish to alter
-
-#     Returns:
-#         df with transformed player names
-#     """
-#     try:
-#         df["player"] = df["player"].str.replace(" Jr.", "", regex=True)
-#         df["player"] = df["player"].str.replace(" Sr.", "", regex=True)
-#         df["player"] = df["player"].str.replace(
-#             " III", "", regex=True
-#         )  # III HAS TO GO FIRST, OVER II
-#         df["player"] = df["player"].str.replace(
-#             " II", "", regex=True
-#         )  # Robert Williams III -> Robert WilliamsI
-#         df["player"] = df["player"].str.replace(" IV", "", regex=True)
-#         return df
-#     except BaseException as e:
-#         logging.error(f"Error Occurred with clean_player_names, {e}")
-#         sentry_sdk.capture_exception(e)
-
-
 def clean_player_names(name: str) -> str:
     """
     Function to remove suffixes from a player name.
