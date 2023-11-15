@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.3")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.4")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -222,4 +222,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.3")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.4")
