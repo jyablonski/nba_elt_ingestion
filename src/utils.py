@@ -7,9 +7,7 @@ from typing import List
 import uuid
 
 import awswrangler as wr
-import boto3
 from bs4 import BeautifulSoup
-from botocore.exceptions import ClientError
 from nltk.sentiment import SentimentIntensityAnalyzer
 import numpy as np
 import pandas as pd
@@ -314,13 +312,21 @@ def get_boxscores_data(
         )
         return df
     except IndexError as error:
-        logging.warning(
-            f"""Box Score Extraction Function Failed, {error}, \
-            no data available for {year}-{month}-{day}"""
-        )
-        sentry_sdk.capture_exception(error)
-        df = pd.DataFrame()
-        return df
+        schedule_endpoint = "https://api.jyablonski.dev/yesterdays_schedule"
+        todays_schedule_data = requests.get(schedule_endpoint).json()
+
+        if len(todays_schedule_data) == 0:
+            logging.info("No Games Yesterday to pull Boxscores for")
+            df = pd.DataFrame()
+            return df
+
+        else:
+            logging.error(
+                f"""Boxscore Function Failed, no Data Available yet for {year}-{month}-{day}"""
+            )
+            sentry_sdk.capture_exception(error)
+            df = pd.DataFrame()
+            return df
     except BaseException as error:
         logging.error(f"Box Score Extraction Function Failed, {error}")
         sentry_sdk.capture_exception(error)
