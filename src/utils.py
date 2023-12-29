@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import hashlib
 import json
 import logging
@@ -24,7 +24,7 @@ sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
 
-def get_season_type(todays_date: datetime.date = datetime.now().date()) -> str:
+def get_season_type(todays_date: date | None = None) -> str:
     """
     Function to generate Season Type for a given Date.
 
@@ -35,6 +35,9 @@ def get_season_type(todays_date: datetime.date = datetime.now().date()) -> str:
     Returns:
         The Season Type for Given Date
     """
+    if todays_date is None:
+        todays_date = datetime.now().date()
+
     if todays_date < datetime(2024, 4, 15).date():
         season_type = "Regular Season"
     elif (todays_date >= datetime(2024, 4, 16).date()) & (
@@ -89,7 +92,7 @@ def get_leading_zeroes(month: int) -> str:
             (Nov/Dec aka 11/12 unaffected).
     """
     if len(str(month)) > 1:
-        return month
+        return str(month)
     else:
         return f"0{month}"
 
@@ -116,6 +119,7 @@ def clean_player_names(name: str) -> str:
     except BaseException as e:
         logging.error(f"Error Occurred with Clean Player Names, {e}")
         sentry_sdk.capture_exception(e)
+        raise e
 
 
 def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
@@ -773,165 +777,165 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-def get_odds_data() -> pd.DataFrame:
-    """
-    *********** DEPRECATED AS OF 2022-10-19 ***********
+# def get_odds_data() -> pd.DataFrame:
+#     """
+#     *********** DEPRECATED AS OF 2022-10-19 ***********
 
-    Web Scrape function w/ pandas read_html that grabs current day's
-        nba odds in raw format. There are 2 objects [0], [1] if the days
-        are split into 2.  AWS ECS operates in UTC time so the game start
-        times are actually 5-6+ hours ahead of what they actually are, so
-        there are 2 html tables.
+#     Web Scrape function w/ pandas read_html that grabs current day's
+#         nba odds in raw format. There are 2 objects [0], [1] if the days
+#         are split into 2.  AWS ECS operates in UTC time so the game start
+#         times are actually 5-6+ hours ahead of what they actually are, so
+#         there are 2 html tables.
 
-    Args:
-        None
+#     Args:
+#         None
 
-    Returns:
-        Pandas DataFrame of NBA moneyline + spread odds for upcoming games for that day
-    """
-    year = (datetime.now() - timedelta(1)).year
+#     Returns:
+#         Pandas DataFrame of NBA moneyline + spread odds for upcoming games for that day
+#     """
+#     year = (datetime.now() - timedelta(1)).year
 
-    try:
-        url = "https://sportsbook.draftkings.com/leagues/basketball/nba"
-        df = pd.read_html(url)
-        if len(df) == 0:
-            logging.info("Odds Transformation Failed, no Odds Data available.")
-            df = pd.DataFrame()
-            return df
-        else:
-            try:
-                data1 = df[0].copy()
-                data1.columns.values[0] = "Tomorrow"
-                date_try = str(year) + " " + data1.columns[0]
-                data1["date"] = np.where(
-                    date_try == "2022 Tomorrow",
-                    datetime.now().date(),  # if the above is true, then return this
-                    str(year) + " " + data1.columns[0],  # if false then return this
-                )
-                # )
-                date_try = data1["date"].iloc[0]
-                data1.reset_index(drop=True)
-                data1["Tomorrow"] = data1["Tomorrow"].str.replace(
-                    "LA Clippers", "LAC Clippers", regex=True
-                )
+#     try:
+#         url = "https://sportsbook.draftkings.com/leagues/basketball/nba"
+#         df = pd.read_html(url)
+#         if len(df) == 0:
+#             logging.info("Odds Transformation Failed, no Odds Data available.")
+#             df = pd.DataFrame()
+#             return df
+#         else:
+#             try:
+#                 data1 = df[0].copy()
+#                 data1.columns.values[0] = "Tomorrow"
+#                 date_try = str(year) + " " + data1.columns[0]
+#                 data1["date"] = np.where(
+#                     date_try == "2022 Tomorrow",
+#                     datetime.now().date(),  # if the above is true, then return this
+#                     str(year) + " " + data1.columns[0],  # if false then return this
+#                 )
+#                 # )
+#                 date_try = data1["date"].iloc[0]
+#                 data1.reset_index(drop=True)
+#                 data1["Tomorrow"] = data1["Tomorrow"].str.replace(
+#                     "LA Clippers", "LAC Clippers", regex=True
+#                 )
 
-                data1["Tomorrow"] = data1["Tomorrow"].str.replace(
-                    "AM", "AM ", regex=True
-                )
-                data1["Tomorrow"] = data1["Tomorrow"].str.replace(
-                    "PM", "PM ", regex=True
-                )
-                data1["Time"] = data1["Tomorrow"].str.split().str[0]
-                data1["datetime1"] = (
-                    pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data1["Time"])
-                    - timedelta(hours=6)
-                    + timedelta(days=1)
-                )
-                if len(df) > 1:  # if more than 1 day's data appears then do this
-                    data2 = df[1].copy()
-                    data2.columns.values[0] = "Tomorrow"
-                    data2.reset_index(drop=True)
-                    data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-                        "LA Clippers", "LAC Clippers", regex=True
-                    )
-                    data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-                        "AM", "AM ", regex=True
-                    )
-                    data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-                        "PM", "PM ", regex=True
-                    )
-                    data2["Time"] = data2["Tomorrow"].str.split().str[0]
-                    data2["datetime1"] = (
-                        pd.to_datetime(
-                            date_try.strftime("%Y-%m-%d") + " " + data2["Time"]
-                        )
-                        - timedelta(hours=6)
-                        + timedelta(days=1)
-                    )
-                    data2["date"] = data2["datetime1"].dt.date
+#                 data1["Tomorrow"] = data1["Tomorrow"].str.replace(
+#                     "AM", "AM ", regex=True
+#                 )
+#                 data1["Tomorrow"] = data1["Tomorrow"].str.replace(
+#                     "PM", "PM ", regex=True
+#                 )
+#                 data1["Time"] = data1["Tomorrow"].str.split().str[0]
+#                 data1["datetime1"] = (
+#                     pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data1["Time"])
+#                     - timedelta(hours=6)
+#                     + timedelta(days=1)
+#                 )
+#                 if len(df) > 1:  # if more than 1 day's data appears then do this
+#                     data2 = df[1].copy()
+#                     data2.columns.values[0] = "Tomorrow"
+#                     data2.reset_index(drop=True)
+#                     data2["Tomorrow"] = data2["Tomorrow"].str.replace(
+#                         "LA Clippers", "LAC Clippers", regex=True
+#                     )
+#                     data2["Tomorrow"] = data2["Tomorrow"].str.replace(
+#                         "AM", "AM ", regex=True
+#                     )
+#                     data2["Tomorrow"] = data2["Tomorrow"].str.replace(
+#                         "PM", "PM ", regex=True
+#                     )
+#                     data2["Time"] = data2["Tomorrow"].str.split().str[0]
+#                     data2["datetime1"] = (
+#                         pd.to_datetime(
+#                             date_try.strftime("%Y-%m-%d") + " " + data2["Time"]
+#                         )
+#                         - timedelta(hours=6)
+#                         + timedelta(days=1)
+#                     )
+#                     data2["date"] = data2["datetime1"].dt.date
 
-                    data = pd.concat([data1, data2])
-                    data["SPREAD"] = data["SPREAD"].str[:-4]
-                    data["TOTAL"] = data["TOTAL"].str[:-4]
-                    data["TOTAL"] = data["TOTAL"].str[2:]
-                    data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
-                    data["Tomorrow"] = pd.DataFrame(
-                        [
-                            str(line).strip("[").strip("]").replace("'", "")
-                            for line in data["Tomorrow"]
-                        ]
-                    )
-                    data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
-                    data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
-                    data.columns = data.columns.str.lower()
-                    data = data[
-                        [
-                            "tomorrow",
-                            "spread",
-                            "total",
-                            "moneyline",
-                            "date",
-                            "datetime1",
-                        ]
-                    ]
-                    data = data.rename(columns={data.columns[0]: "team"})
-                    data = data.query(
-                        "date == date.min()"
-                    )  # only grab games from upcoming day
-                    logging.info(
-                        f"""Odds Transformation Function Successful {len(df)} day, \
-                        retrieving {len(data)} rows"""
-                    )
-                    return data
-                else:  # if there's only 1 day of data then just use that
-                    data = data1.reset_index(drop=True)
-                    data["SPREAD"] = data["SPREAD"].str[:-4]
-                    data["TOTAL"] = data["TOTAL"].str[:-4]
-                    data["TOTAL"] = data["TOTAL"].str[2:]
-                    data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
-                    data["Tomorrow"] = pd.DataFrame(
-                        [
-                            str(line).strip("[").strip("]").replace("'", "")
-                            for line in data["Tomorrow"]
-                        ]
-                    )
-                    data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
-                    data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
-                    data.columns = data.columns.str.lower()
-                    data = data[
-                        [
-                            "tomorrow",
-                            "spread",
-                            "total",
-                            "moneyline",
-                            "date",
-                            "datetime1",
-                        ]
-                    ]
-                    data = data.rename(columns={data.columns[0]: "team"})
-                    data = data.query(
-                        "date == date.min()"
-                    )  # only grab games from upcoming day
-                    logging.info(
-                        f"""Odds Transformation Successful {len(df)} day, \
-                        retrieving {len(data)} rows"""
-                    )
-                    return data
-            except BaseException as error:
-                logging.error(
-                    f"Odds Transformation Failed for {len(df)} day objects, {error}"
-                )
-                sentry_sdk.capture_exception(error)
-                data = pd.DataFrame()
-                return data
-    except (
-        BaseException,
-        ValueError,
-    ) as error:  # valueerror fucked shit up apparently idfk
-        logging.error(f"Odds Function Web Scrape Failed, {error}")
-        sentry_sdk.capture_exception(error)
-        df = pd.DataFrame()
-        return df
+#                     data = pd.concat([data1, data2])
+#                     data["SPREAD"] = data["SPREAD"].str[:-4]
+#                     data["TOTAL"] = data["TOTAL"].str[:-4]
+#                     data["TOTAL"] = data["TOTAL"].str[2:]
+#                     data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
+#                     data["Tomorrow"] = pd.DataFrame(
+#                         [
+#                             str(line).strip("[").strip("]").replace("'", "")
+#                             for line in data["Tomorrow"]
+#                         ]
+#                     )
+#                     data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
+#                     data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
+#                     data.columns = data.columns.str.lower()
+#                     data = data[
+#                         [
+#                             "tomorrow",
+#                             "spread",
+#                             "total",
+#                             "moneyline",
+#                             "date",
+#                             "datetime1",
+#                         ]
+#                     ]
+#                     data = data.rename(columns={data.columns[0]: "team"})
+#                     data = data.query(
+#                         "date == date.min()"
+#                     )  # only grab games from upcoming day
+#                     logging.info(
+#                         f"""Odds Transformation Function Successful {len(df)} day, \
+#                         retrieving {len(data)} rows"""
+#                     )
+#                     return data
+#                 else:  # if there's only 1 day of data then just use that
+#                     data = data1.reset_index(drop=True)
+#                     data["SPREAD"] = data["SPREAD"].str[:-4]
+#                     data["TOTAL"] = data["TOTAL"].str[:-4]
+#                     data["TOTAL"] = data["TOTAL"].str[2:]
+#                     data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
+#                     data["Tomorrow"] = pd.DataFrame(
+#                         [
+#                             str(line).strip("[").strip("]").replace("'", "")
+#                             for line in data["Tomorrow"]
+#                         ]
+#                     )
+#                     data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
+#                     data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
+#                     data.columns = data.columns.str.lower()
+#                     data = data[
+#                         [
+#                             "tomorrow",
+#                             "spread",
+#                             "total",
+#                             "moneyline",
+#                             "date",
+#                             "datetime1",
+#                         ]
+#                     ]
+#                     data = data.rename(columns={data.columns[0]: "team"})
+#                     data = data.query(
+#                         "date == date.min()"
+#                     )  # only grab games from upcoming day
+#                     logging.info(
+#                         f"""Odds Transformation Successful {len(df)} day, \
+#                         retrieving {len(data)} rows"""
+#                     )
+#                     return data
+#             except BaseException as error:
+#                 logging.error(
+#                     f"Odds Transformation Failed for {len(df)} day objects, {error}"
+#                 )
+#                 sentry_sdk.capture_exception(error)
+#                 data = pd.DataFrame()
+#                 return data
+#     except (
+#         BaseException,
+#         ValueError,
+#     ) as error:  # valueerror fucked shit up apparently idfk
+#         logging.error(f"Odds Function Web Scrape Failed, {error}")
+#         sentry_sdk.capture_exception(error)
+#         df = pd.DataFrame()
+#         return df
 
 
 def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.DataFrame:
@@ -1615,7 +1619,7 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
 
 
 def write_to_sql_upsert(
-    conn: Engine,
+    conn: Connection,
     table_name: str,
     df: pd.DataFrame,
     table_type: str,
@@ -1739,10 +1743,10 @@ def write_to_sql_upsert(
 
 def sql_connection(
     rds_schema: str,
-    rds_user: str = os.environ.get("RDS_USER"),
-    rds_pw: str = os.environ.get("RDS_PW"),
-    rds_ip: str = os.environ.get("IP"),
-    rds_db: str = os.environ.get("RDS_DB"),
+    rds_user: str = os.environ.get("RDS_USER", "postgres"),
+    rds_pw: str = os.environ.get("RDS_PW", "postgres"),
+    rds_ip: str = os.environ.get("IP", "postgres"),
+    rds_db: str = os.environ.get("RDS_DB", "postgres"),
 ) -> Engine:
     """
     SQL Connection function to define the SQL Driver + connection
@@ -1773,7 +1777,7 @@ def sql_connection(
     except exc.SQLAlchemyError as e:
         logging.error(f"SQL Engine for {rds_ip}:5432/{rds_db}/{rds_schema} failed, {e}")
         sentry_sdk.capture_exception(e)
-        return e
+        raise e
 
 
 # deprecated as of 2023-10-17 rip
@@ -1830,9 +1834,10 @@ def send_aws_email(logs: pd.DataFrame) -> None:
         )
     except ClientError as e:
         logging.error(e.response["Error"]["Message"])
+        raise e
     else:
-        logging.info("Email sent! Message ID:"),
-        logging.info(response["MessageId"])
+        logging.info(f"Email sent! Message ID: {response['MessageId']}")
+        return None
 
 
 # DEPRECATING this as of 2022-04-25 - i send emails everyday now regardless
@@ -1862,7 +1867,7 @@ def execute_email_function(logs: pd.DataFrame) -> None:
         sentry_sdk.capture_exception(error)
 
 
-def get_feature_flags(connection: Connection) -> pd.DataFrame:
+def get_feature_flags(connection: Connection | Engine) -> pd.DataFrame:
     flags = pd.read_sql_query(
         sql="select * from nba_prod.feature_flags;", con=connection
     )
@@ -1900,7 +1905,7 @@ def query_logs(log_file: str = "logs/example.log") -> list:
 
 
 def write_to_slack(
-    errors: list, webhook_url: str = os.environ.get("WEBHOOK_URL")
+    errors: list, webhook_url: str = os.environ.get("WEBHOOK_URL", default="default")
 ) -> int | None:
     """ "
     Function to write Errors out to Slack.  Requires a pre-configured `webhook_url`
@@ -1942,4 +1947,4 @@ def write_to_slack(
             logging.info("No Error Logs, not writing to Slack.  Exiting out ...")
             return None
     except BaseException as e:
-        raise e(f"Couldn't write to Slack URL Endpoint, {e}")
+        raise e

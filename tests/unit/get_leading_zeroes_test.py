@@ -10,4 +10,4 @@ def test_get_leading_zeroes():
 
     assert month_1 == "01"
     assert month_9 == "09"
-    assert month_10 == 10
+    assert month_10 == "10"

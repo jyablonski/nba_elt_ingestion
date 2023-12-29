@@ -89,7 +89,7 @@ logging.info("LOADED FUNCTIONS")
 
 if __name__ == "__main__":
     logging.info("STARTING WEB SCRAPE")
-    conn = sql_connection(os.environ.get("RDS_SCHEMA"))
+    conn = sql_connection(rds_schema=os.environ.get("RDS_SCHEMA", default="default"))
     feature_flags = get_feature_flags(conn)
 
     # STEP 1: Extract Raw Data
