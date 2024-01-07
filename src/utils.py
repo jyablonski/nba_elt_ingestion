@@ -167,10 +167,8 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         stats["scrape_date"] = datetime.now().date()
         stats = stats.drop("index", axis=1)
         logging.info(
-            f"""
-            General Stats Transformation Function Successful, \
-            retrieving {len(stats)} updated rows
-            """
+            "General Stats Transformation Function Successful, "
+            f"retrieving {len(stats)} updated rows"
         )
         return stats
     except BaseException as error:
@@ -311,8 +309,8 @@ def get_boxscores_data(
         df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
-            f"""Box Score Transformation Function Successful, \
-            retrieving {len(df)} rows for {date}"""
+            "Box Score Transformation Function Successful, "
+            f"retrieving {len(df)} rows for {date}"
         )
         return df
     except IndexError as error:
@@ -381,8 +379,8 @@ def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = df.reset_index(drop=True)
         df["scrape_date"] = datetime.now().date()
         logging.info(
-            f"""Opp Stats Transformation Function Successful, \
-            retrieving {len(df)} rows for {year}-{month}-{day}"""
+            "Opp Stats Transformation Function Successful, "
+            f"retrieving {len(df)} rows for {year}-{month}-{day}"
         )
         return df
     except BaseException as error:
@@ -494,8 +492,8 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         transactions["scrape_date"] = datetime.now().date()
         transactions = transactions.drop_duplicates()
         logging.info(
-            f"""Transactions Transformation Function Successful, \
-            retrieving {len(transactions)} rows"""
+            "Transactions Transformation Function Successful, "
+            f"retrieving {len(transactions)} rows"
         )
         return transactions
     except BaseException as error:
@@ -678,8 +676,8 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df["scrape_date"] = datetime.now().date()
         df["scrape_ts"] = datetime.now()
         logging.info(
-            f"""Shooting Stats Transformation Function Successful, \
-            retrieving {len(df)} rows"""
+            "Shooting Stats Transformation Function Successful, "
+            f"retrieving {len(df)} rows"
         )
         return df
     except BaseException as error:
@@ -775,8 +773,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             ["team", "spread", "total", "moneyline", "date", "datetime1"]
         ]
         logging.info(
-            f"""Odds Scrape Successful, returning {len(odds_final)} records \
-            from {len(odds_final) / 2} games Today"""
+            f"Odds Scrape Successful, returning {len(odds_final)} records "
+            f"from {len(odds_final) / 2} games Today"
         )
         return odds_final
     except BaseException as e:
@@ -1017,8 +1015,8 @@ def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.Data
         posts.columns = posts.columns.str.lower()
 
         logging.info(
-            f"""Reddit Scrape Successful, grabbing 27 Recent \
-            popular posts from r/{sub} subreddit"""
+            "Reddit Scrape Successful, grabbing 27 Recent "
+            f"popular posts from r/{sub} subreddit"
         )
         return posts
     except BaseException as error:
@@ -1115,8 +1113,8 @@ def get_reddit_comments(
         # this hash function lines up with the md5 function in postgres
         # this is needed for the upsert to work on it.
         logging.info(
-            f"""Reddit Comment Extraction Success, retrieving {len(df)} \
-            total comments from {len(urls)} total urls"""
+            f"Reddit Comment Extraction Success, retrieving {len(df)} "
+            f"total comments from {len(urls)} total urls"
         )
         return df
     except BaseException as e:
@@ -1214,9 +1212,9 @@ def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         )
 
         logging.info(
-            f"""Grabbing {len(df1)} Popular Tweets and {len(df2)} Mixed Tweets \
-            for {len(df_combo)} Total, {(len(df1) + len(df2) - len(df_combo))} \
-            were duplicates"""
+            f"Grabbing {len(df1)} Popular Tweets and {len(df2)} Mixed Tweets "
+            f"for {len(df_combo)} Total, {(len(df1) + len(df2) - len(df_combo))} "
+            "were duplicates"
         )
         return df_combo
     except BaseException as e:
@@ -1257,8 +1255,8 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
     else:
         df = pd.DataFrame()
         logging.warning(
-            f"""PBP Transformation Function Failed, \
-            no data available for {datetime.now().date()}"""
+            "PBP Transformation Function Failed, "
+            f"no data available for {datetime.now().date()}"
         )
         return df
     try:
@@ -1407,8 +1405,8 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                     "(awayscore.notnull()) | (homescore.notnull())", engine="python"
                 )
                 logging.info(
-                    f"""PBP Data Transformation Function Successful, \
-                    retrieving {len(pbp_list)} rows for {datetime.now().date()}"""
+                    "PBP Data Transformation Function Successful, "
+                    f"retrieving {len(pbp_list)} rows for {datetime.now().date()}"
                 )
                 # filtering only scoring plays here, keep other all other rows in future
                 # for lineups stuff etc.
@@ -1421,8 +1419,8 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
         else:
             df = pd.DataFrame()
             logging.warning(
-                f""" PBP Transformation Function Failed, no data available \
-                for {datetime.now().date()}"""
+                "PBP Transformation Function Failed, no data available "
+                f"for {datetime.now().date()}"
             )
             return df
     except BaseException as error:
@@ -1516,14 +1514,14 @@ def schedule_scraper(
         )
 
         logging.info(
-            f"""Schedule Function Completed for {' '.join(completed_months)}, \
-            retrieving {len(schedule_df)} total rows"""
+            f"Schedule Function Completed for {' '.join(completed_months)}, "
+            f"retrieving {len(schedule_df)} total rows"
         )
         return schedule_df
     except IndexError:
         logging.info(
-            f"""{i} currently has no data in basketball-reference, \
-            stopping the function and returning data for {' '.join(completed_months)}"""
+            f"{i} currently has no data in basketball-reference, "
+            f"stopping the function and returning data for {' '.join(completed_months)}"
         )
         schedule_df = schedule_df[
             ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
@@ -1688,8 +1686,8 @@ def write_to_sql_upsert(
                 # If the table does not exist, we should just use to_sql to create it
                 df.to_sql(sql_table_name, conn)
                 logging.info(
-                    f"""SQL Upsert Function Successful, {len(df)} records \
-                    added to a NEW TABLE {sql_table_name}"""
+                    f"SQL Upsert Function Successful, {len(df)} records "
+                    f"added to a NEW TABLE {sql_table_name}"
                 )
                 pass
         except BaseException as error:
@@ -1739,8 +1737,8 @@ def write_to_sql_upsert(
                 conn.execute(text(query_upsert))
                 conn.execute(text(f"DROP TABLE {temp_table_name};"))
                 logging.info(
-                    f"""SQL Upsert Function Successful, {len(df)} records \
-                    added or upserted into {table_name}"""
+                    f"SQL Upsert Function Successful, {len(df)} records "
+                    f"added or upserted into {table_name}"
                 )
                 pass
             except BaseException as error:
@@ -1748,8 +1746,8 @@ def write_to_sql_upsert(
 
                 sentry_sdk.capture_exception(error)
                 logging.error(
-                    f"""SQL Upsert Function Failed for EXISTING {table_name} \
-                    ({len(df)} rows), {error}"""
+                    f"SQL Upsert Function Failed for EXISTING {table_name} "
+                    f"({len(df)} rows), {error}"
                 )
                 pass
 
@@ -1952,8 +1950,8 @@ def write_to_slack(
                 headers={"Content-Type": "application/json"},
             )
             logging.info(
-                f"""Wrote Errors to Slack, Reponse Code {response.status_code}. \
-                  Exiting ..."""
+                f"Wrote Errors to Slack, Reponse Code {response.status_code}. "
+                "Exiting ..."
             )
             return response.status_code
         else:
