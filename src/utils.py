@@ -318,22 +318,18 @@ def get_boxscores_data(
     except IndexError as error:
         schedule_endpoint = f"https://api.jyablonski.dev/schedule?date={date}"
         schedule_data = requests.get(schedule_endpoint).json()
-        schedule_data_game_date = schedule_data[0]["game_date"]
 
-        # STILL NEED TO ADJUST THIS, line 321 wojnt work if 
-        # there was no data returned bc there's no first row
-        if schedule_data_game_date == date:
+        if len(schedule_data) > 0:
+            logging.error(
+                f"""Box Scores Function Failed, no Data Available yet for {date}"""
+            )
+            df = pd.DataFrame()
+            return df
+        else:
             logging.info(f"No Games were played on {date}; no Box Scores to pull")
             df = pd.DataFrame()
             return df
 
-        else:
-            logging.error(
-                f"""Box Scores Function Failed, no Data Available yet for {date}"""
-            )
-            sentry_sdk.capture_exception(error)
-            df = pd.DataFrame()
-            return df
     except BaseException as error:
         logging.error(f"Box Scores Function Failed, {error}")
         sentry_sdk.capture_exception(error)

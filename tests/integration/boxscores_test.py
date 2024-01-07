@@ -6,9 +6,7 @@ import pandas as pd
 from src.utils import get_boxscores_data, write_to_sql_upsert
 
 
-def test_get_boxscores_data_no_data_available(
-    mocker, get_feature_flags_postgres, schedule_mock_data, caplog
-):
+def test_get_boxscores_data_no_games_played(mocker, get_feature_flags_postgres, caplog):
     fname = os.path.join(
         os.path.dirname(__file__), "../fixtures/boxscores_no_data.html"
     )
@@ -19,7 +17,7 @@ def test_get_boxscores_data_no_data_available(
     mock_get.return_value.content = mock_content
     mock_json = mocker.MagicMock()
     mock_get.return_value.json = mock_json
-    mock_json.return_value = schedule_mock_data
+    mock_json.return_value = []
 
     # Clear existing logs and enable log capturing
     caplog.clear()
@@ -29,14 +27,11 @@ def test_get_boxscores_data_no_data_available(
         feature_flags_df=get_feature_flags_postgres, day=2, month=1, year=2024
     )
 
-    assert (
-        "Box Scores Function Failed, no Data Available yet for 2024-01-02"
-        in caplog.text
-    )
+    assert "No Games were played on 2024-01-02; no Box Scores to pull" in caplog.text
     assert len(boxscores) == 0
 
 
-def test_get_boxscores_data_no_games_played(
+def test_get_boxscores_data_no_data_available(
     mocker, get_feature_flags_postgres, schedule_mock_data, caplog
 ):
     fname = os.path.join(
@@ -60,7 +55,10 @@ def test_get_boxscores_data_no_games_played(
     )
 
     # Assert on log messages
-    assert "No Games were played on 2024-01-01; no Box Scores to pull" in caplog.text
+    assert (
+        "Box Scores Function Failed, no Data Available yet for 2024-01-01"
+        in caplog.text
+    )
     assert len(boxscores) == 0
 
 
