@@ -312,7 +312,7 @@ def get_boxscores_data(
         df.columns = df.columns.str.lower()
         logging.info(
             f"""Box Score Transformation Function Successful, \
-            retrieving {len(df)} rows for date"""
+            retrieving {len(df)} rows for {date}"""
         )
         return df
     except IndexError as error:
