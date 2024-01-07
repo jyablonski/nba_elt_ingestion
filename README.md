@@ -27,7 +27,6 @@ The same Test Suite is ran after every commit on a PR via GitHub Actions.
     * [Dash Server](https://github.com/jyablonski/nba_elt_dashboard)
     * [dbt](https://github.com/jyablonski/nba_elt_dbt)
     * [Terraform](https://github.com/jyablonski/aws_terraform)
-    * [Airflow Proof of Concept](https://github.com/jyablonski/nba_elt_airflow)
     * [ML Pipeline](https://github.com/jyablonski/nba_elt_mlflow)
     * [REST API](https://github.com/jyablonski/nba_elt_rest_api)
  
