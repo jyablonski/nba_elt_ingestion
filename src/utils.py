@@ -320,6 +320,8 @@ def get_boxscores_data(
         schedule_data = requests.get(schedule_endpoint).json()
         schedule_data_game_date = schedule_data[0]["game_date"]
 
+        # STILL NEED TO ADJUST THIS, line 321 wojnt work if 
+        # there was no data returned bc there's no first row
         if schedule_data_game_date == date:
             logging.info(f"No Games were played on {date}; no Box Scores to pull")
             df = pd.DataFrame()
