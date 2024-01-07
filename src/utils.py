@@ -77,22 +77,22 @@ def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame
         raise e
 
 
-def get_leading_zeroes(month: int) -> str:
+def get_leading_zeroes(value: int) -> str:
     """
     Function to add leading zeroes to a month (1 (January) -> 01).
     Used in the the `write_to_s3` function.
 
     Args:
-        month (int): The month integer (created from `datetime.now().month`)
+        value (int): The value integer (created from `datetime.now().month`)
 
     Returns:
-        The same month integer with a leading 0 if it is less than 10
+        The same value integer with a leading 0 if it is less than 10
             (Nov/Dec aka 11/12 unaffected).
     """
-    if len(str(month)) > 1:
-        return str(month)
+    if len(str(value)) > 1:
+        return str(value)
     else:
-        return f"0{month}"
+        return f"0{value}"
 
 
 def clean_player_names(name: str) -> str:
@@ -189,7 +189,7 @@ def get_boxscores_data(
     """
     Function that grabs box scores from a given date in mmddyyyy
     format - defaults to yesterday.  values can be ex. 1 or 01.
-    Can't use read_html for this so this is raw web scraping baby.
+    Can't use `read_html` for this so this is raw web scraping baby.
 
     Args:
         feature_flags_df (pd.DataFrame): Feature Flags DataFrame to
@@ -204,6 +204,9 @@ def get_boxscores_data(
     Returns:
         DataFrame of Player Aggregate Season stats
     """
+    day = get_leading_zeroes(value=day)
+    month = get_leading_zeroes(value=month)
+
     feature_flag = "boxscores"
     feature_flag_check = check_feature_flag(
         flag=feature_flag, flags_df=feature_flags_df
@@ -216,6 +219,7 @@ def get_boxscores_data(
 
     url = f"https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={month}&day={day}&year={year}&type=all"
     season_type = get_season_type()
+    date = f"{year}-{month}-{day}"
 
     try:
         html = requests.get(url).content
@@ -289,7 +293,7 @@ def get_boxscores_data(
         df["date"] = str(year) + "-" + str(month) + "-" + str(day)
         df["date"] = pd.to_datetime(df["date"])
         df["Type"] = season_type
-        df["Season"] = 2022
+        df["Season"] = 2022  # this isn't being used so whatever
         df["Location"] = df["Location"].apply(lambda x: "A" if x == "@" else "H")
         df["Team"] = df["Team"].str.replace("PHO", "PHX")
         df["Team"] = df["Team"].str.replace("CHO", "CHA")
@@ -308,27 +312,28 @@ def get_boxscores_data(
         df.columns = df.columns.str.lower()
         logging.info(
             f"""Box Score Transformation Function Successful, \
-            retrieving {len(df)} rows for {year}-{month}-{day}"""
+            retrieving {len(df)} rows for date"""
         )
         return df
     except IndexError as error:
-        schedule_endpoint = "https://api.jyablonski.dev/yesterdays_schedule"
-        todays_schedule_data = requests.get(schedule_endpoint).json()
+        schedule_endpoint = f"https://api.jyablonski.dev/schedule?date={date}"
+        schedule_data = requests.get(schedule_endpoint).json()
+        schedule_data_game_date = schedule_data[0]["game_date"]
 
-        if len(todays_schedule_data) == 0:
-            logging.info("No Games Yesterday to pull Boxscores for")
+        if schedule_data_game_date == date:
+            logging.info(f"No Games were played on {date}; no Box Scores to pull")
             df = pd.DataFrame()
             return df
 
         else:
             logging.error(
-                f"""Boxscore Function Failed, no Data Available yet for {year}-{month}-{day}"""
+                f"""Box Scores Function Failed, no Data Available yet for {date}"""
             )
             sentry_sdk.capture_exception(error)
             df = pd.DataFrame()
             return df
     except BaseException as error:
-        logging.error(f"Box Score Extraction Function Failed, {error}")
+        logging.error(f"Box Scores Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
         return df
@@ -797,7 +802,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
 #         None
 
 #     Returns:
-#         Pandas DataFrame of NBA moneyline + spread odds for upcoming games for that day
+#         Pandas DataFrame of NBA moneyline + spread odds for upcoming games
+#    for that day
 #     """
 #     year = (datetime.now() - timedelta(1)).year
 
@@ -833,7 +839,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
 #                 )
 #                 data1["Time"] = data1["Tomorrow"].str.split().str[0]
 #                 data1["datetime1"] = (
-#                     pd.to_datetime(date_try.strftime("%Y-%m-%d") + " " + data1["Time"])
+#                     pd.to_datetime(date_try.strftime("%Y-%m-%d") + " "
+#                                   + data1["Time"])
 #                     - timedelta(hours=6)
 #                     + timedelta(days=1)
 #                 )
@@ -871,7 +878,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
 #                             for line in data["Tomorrow"]
 #                         ]
 #                     )
-#                     data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
+#                     data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1",
+#                           regex=True)
 #                     data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
 #                     data.columns = data.columns.str.lower()
 #                     data = data[
@@ -905,7 +913,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
 #                             for line in data["Tomorrow"]
 #                         ]
 #                     )
-#                     data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1", regex=True)
+#                     data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1",
+#                        regex=True)
 #                     data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
 #                     data.columns = data.columns.str.lower()
 #                     data = data[
