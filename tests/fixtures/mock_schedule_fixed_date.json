@@ -1,0 +1,82 @@
+[
+    {
+        "game_date": "2024-01-01",
+        "day_name": "Monday",
+        "start_time": "3:00 PM",
+        "avg_team_rank": 6,
+        "home_team": "New York Knicks",
+        "home_moneyline_raw": 105,
+        "away_team": "Minnesota Timberwolves",
+        "away_moneyline_raw": -125
+    },
+    {
+        "game_date": "2024-01-01",
+        "day_name": "Monday",
+        "start_time": "7:30 PM",
+        "avg_team_rank": 18,
+        "home_team": "Toronto Raptors",
+        "home_moneyline_raw": -125,
+        "away_team": "Cleveland Cavaliers",
+        "away_moneyline_raw": 105
+    },
+    {
+        "game_date": "2024-01-01",
+        "day_name": "Monday",
+        "start_time": "8:00 PM",
+        "avg_team_rank": 23,
+        "home_team": "Houston Rockets",
+        "home_moneyline_raw": -325,
+        "away_team": "Detroit Pistons",
+        "away_moneyline_raw": 250
+    },
+    {
+        "game_date": "2024-01-01",
+        "day_name": "Monday",
+        "start_time": "8:00 PM",
+        "avg_team_rank": 8,
+        "home_team": "Milwaukee Bucks",
+        "home_moneyline_raw": -325,
+        "away_team": "Indiana Pacers",
+        "away_moneyline_raw": 250
+    },
+    {
+        "game_date": "2024-01-01",
+        "day_name": "Monday",
+        "start_time": "9:00 PM",
+        "avg_team_rank": 15,
+        "home_team": "Denver Nuggets",
+        "home_moneyline_raw": -1250,
+        "away_team": "Charlotte Hornets",
+        "away_moneyline_raw": 800
+    },
+    {
+        "game_date": "2024-01-01",
+        "day_name": "Monday",
+        "start_time": "9:00 PM",
+        "avg_team_rank": 14,
+        "home_team": "Utah Jazz",
+        "home_moneyline_raw": 130,
+        "away_team": "Dallas Mavericks",
+        "away_moneyline_raw": -160
+    },
+    {
+        "game_date": "2024-01-01",
+        "day_name": "Monday",
+        "start_time": "9:00 PM",
+        "avg_team_rank": 21,
+        "home_team": "Phoenix Suns",
+        "home_moneyline_raw": -625,
+        "away_team": "Portland Trail Blazers",
+        "away_moneyline_raw": 450
+    },
+    {
+        "game_date": "2024-01-01",
+        "day_name": "Monday",
+        "start_time": "10:30 PM",
+        "avg_team_rank": 11,
+        "home_team": "Los Angeles Clippers",
+        "home_moneyline_raw": -275,
+        "away_team": "Miami Heat",
+        "away_moneyline_raw": 220
+    }
+]

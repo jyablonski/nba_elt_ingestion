@@ -1,3 +1,4 @@
+import json
 import os
 import pickle
 import socket
@@ -355,3 +356,18 @@ def feature_flags_dataframe() -> pd.DataFrame:
     """
     df = pd.DataFrame(data={"flag": ["season", "playoffs"], "is_enabled": [1, 0]})
     return df
+
+
+@pytest.fixture(scope="function")
+def schedule_mock_data() -> dict:
+    """
+    Fixture to load player stats data from a csv file for testing.
+    """
+    fname = os.path.join(
+        os.path.dirname(__file__), "fixtures/mock_schedule_fixed_date.json"
+    )
+    with open(fname, "r") as file:
+        mock_json_data = file.read()
+
+    data = json.loads(mock_json_data)
+    return data

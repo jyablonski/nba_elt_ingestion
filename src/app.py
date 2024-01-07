@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.4")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.5")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -89,7 +89,7 @@ logging.info("LOADED FUNCTIONS")
 
 if __name__ == "__main__":
     logging.info("STARTING WEB SCRAPE")
-    conn = sql_connection(os.environ.get("RDS_SCHEMA"))
+    conn = sql_connection(rds_schema=os.environ.get("RDS_SCHEMA", default="default"))
     feature_flags = get_feature_flags(conn)
 
     # STEP 1: Extract Raw Data
@@ -222,4 +222,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.4")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.5")
