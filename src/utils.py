@@ -3,7 +3,7 @@ import hashlib
 import json
 import logging
 import os
-from typing import List
+import re
 import uuid
 
 import awswrangler as wr
@@ -21,6 +21,37 @@ import tweepy
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
+def clean_odds_spread(spread: str):
+    """
+    Function to clean Spread Values during
+    Odds Scrape.  It sometimes need to be cleaned
+    because the scrape picks up the over/under total
+    occasionally.
+
+    Args:
+        spread (str): The spread value.  ex.
+            `-4.5` or `11.0`
+        
+    Returns:
+        Cleaned spread value incase the web scrape
+        picked up extra bits.
+    """
+    # ^: Asserts the start of the string.
+    # [+-]?: Matches an optional positive (+) or negative (-) sign. The ? makes the sign optional.
+    # \d+: Matches one or more digits. \d represents any digit (0-9).
+    # \.: Matches the decimal point.
+    # \d+: Matches one or more digits after the decimal point.
+    # $: Asserts the end of the string.
+    # ex. 123.45", "-0.123", "3.14
+    pattern = r'^[+-]?\d+\.\d+$'
+
+    # Check if the spread matches the pattern
+    match = re.match(pattern, spread)
+
+    if match:
+        return spread
+    else:
+        return spread.split()[0]
 
 def get_season_type(todays_date: date | None = None) -> str:
     """
@@ -769,6 +800,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             "\\+", "", regex=True
         )
         odds_final["moneyline"] = odds_final["moneyline"].astype("int")
+        # applying the clean_odds_spread function to the "spread" column
+        odds_final["spread"] = odds_final["spread"].apply(clean_odds_spread)
         odds_final = odds_final[
             ["team", "spread", "total", "moneyline", "date", "datetime1"]
         ]
@@ -1433,7 +1466,7 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
 def schedule_scraper(
     feature_flags_df: pd.DataFrame,
     year: str,
-    month_list: List[str] = [
+    month_list: list[str] = [
         "october",
         "november",
         "december",
@@ -1634,7 +1667,7 @@ def write_to_sql_upsert(
     table_name: str,
     df: pd.DataFrame,
     table_type: str,
-    pd_index: List[str],
+    pd_index: list[str],
 ) -> None:
     """
     SQL Table function to upsert a Pandas DataFrame into a SQL Table.
@@ -1655,7 +1688,7 @@ def write_to_sql_upsert(
 
         table_type (str): A placeholder which should always be "upsert"
 
-        pd_index (List[str]): The columns that make up the composite
+        pd_index (list[str]): The columns that make up the composite
             primary key of the SQL Table.
 
     Returns:
@@ -1904,7 +1937,7 @@ def query_logs(log_file: str = "logs/example.log") -> list:
         log_file (str): Optional String of the Log File Name
 
     Returns:
-        List of Error Messages to be passed into Slack Function
+        list of Error Messages to be passed into Slack Function
     """
     logs = pd.read_csv(log_file, sep=r"\\t", engine="python", header=None)
     logs = logs.rename(columns={0: "errors"})
@@ -1923,7 +1956,7 @@ def write_to_slack(
     to be setup.
 
     Args:
-        errors (list): The List of Failed Tasks + their associated errors
+        errors (list): The list of Failed Tasks + their associated errors
 
         webhook_url (str): Optional Parameter to specify the Webhook to send the
             errors to.  Defaults to `os.environ.get("WEBHOOK_URL")`
