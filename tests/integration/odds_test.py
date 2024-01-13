@@ -18,5 +18,5 @@ def test_odds_upsert(postgres_conn, odds_data):
     )  # check row count is 1 from the bootstrap
 
     assert (
-        count_check_results_after["count"][0] == 5
+        count_check_results_after["count"][0] == 17
     )  # check row count is 5, 4 new and 1 upsert

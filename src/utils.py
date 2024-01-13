@@ -3,7 +3,7 @@ import hashlib
 import json
 import logging
 import os
-from typing import List
+import re
 import uuid
 
 import awswrangler as wr
@@ -20,6 +20,31 @@ import tweepy
 
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
+
+
+def filter_spread(value: str) -> str:
+    """
+    Filter out 3-digit values from the `spread` column
+    in the Scrape Odds Function such as `-108` or `-112`
+
+    Parameters:
+        value (str): The original value from the spread column.
+
+    Returns:
+        The spread value without any 3-digit values present
+    """
+    parts = value.split()
+    filtered_parts = [
+        part
+        if (part[0] in ["+", "-"] and float(part[1:]) <= 25)
+        or (part.isdigit() and int(part) <= 25)
+        else ""
+        for part in parts
+    ]
+    result = " ".join(filtered_parts).strip()
+
+    # this last part strips out a couple extra white spaces
+    return re.sub(r'\s+', ' ', result)
 
 
 def get_season_type(todays_date: date | None = None) -> str:
@@ -712,46 +737,51 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         url = "https://www.covers.com/sport/basketball/nba/odds"
         df = pd.read_html(url)
         odds = df[0]
-        odds["spread"] = df[3]["Unnamed: 1"]
-        odds["moneyline"] = df[1]["Unnamed: 1"]
-        odds = odds[["Time (ET)", "Game (ET)", "spread", "moneyline"]]
-        odds = odds.rename(columns={"Time (ET)": "datetime1", "Game (ET)": "team"})
-        odds = (
-            odds.query("datetime1 != 'FINAL'", engine="python")
-            .query("datetime1 == datetime1")
-            .query("datetime1.str.contains('Today')", engine="python")
-            .copy()
+        odds["spread"] = df[3]["Unnamed: 4"]
+        odds = odds[["Time (ET)  Game  Props  Open", "Unnamed: 4", "spread"]]
+        odds = odds.rename(
+            columns={
+                "Time (ET)  Game  Props  Open": "datetime1",
+                "Unnamed: 4": "moneyline",
+            }
         )
+        odds = odds.query(
+            "datetime1 != 'FINAL' and datetime1 == datetime1 and datetime1.str.contains('Today')",
+            engine="python",
+        ).copy()
         # ^ this logic removes old games, removes null rows, and filters to
         #  only grab records for today's games
         if len(odds) == 0:
             logging.info("No Odds Records available for today's games")
             return []
 
-        # each row has data for both teams, so i filter it down by using the whitespace
-        odds["spread"] = odds["spread"].str.replace("PK", "-1.0")
-        odds["spread"] = odds["spread"].str.replace("\\+ ", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace(" \\+ ", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace(" \\+", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace("95", "")
-        odds["spread"] = odds["spread"].str.replace("\\+95", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace("100", "")
-        odds["spread"] = odds["spread"].str.replace("\\+100", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace("-105", "")
-        odds["spread"] = odds["spread"].str.replace("-110", "")
-        odds["spread"] = odds["spread"].str.replace("-115", "")
-        odds["spread"] = odds["spread"].str.replace("-120", "")
-        odds["spread"] = odds["spread"].str.replace("-125", "")
+        odds["spread"] = odds["spread"].apply(filter_spread)
+        odds["spread"] = odds["spread"].apply(lambda x: " ".join(x.split()))
         odds["datetime1"] = odds["datetime1"].str.replace("Today, ", "")
-        odds_split = odds[["datetime1", "team", "spread", "moneyline"]]
-        odds_final = odds_split.copy()
+        odds_final = odds[["datetime1", "spread", "moneyline"]].copy()
+
+        # \b: Word boundary anchor, ensures that the match occurs at a word boundary.
+        # (: Start of a capturing group.
+        # [A-Z]: Character class matching any uppercase letter from 'A' to 'Z'.
+        # {2,3}: Quantifier specifying that the preceding character class [A-Z] should appear 2 to 3 times.
+        # ): End of the capturing group.
+        # \b: Word boundary anchor, again ensuring that the match occurs at a word boundary.
+
+        pattern = r"\b([A-Z]{2,3})\b"
+
+        odds_final["team"] = (
+            odds_final["datetime1"]
+            .str.extractall(pattern)
+            .unstack()
+            .apply(lambda x: " ".join(x.dropna()), axis=1)
+        )
+
         # turning the space separated elements in a list, then exploding that list
         odds_final["team"] = odds_final["team"].str.split(" ", n=1, expand=False)
         odds_final["spread"] = odds_final["spread"].str.split(" ", n=1, expand=False)
         odds_final["moneyline"] = odds_final["moneyline"].str.split(
             " ", n=1, expand=False
         )
-        # # odds_final.set_index(['teams'])
         odds_final = odds_final.explode(["team", "spread", "moneyline"]).reset_index()
         odds_final = odds_final.drop("index", axis=1)
         odds_final["date"] = datetime.now().date()
@@ -759,10 +789,12 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             "spread"
         ].str.strip()  # strip trailing and leading spaces
         odds_final["moneyline"] = odds_final["moneyline"].str.strip()
+        odds_final["time"] = odds_final["datetime1"].str.split().str[1]
         odds_final["datetime1"] = pd.to_datetime(
-            (str(datetime.now().date()) + " " + odds_final["datetime1"]),
+            (datetime.now().date().strftime("%Y-%m-%d") + " " + odds_final["time"]),
             format="%Y-%m-%d %H:%M",
         )
+
         odds_final["total"] = 200
         odds_final["team"] = odds_final["team"].str.replace("BK", "BKN")
         odds_final["moneyline"] = odds_final["moneyline"].str.replace(
@@ -774,7 +806,7 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         ]
         logging.info(
             f"Odds Scrape Successful, returning {len(odds_final)} records "
-            f"from {len(odds_final) / 2} games Today"
+            f"from {len(odds_final) // 2} games Today"
         )
         return odds_final
     except BaseException as e:
@@ -1433,7 +1465,7 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
 def schedule_scraper(
     feature_flags_df: pd.DataFrame,
     year: str,
-    month_list: List[str] = [
+    month_list: list[str] = [
         "october",
         "november",
         "december",
@@ -1634,7 +1666,7 @@ def write_to_sql_upsert(
     table_name: str,
     df: pd.DataFrame,
     table_type: str,
-    pd_index: List[str],
+    pd_index: list[str],
 ) -> None:
     """
     SQL Table function to upsert a Pandas DataFrame into a SQL Table.
@@ -1655,7 +1687,7 @@ def write_to_sql_upsert(
 
         table_type (str): A placeholder which should always be "upsert"
 
-        pd_index (List[str]): The columns that make up the composite
+        pd_index (list[str]): The columns that make up the composite
             primary key of the SQL Table.
 
     Returns:
@@ -1904,7 +1936,7 @@ def query_logs(log_file: str = "logs/example.log") -> list:
         log_file (str): Optional String of the Log File Name
 
     Returns:
-        List of Error Messages to be passed into Slack Function
+        list of Error Messages to be passed into Slack Function
     """
     logs = pd.read_csv(log_file, sep=r"\\t", engine="python", header=None)
     logs = logs.rename(columns={0: "errors"})
@@ -1923,7 +1955,7 @@ def write_to_slack(
     to be setup.
 
     Args:
-        errors (list): The List of Failed Tasks + their associated errors
+        errors (list): The list of Failed Tasks + their associated errors
 
         webhook_url (str): Optional Parameter to specify the Webhook to send the
             errors to.  Defaults to `os.environ.get("WEBHOOK_URL")`
