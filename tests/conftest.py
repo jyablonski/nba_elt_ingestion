@@ -91,7 +91,9 @@ def get_feature_flags_postgres(postgres_conn: Engine) -> pd.DataFrame:
 
 
 @pytest.fixture(scope="function")
-def player_stats_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture) -> pd.DataFrame:
+def player_stats_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
+) -> pd.DataFrame:
     """
     Fixture to load player stats data from an html file for testing.
     """
@@ -107,7 +109,9 @@ def player_stats_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFi
 
 
 @pytest.fixture(scope="function")
-def boxscores_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture) -> pd.DataFrame:
+def boxscores_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
+) -> pd.DataFrame:
     """
     Fixture to load boxscores data from an html file for testing.
     """
@@ -122,7 +126,9 @@ def boxscores_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixtu
 
 
 @pytest.fixture(scope="function")
-def opp_stats_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture) -> pd.DataFrame:
+def opp_stats_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
+) -> pd.DataFrame:
     """
     Fixture to load team opponent stats data from a pickle file for testing.
     """
@@ -137,7 +143,9 @@ def opp_stats_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixtu
 
 
 @pytest.fixture(scope="function")
-def injuries_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture) -> pd.DataFrame:
+def injuries_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
+) -> pd.DataFrame:
     """
     Fixture to load injuries data from a pickle file for testing.
     """
@@ -152,7 +160,9 @@ def injuries_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixtur
 
 
 @pytest.fixture(scope="function")
-def transactions_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture) -> pd.DataFrame:
+def transactions_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
+) -> pd.DataFrame:
     """
     Fixture to load transactions data from an html file for testing.
     """
@@ -209,11 +219,13 @@ def shooting_stats_data(
 
 # has to be pickle bc odds data can be returned in list of 1 or 2 objects
 @pytest.fixture(scope="function")
-def odds_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture) -> pd.DataFrame:
+def odds_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
+) -> pd.DataFrame:
     """
     Fixture to load odds data from a pickle file for testing.
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/scrape_odds.pickle")
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/scrape_odds_v2.pickle")
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 
@@ -255,7 +267,9 @@ def logs_data():
 
 
 @pytest.fixture()
-def schedule_data(get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture) -> pd.DataFrame:
+def schedule_data(
+    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
+) -> pd.DataFrame:
     """
     Fixture to load schedule data from an html file for testing.
     *** THIS WORKS FOR ANY REQUESTS.GET MOCKING IN THE FUTURE ***

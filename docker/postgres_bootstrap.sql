@@ -53,12 +53,13 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_odds_source
     moneyline double precision,
     date date,
     datetime1 timestamp without time zone,
+    scrape_ts timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_odds UNIQUE (team, date)
 );
 
 INSERT INTO nba_source.aws_odds_source(
 	team, spread, total, moneyline, date, datetime1)
-	VALUES ('WAS', '-1.0', '200', -115, current_date, current_timestamp);
+	VALUES ('POR', '-1.0', '200', -115, current_date, current_timestamp);
 
 DROP TABLE IF EXISTS nba_source.aws_pbp_data_source;
 CREATE TABLE IF NOT EXISTS nba_source.aws_pbp_data_source

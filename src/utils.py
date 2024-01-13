@@ -21,37 +21,29 @@ import tweepy
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
-def clean_odds_spread(spread: str):
-    """
-    Function to clean Spread Values during
-    Odds Scrape.  It sometimes need to be cleaned
-    because the scrape picks up the over/under total
-    occasionally.
 
-    Args:
-        spread (str): The spread value.  ex.
-            `-4.5` or `11.0`
-        
+def filter_spread(value: str) -> str:
+    """
+    Filter out undesired values from the `spread` column
+    in the Scrape Odds Function
+
+    Parameters:
+        value (str): The original value from the spread column.
+
     Returns:
-        Cleaned spread value incase the web scrape
-        picked up extra bits.
+        The modified value with undesired parts removed.
     """
-    # ^: Asserts the start of the string.
-    # [+-]?: Matches an optional positive (+) or negative (-) sign. The ? makes the sign optional.
-    # \d+: Matches one or more digits. \d represents any digit (0-9).
-    # \.: Matches the decimal point.
-    # \d+: Matches one or more digits after the decimal point.
-    # $: Asserts the end of the string.
-    # ex. 123.45", "-0.123", "3.14
-    pattern = r'^[+-]?\d+\.\d+$'
+    parts = value.split()
+    filtered_parts = [
+        part
+        if (part[0] in ["+", "-"] and float(part[1:]) <= 25)
+        or (part.isdigit() and int(part) <= 25)
+        else ""
+        for part in parts
+    ]
+    result = " ".join(filtered_parts).strip()
+    return re.sub(r'\s+', ' ', result)
 
-    # Check if the spread matches the pattern
-    match = re.match(pattern, spread)
-
-    if match:
-        return spread
-    else:
-        return spread.split()[0]
 
 def get_season_type(todays_date: date | None = None) -> str:
     """
@@ -743,39 +735,47 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         url = "https://www.covers.com/sport/basketball/nba/odds"
         df = pd.read_html(url)
         odds = df[0]
-        odds["spread"] = df[3]["Unnamed: 1"]
-        odds["moneyline"] = df[1]["Unnamed: 1"]
-        odds = odds[["Time (ET)", "Game (ET)", "spread", "moneyline"]]
-        odds = odds.rename(columns={"Time (ET)": "datetime1", "Game (ET)": "team"})
-        odds = (
-            odds.query("datetime1 != 'FINAL'", engine="python")
-            .query("datetime1 == datetime1")
-            .query("datetime1.str.contains('Today')", engine="python")
-            .copy()
+        odds["spread"] = df[3]["Unnamed: 4"]
+        # odds["moneyline"] = df[1]["Open"]
+        odds = odds[["Time (ET)  Game  Props  Open", "Unnamed: 4", "spread"]]
+        odds = odds.rename(
+            columns={
+                "Time (ET)  Game  Props  Open": "datetime1",
+                "Unnamed: 4": "moneyline",
+            }
         )
+        odds = odds.query(
+            "datetime1 != 'FINAL' and datetime1 == datetime1 and datetime1.str.contains('Today')",
+            engine="python",
+        ).copy()
         # ^ this logic removes old games, removes null rows, and filters to
         #  only grab records for today's games
         if len(odds) == 0:
             logging.info("No Odds Records available for today's games")
             return []
 
-        # each row has data for both teams, so i filter it down by using the whitespace
-        odds["spread"] = odds["spread"].str.replace("PK", "-1.0")
-        odds["spread"] = odds["spread"].str.replace("\\+ ", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace(" \\+ ", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace(" \\+", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace("95", "")
-        odds["spread"] = odds["spread"].str.replace("\\+95", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace("100", "")
-        odds["spread"] = odds["spread"].str.replace("\\+100", "", regex=True)
-        odds["spread"] = odds["spread"].str.replace("-105", "")
-        odds["spread"] = odds["spread"].str.replace("-110", "")
-        odds["spread"] = odds["spread"].str.replace("-115", "")
-        odds["spread"] = odds["spread"].str.replace("-120", "")
-        odds["spread"] = odds["spread"].str.replace("-125", "")
+        odds["spread"] = odds["spread"].apply(filter_spread)
+        odds["spread"] = odds["spread"].apply(lambda x: " ".join(x.split()))
         odds["datetime1"] = odds["datetime1"].str.replace("Today, ", "")
-        odds_split = odds[["datetime1", "team", "spread", "moneyline"]]
-        odds_final = odds_split.copy()
+        odds_final = odds[["datetime1", "spread", "moneyline"]].copy()
+
+        # \b: Word boundary anchor, ensures that the match occurs at a word boundary.
+        # (: Start of a capturing group.
+        # [A-Z]: Character class matching any uppercase letter from 'A' to 'Z'.
+        # {2,3}: Quantifier specifying that the preceding character class [A-Z] should appear 2 to 3 times.
+        # ): End of the capturing group.
+        # \b: Word boundary anchor, again ensuring that the match occurs at a word boundary.
+
+        pattern = r"\b([A-Z]{2,3})\b"
+        # Extract team names and create a new 'Team' column
+
+        odds_final["team"] = (
+            odds_final["datetime1"]
+            .str.extractall(pattern)
+            .unstack()
+            .apply(lambda x: " ".join(x.dropna()), axis=1)
+        )
+
         # turning the space separated elements in a list, then exploding that list
         odds_final["team"] = odds_final["team"].str.split(" ", n=1, expand=False)
         odds_final["spread"] = odds_final["spread"].str.split(" ", n=1, expand=False)
@@ -790,24 +790,24 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             "spread"
         ].str.strip()  # strip trailing and leading spaces
         odds_final["moneyline"] = odds_final["moneyline"].str.strip()
+        odds_final["time"] = odds_final["datetime1"].str.split().str[1]
         odds_final["datetime1"] = pd.to_datetime(
-            (str(datetime.now().date()) + " " + odds_final["datetime1"]),
+            (datetime.now().date().strftime("%Y-%m-%d") + " " + odds_final["time"]),
             format="%Y-%m-%d %H:%M",
         )
+
         odds_final["total"] = 200
         odds_final["team"] = odds_final["team"].str.replace("BK", "BKN")
         odds_final["moneyline"] = odds_final["moneyline"].str.replace(
             "\\+", "", regex=True
         )
         odds_final["moneyline"] = odds_final["moneyline"].astype("int")
-        # applying the clean_odds_spread function to the "spread" column
-        odds_final["spread"] = odds_final["spread"].apply(clean_odds_spread)
         odds_final = odds_final[
             ["team", "spread", "total", "moneyline", "date", "datetime1"]
         ]
         logging.info(
             f"Odds Scrape Successful, returning {len(odds_final)} records "
-            f"from {len(odds_final) / 2} games Today"
+            f"from {len(odds_final) // 2} games Today"
         )
         return odds_final
     except BaseException as e:
