@@ -736,7 +736,6 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = pd.read_html(url)
         odds = df[0]
         odds["spread"] = df[3]["Unnamed: 4"]
-        # odds["moneyline"] = df[1]["Open"]
         odds = odds[["Time (ET)  Game  Props  Open", "Unnamed: 4", "spread"]]
         odds = odds.rename(
             columns={
@@ -767,7 +766,6 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         # \b: Word boundary anchor, again ensuring that the match occurs at a word boundary.
 
         pattern = r"\b([A-Z]{2,3})\b"
-        # Extract team names and create a new 'Team' column
 
         odds_final["team"] = (
             odds_final["datetime1"]
@@ -782,7 +780,6 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         odds_final["moneyline"] = odds_final["moneyline"].str.split(
             " ", n=1, expand=False
         )
-        # # odds_final.set_index(['teams'])
         odds_final = odds_final.explode(["team", "spread", "moneyline"]).reset_index()
         odds_final = odds_final.drop("index", axis=1)
         odds_final["date"] = datetime.now().date()
