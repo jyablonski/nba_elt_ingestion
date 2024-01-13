@@ -24,14 +24,14 @@ sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
 def filter_spread(value: str) -> str:
     """
-    Filter out undesired values from the `spread` column
-    in the Scrape Odds Function
+    Filter out 3-digit values from the `spread` column
+    in the Scrape Odds Function such as `-108` or `-112`
 
     Parameters:
         value (str): The original value from the spread column.
 
     Returns:
-        The modified value with undesired parts removed.
+        The spread value without any 3-digit values present
     """
     parts = value.split()
     filtered_parts = [
@@ -42,6 +42,8 @@ def filter_spread(value: str) -> str:
         for part in parts
     ]
     result = " ".join(filtered_parts).strip()
+
+    # this last part strips out a couple extra white spaces
     return re.sub(r'\s+', ' ', result)
 
 
