@@ -225,7 +225,7 @@ def odds_data(
     """
     Fixture to load odds data from a pickle file for testing.
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/scrape_odds_v2.pickle")
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/scrape_odds.pickle")
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 
