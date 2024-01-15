@@ -9,11 +9,10 @@ def test_twitter_tweepy_data_upsert(postgres_conn, twitter_tweepy_data):
 
     # upsert 1060 records
     write_to_sql_upsert(
-        postgres_conn,
-        "twitter_tweepy_data",
-        twitter_tweepy_data,
-        "upsert",
-        ["tweet_id"],
+        conn=postgres_conn,
+        table_name="twitter_tweepy_data",
+        df=twitter_tweepy_data,
+        pd_index=["tweet_id"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)

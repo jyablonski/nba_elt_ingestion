@@ -83,7 +83,7 @@ def postgres_conn() -> Engine:
 def get_feature_flags_postgres(postgres_conn: Engine) -> pd.DataFrame:
     # test suite was shitting itself at the very beginning while trying
     # to run this without a `time.sleep()`
-    time.sleep(3)
+    time.sleep(1)
     feature_flags = get_feature_flags(postgres_conn)
 
     # feature_flags.to_parquet('feature_flags.parquet')

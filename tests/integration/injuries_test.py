@@ -9,11 +9,10 @@ def test_injury_data_upsert(postgres_conn, injuries_data):
 
     # upsert 17 records
     write_to_sql_upsert(
-        postgres_conn,
-        "injury_data",
-        injuries_data,
-        "upsert",
-        ["player", "team", "description"],
+        conn=postgres_conn,
+        table_name="injury_data",
+        df=injuries_data,
+        pd_index=["player", "team", "description"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)

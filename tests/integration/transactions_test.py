@@ -9,11 +9,10 @@ def test_transactions_upsert(postgres_conn, transactions_data):
 
     # upsert 1313 records
     write_to_sql_upsert(
-        postgres_conn,
-        "transactions",
-        transactions_data,
-        "upsert",
-        ["date", "transaction"],
+        conn=postgres_conn,
+        table_name="transactions",
+        df=transactions_data,
+        pd_index=["date", "transaction"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)
