@@ -8,7 +8,9 @@ def test_opp_stats_upsert(postgres_conn, opp_stats_data):
     count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)
 
     # upsert 30 records
-    write_to_sql_upsert(postgres_conn, "opp_stats", opp_stats_data, "upsert", ["team"])
+    write_to_sql_upsert(
+        conn=postgres_conn, table_name="opp_stats", df=opp_stats_data, pd_index=["team"]
+    )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)
 

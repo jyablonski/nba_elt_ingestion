@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 import json
 import os
 import pickle
@@ -83,7 +84,7 @@ def postgres_conn() -> Engine:
 def get_feature_flags_postgres(postgres_conn: Engine) -> pd.DataFrame:
     # test suite was shitting itself at the very beginning while trying
     # to run this without a `time.sleep()`
-    time.sleep(3)
+    time.sleep(1)
     feature_flags = get_feature_flags(postgres_conn)
 
     # feature_flags.to_parquet('feature_flags.parquet')
@@ -393,3 +394,18 @@ def schedule_mock_data() -> dict:
 
     data = json.loads(mock_json_data)
     return data
+
+
+@pytest.fixture(scope="function")
+def odds_upsert_check_df() -> pd.DataFrame:
+    fake_data = pd.DataFrame(
+        data={
+            "team": ["POR"],
+            "spread": [-1.0],
+            "total": [200],
+            "moneyline": [-150],
+            "date": [datetime.now().date()],
+            "datetime1": [datetime.now()],
+        }
+    )
+    return fake_data

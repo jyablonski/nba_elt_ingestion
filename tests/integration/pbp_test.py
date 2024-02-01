@@ -9,11 +9,10 @@ def test_pbp_upsert(postgres_conn, pbp_transformed_data):
 
     # upsert 100 records
     write_to_sql_upsert(
-        postgres_conn,
-        "pbp_data",
-        pbp_transformed_data,
-        "upsert",
-        [
+        conn=postgres_conn,
+        table_name="pbp_data",
+        df=pbp_transformed_data,
+        pd_index=[
             "hometeam",
             "awayteam",
             "date",

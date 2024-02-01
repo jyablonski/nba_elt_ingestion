@@ -2,6 +2,7 @@ import pytest
 
 from src.utils import filter_spread
 
+
 @pytest.mark.parametrize(
     "test_input,expected_output",
     [

@@ -9,11 +9,10 @@ def test_schedule_upsert(postgres_conn, schedule_data):
 
     # upsert 229 records
     write_to_sql_upsert(
-        postgres_conn,
-        "schedule",
-        schedule_data,
-        "upsert",
-        ["away_team", "home_team", "proper_date"],
+        conn=postgres_conn,
+        table_name="schedule",
+        df=schedule_data,
+        pd_index=["away_team", "home_team", "proper_date"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)

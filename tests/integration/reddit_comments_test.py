@@ -9,7 +9,10 @@ def test_reddit_comment_data_upsert(postgres_conn, reddit_comments_data):
 
     # upsert 999 records
     write_to_sql_upsert(
-        postgres_conn, "reddit_comment_data", reddit_comments_data, "upsert", ["md5_pk"]
+        conn=postgres_conn,
+        table_name="reddit_comment_data",
+        df=reddit_comments_data,
+        pd_index=["md5_pk"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)

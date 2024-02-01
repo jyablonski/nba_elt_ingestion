@@ -44,7 +44,7 @@ def filter_spread(value: str) -> str:
     result = " ".join(filtered_parts).strip()
 
     # this last part strips out a couple extra white spaces
-    return re.sub(r'\s+', ' ', result)
+    return re.sub(r"\s+", " ", result)
 
 
 def get_season_type(todays_date: date | None = None) -> str:
@@ -1665,7 +1665,6 @@ def write_to_sql_upsert(
     conn: Connection,
     table_name: str,
     df: pd.DataFrame,
-    table_type: str,
     pd_index: list[str],
 ) -> None:
     """
@@ -1685,8 +1684,6 @@ def write_to_sql_upsert(
 
         df (DataFrame): The Pandas DataFrame to store in SQL
 
-        table_type (str): A placeholder which should always be "upsert"
-
         pd_index (list[str]): The columns that make up the composite
             primary key of the SQL Table.
 
@@ -1698,90 +1695,81 @@ def write_to_sql_upsert(
     sql_table_name = f"aws_{table_name}_source"
     if len(df) == 0:
         logging.info(f"{sql_table_name} is empty, not storing to SQL")
-        pass
-    else:
-        # 2 try except blocks bc in event of an error there needs to be different
-        # logic to safely exit out and continue script
-        try:
-            df = df.set_index(pd_index)
-            df = df.rename_axis(pd_index)
+        return
+    # 2 try except blocks bc in event of an error there needs to be different
+    # logic to safely exit out and continue script
+    try:
+        df = df.set_index(pd_index)
+        df = df.rename_axis(pd_index)
 
-            if not conn.execute(
-                text(
-                    f"""SELECT EXISTS (
-                    SELECT FROM information_schema.tables 
-                    WHERE  table_schema = 'nba_source' 
-                    AND    table_name   = '{sql_table_name}');
-                    """
-                )
-            ).first()[0]:
-                # If the table does not exist, we should just use to_sql to create it
-                df.to_sql(sql_table_name, conn)
-                logging.info(
-                    f"SQL Upsert Function Successful, {len(df)} records "
-                    f"added to a NEW TABLE {sql_table_name}"
-                )
-                pass
-        except BaseException as error:
-            sentry_sdk.capture_exception(error)
-            logging.error(
-                f"""
-                SQL Upsert Function Failed for NEW TABLE {sql_table_name}
-                ({len(df)} rows), {error}
+        table_exists = conn.execute(
+            text(
+                f"""SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE  table_schema = 'nba_source' 
+                AND    table_name   = '{sql_table_name}');
                 """
             )
-            pass
+        ).first()[0]
+
+        if not table_exists:
+            df.to_sql(sql_table_name, conn)
+            logging.info(
+                f"Table {sql_table_name} not found, creating it."
+                f"SQL Upsert Function Successful, {len(df)} records "
+                f"added to NEW Table {sql_table_name}"
+            )
         else:
-            try:
-                # If it already exists...
-                temp_table_name = f"temp_{uuid.uuid4().hex[:6]}"
-                df.to_sql(temp_table_name, conn, index=True)
+            # If it already exists...
+            temp_table_name = f"temp_{uuid.uuid4().hex[:6]}"
+            df.to_sql(temp_table_name, conn, index=True)
 
-                index = list(df.index.names)
-                index_sql_txt = ", ".join([f'"{i}"' for i in index])
-                columns = list(df.columns)
-                headers = index + columns
-                headers_sql_txt = ", ".join([f'"{i}"' for i in headers])
-                # this is excluding the primary key columns needed to identify
-                # the unique rows.
-                update_column_stmt = ", ".join(
-                    [f'"{col}" = EXCLUDED."{col}"' for col in columns]
-                )
+            index = list(df.index.names)
+            index_sql_txt = ", ".join([f'"{i}"' for i in index])
+            columns = list(df.columns)
+            headers = index + columns
+            headers_sql_txt = ", ".join([f'"{i}"' for i in headers])
+            # this is excluding the primary key columns needed to identify
+            # the unique rows.
+            update_column_stmt = ", ".join(
+                [f'"{col}" = EXCLUDED."{col}"' for col in columns]
+            )
 
-                # For the ON CONFLICT clause, postgres requires that the columns have
-                # unique constraint
-                query_pk = f"""
-                ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS
-                unique_constraint_for_upsert_{table_name};
-                ALTER TABLE "{sql_table_name}" ADD CONSTRAINT
-                unique_constraint_for_upsert_{table_name} UNIQUE ({index_sql_txt});
-                """
+            # For the ON CONFLICT clause, postgres requires that the columns have
+            # unique constraint
+            query_pk = f"""
+            ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS
+            unique_constraint_for_upsert_{table_name};
+            ALTER TABLE "{sql_table_name}" ADD CONSTRAINT
+            unique_constraint_for_upsert_{table_name} UNIQUE ({index_sql_txt});
+            """
 
-                conn.execute(text(query_pk))
+            conn.execute(text(query_pk))
 
-                # Compose and execute upsert query
-                query_upsert = f"""
-                INSERT INTO "{sql_table_name}" ({headers_sql_txt}) 
-                SELECT {headers_sql_txt} FROM "{temp_table_name}"
-                ON CONFLICT ({index_sql_txt}) DO UPDATE 
-                SET {update_column_stmt};
-                """
-                conn.execute(text(query_upsert))
-                conn.execute(text(f"DROP TABLE {temp_table_name};"))
-                logging.info(
-                    f"SQL Upsert Function Successful, {len(df)} records "
-                    f"added or upserted into {table_name}"
-                )
-                pass
-            except BaseException as error:
-                conn.execute(text(f"DROP TABLE {temp_table_name};"))
+            # Compose and execute upsert query
+            query_upsert = f"""
+            INSERT INTO "{sql_table_name}" ({headers_sql_txt}) 
+            SELECT {headers_sql_txt} FROM "{temp_table_name}"
+            ON CONFLICT ({index_sql_txt}) DO UPDATE 
+            SET {update_column_stmt};
+            """
+            conn.execute(text(query_upsert))
+            conn.execute(text(f"DROP TABLE {temp_table_name};"))
+            logging.info(
+                f"SQL Upsert Function Successful, {len(df)} records "
+                f"added or upserted into {table_name}"
+            )
+            pass
+    except BaseException as error:
+        if "temp_table_name" in locals():
+            conn.execute(text(f"DROP TABLE {temp_table_name};"))
 
-                sentry_sdk.capture_exception(error)
-                logging.error(
-                    f"SQL Upsert Function Failed for EXISTING {table_name} "
-                    f"({len(df)} rows), {error}"
-                )
-                pass
+        sentry_sdk.capture_exception(error)
+        logging.error(
+            f"SQL Upsert Function Failed for EXISTING {table_name} "
+            f"({len(df)} rows), {error}"
+        )
+        pass
 
 
 def sql_connection(

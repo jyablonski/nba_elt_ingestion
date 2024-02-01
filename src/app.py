@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.6")
+logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.7")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -89,8 +89,8 @@ logging.info("LOADED FUNCTIONS")
 
 if __name__ == "__main__":
     logging.info("STARTING WEB SCRAPE")
-    conn = sql_connection(rds_schema=os.environ.get("RDS_SCHEMA", default="default"))
-    feature_flags = get_feature_flags(conn)
+    engine = sql_connection(rds_schema=os.environ.get("RDS_SCHEMA", default="default"))
+    feature_flags = get_feature_flags(connection=engine)
 
     # STEP 1: Extract Raw Data
     stats = get_player_stats_data(feature_flags_df=feature_flags)
@@ -116,36 +116,44 @@ if __name__ == "__main__":
     logging.info("STARTING SCHEMA VALIDATION")
 
     # STEP 2: Validating Schemas - 1 for each SQL Write
-    stats = validate_schema(stats, stats_cols)
-    adv_stats = validate_schema(adv_stats, adv_stats_cols)
-    boxscores = validate_schema(boxscores, boxscores_cols)
-    injury_data = validate_schema(injury_data, injury_cols)
-    opp_stats = validate_schema(opp_stats, opp_stats_cols)
-    pbp_data = validate_schema(pbp_data, pbp_cols)
-    reddit_data = validate_schema(reddit_data, reddit_cols)
-    reddit_comment_data = validate_schema(reddit_comment_data, reddit_comment_cols)
-    odds = validate_schema(odds, odds_cols)
-    twitter_tweepy_data = validate_schema(twitter_tweepy_data, twitter_tweepy_cols)
-    transactions = validate_schema(transactions, transactions_cols)
-    schedule = validate_schema(schedule, schedule_cols)
-    shooting_stats = validate_schema(shooting_stats, shooting_stats_cols)
+    stats = validate_schema(df=stats, schema=stats_cols)
+    adv_stats = validate_schema(df=adv_stats, schema=adv_stats_cols)
+    boxscores = validate_schema(df=boxscores, schema=boxscores_cols)
+    injury_data = validate_schema(df=injury_data, schema=injury_cols)
+    opp_stats = validate_schema(df=opp_stats, schema=opp_stats_cols)
+    pbp_data = validate_schema(df=pbp_data, schema=pbp_cols)
+    reddit_data = validate_schema(df=reddit_data, schema=reddit_cols)
+    reddit_comment_data = validate_schema(
+        df=reddit_comment_data, schema=reddit_comment_cols
+    )
+    odds = validate_schema(df=odds, schema=odds_cols)
+    twitter_tweepy_data = validate_schema(
+        df=twitter_tweepy_data, schema=twitter_tweepy_cols
+    )
+    transactions = validate_schema(df=transactions, schema=transactions_cols)
+    schedule = validate_schema(df=schedule, schema=schedule_cols)
+    shooting_stats = validate_schema(df=shooting_stats, schema=shooting_stats_cols)
 
     logging.info("FINISHED SCHEMA VALIDATION")
 
     logging.info("STARTING SQL STORING")
 
     # STEP 3: Append Transformed Data to SQL
-    with conn.begin() as connection:
+    with engine.begin() as connection:
         write_to_sql_upsert(
-            connection, "boxscores", boxscores, "upsert", ["player", "date"]
+            conn=connection,
+            table_name="boxscores",
+            df=boxscores,
+            pd_index=["player", "date"],
         )
-        write_to_sql_upsert(connection, "odds", odds, "upsert", ["team", "date"])
         write_to_sql_upsert(
-            connection,
-            "pbp_data",
-            pbp_data,
-            "upsert",
-            [
+            conn=connection, table_name="odds", df=odds, pd_index=["team", "date"]
+        )
+        write_to_sql_upsert(
+            conn=connection,
+            table_name="pbp_data",
+            df=pbp_data,
+            pd_index=[
                 "hometeam",
                 "awayteam",
                 "date",
@@ -155,53 +163,62 @@ if __name__ == "__main__":
                 "descriptionplayhome",
             ],
         )
-        write_to_sql_upsert(connection, "opp_stats", opp_stats, "upsert", ["team"])
         write_to_sql_upsert(
-            connection, "shooting_stats", shooting_stats, "upsert", ["player"]
+            conn=connection, table_name="opp_stats", df=opp_stats, pd_index=["team"]
         )
         write_to_sql_upsert(
-            connection, "reddit_data", reddit_data, "upsert", ["reddit_url"]
+            conn=connection,
+            table_name="shooting_stats",
+            df=shooting_stats,
+            pd_index=["player"],
         )
         write_to_sql_upsert(
-            connection,
-            "reddit_comment_data",
-            reddit_comment_data,
-            "upsert",
-            ["md5_pk"],
+            conn=connection,
+            table_name="reddit_data",
+            df=reddit_data,
+            pd_index=["reddit_url"],
         )
         write_to_sql_upsert(
-            connection, "transactions", transactions, "upsert", ["date", "transaction"]
+            conn=connection,
+            table_name="reddit_comment_data",
+            df=reddit_comment_data,
+            pd_index=["md5_pk"],
         )
         write_to_sql_upsert(
-            connection,
-            "injury_data",
-            injury_data,
-            "upsert",
-            ["player", "team", "description"],
+            conn=connection,
+            table_name="transactions",
+            df=transactions,
+            pd_index=["date", "transaction"],
+        )
+        write_to_sql_upsert(
+            conn=connection,
+            table_name="injury_data",
+            df=injury_data,
+            pd_index=["player", "team", "description"],
         )
 
         write_to_sql_upsert(
-            connection,
-            "twitter_tweepy_data",
-            twitter_tweepy_data,
-            "upsert",
-            ["tweet_id"],
+            conn=connection,
+            table_name="twitter_tweepy_data",
+            df=twitter_tweepy_data,
+            pd_index=["tweet_id"],
         )
 
         # cant upsert on these bc the column names have % and i kept getting issues
         # even after changing the col names to _pct instead etc.  no clue dude fk it
-        write_to_sql(connection, "stats", stats, "append")
-        write_to_sql(connection, "adv_stats", adv_stats, "append")
-
-        write_to_sql_upsert(
-            connection,
-            "schedule",
-            schedule,
-            "upsert",
-            ["away_team", "home_team", "proper_date"],
+        write_to_sql(con=connection, table_name="stats", df=stats, table_type="append")
+        write_to_sql(
+            con=connection, table_name="adv_stats", df=adv_stats, table_type="append"
         )
 
-    conn.dispose()
+        write_to_sql_upsert(
+            conn=connection,
+            table_name="schedule",
+            df=schedule,
+            pd_index=["away_team", "home_team", "proper_date"],
+        )
+
+    engine.dispose()
 
     # STEP 4: Write to S3
     write_to_s3("stats", stats)
@@ -222,4 +239,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.6")
+    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.7")

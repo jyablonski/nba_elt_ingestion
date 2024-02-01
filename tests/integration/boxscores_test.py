@@ -71,7 +71,10 @@ def test_boxscores_upsert(postgres_conn, boxscores_data):
 
     # upsert 145 records
     write_to_sql_upsert(
-        postgres_conn, "boxscores", boxscores_data, "upsert", ["player", "date"]
+        conn=postgres_conn,
+        table_name="boxscores",
+        df=boxscores_data,
+        pd_index=["player", "date"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)
