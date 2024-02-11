@@ -25,6 +25,17 @@ sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
 
 def time_function(func: Callable[..., Any]) -> Callable[..., Any]:
+    """
+    Decorator function used to record the execution time of any
+    function it's applied to.
+
+    Args:
+        func (Callable): Function to track the execution time on.
+
+    Returns:
+        Callable[..., Any]: The wrapped function that records
+            the execution time.
+    """
     def wrapper(*args, **kwargs):
         start_time = time.time()
         result = func(*args, **kwargs)
