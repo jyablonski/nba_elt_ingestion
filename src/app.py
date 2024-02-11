@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("STARTING NBA ELT PIPELINE SCRIPT Version: 1.12.8")
+logging.info("Starting Ingestion Script Version: 1.12.8")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -85,10 +85,10 @@ def validate_schema(df: pd.DataFrame, schema: list) -> pd.DataFrame:
         return df
 
 
-logging.info("LOADED FUNCTIONS")
+logging.info("Loaded Functions")
 
 if __name__ == "__main__":
-    logging.info("STARTING WEB SCRAPE")
+    logging.info("Starting Web Scrape")
     engine = sql_connection(rds_schema=os.environ.get("RDS_SCHEMA", default="default"))
     feature_flags = get_feature_flags(connection=engine)
 
@@ -111,9 +111,9 @@ if __name__ == "__main__":
         feature_flags_df=feature_flags, df=boxscores
     )  # this uses the transformed boxscores
 
-    logging.info("FINISHED WEB SCRAPE")
+    logging.info("Finished Web Scrape")
 
-    logging.info("STARTING SCHEMA VALIDATION")
+    logging.info("Starting Schema Validation")
 
     # STEP 2: Validating Schemas - 1 for each SQL Write
     stats = validate_schema(df=stats, schema=stats_cols)
@@ -134,9 +134,9 @@ if __name__ == "__main__":
     schedule = validate_schema(df=schedule, schema=schedule_cols)
     shooting_stats = validate_schema(df=shooting_stats, schema=shooting_stats_cols)
 
-    logging.info("FINISHED SCHEMA VALIDATION")
+    logging.info("Finished Schema Validation")
 
-    logging.info("STARTING SQL STORING")
+    logging.info("Starting SQL Upserts")
 
     # STEP 3: Append Transformed Data to SQL
     with engine.begin() as connection:
@@ -219,8 +219,11 @@ if __name__ == "__main__":
         )
 
     engine.dispose()
+    logging.info("Finished SQL Upserts")
 
     # STEP 4: Write to S3
+    logging.info("Starting Writes to S3")
+
     write_to_s3("stats", stats)
     write_to_s3("boxscores", boxscores)
     write_to_s3("injury_data", injury_data)
@@ -235,8 +238,10 @@ if __name__ == "__main__":
     write_to_s3("schedule", schedule)
     write_to_s3("shooting_stats", shooting_stats)
 
+    logging.info("Finished Writes to S3")
+
     # STEP 5: Grab Logs from previous steps & send slack message for any failures
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("FINISHED NBA ELT PIPELINE SCRIPT Version: 1.12.8")
+    logging.info("Finished Ingestion Script Version: 1.12.8")

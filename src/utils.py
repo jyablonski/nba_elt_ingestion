@@ -36,6 +36,7 @@ def time_function(func: Callable[..., Any]) -> Callable[..., Any]:
         Callable[..., Any]: The wrapped function that records
             the execution time.
     """
+
     def wrapper(*args, **kwargs):
         start_time = time.time()
         result = func(*args, **kwargs)
