@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 import json
+import logging
 import os
 import pickle
 import socket
@@ -409,3 +410,9 @@ def odds_upsert_check_df() -> pd.DataFrame:
         }
     )
     return fake_data
+
+
+@pytest.fixture
+def mock_logging(caplog):
+    caplog.set_level(logging.INFO)
+    yield caplog

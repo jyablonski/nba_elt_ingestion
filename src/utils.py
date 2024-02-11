@@ -4,6 +4,8 @@ import json
 import logging
 import os
 import re
+import time
+from typing import Any, Callable
 import uuid
 
 import awswrangler as wr
@@ -20,6 +22,30 @@ import tweepy
 
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
+
+
+def time_function(func: Callable[..., Any]) -> Callable[..., Any]:
+    """
+    Decorator function used to record the execution time of any
+    function it's applied to.
+
+    Args:
+        func (Callable): Function to track the execution time on.
+
+    Returns:
+        Callable[..., Any]: The wrapped function that records
+            the execution time.
+    """
+
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        total_func_time = round(time.time() - start_time, 2)
+        logging.info(f"{func.__name__} took {total_func_time} seconds")
+
+        return result
+
+    return wrapper
 
 
 def filter_spread(value: str) -> str:
@@ -145,6 +171,7 @@ def clean_player_names(name: str) -> str:
         raise e
 
 
+@time_function
 def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ BS4 that grabs aggregate season stats
@@ -203,6 +230,7 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
+@time_function
 def get_boxscores_data(
     feature_flags_df: pd.DataFrame,
     month: int = (datetime.now() - timedelta(1)).month,
@@ -360,6 +388,7 @@ def get_boxscores_data(
         return df
 
 
+@time_function
 def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all
@@ -415,6 +444,7 @@ def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
+@time_function
 def get_injuries_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all current injuries
@@ -461,6 +491,7 @@ def get_injuries_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
+@time_function
 def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
@@ -528,6 +559,7 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
+@time_function
 def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all team advanced stats
@@ -607,6 +639,7 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
+@time_function
 def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all raw shooting stats
@@ -712,6 +745,7 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
+@time_function
 def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Function to web scrape Gambling Odds from cover.com
@@ -981,6 +1015,7 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
 #         return df
 
 
+@time_function
 def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.DataFrame:
     """
     Web Scrape function w/ PRAW that grabs top ~27 top posts from a given subreddit.
@@ -1058,6 +1093,7 @@ def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.Data
         return data
 
 
+@time_function
 def get_reddit_comments(
     feature_flags_df: pd.DataFrame, urls: pd.Series
 ) -> pd.DataFrame:
@@ -1209,6 +1245,7 @@ def scrape_tweets_tweepy(
         return df
 
 
+@time_function
 def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function to scrape Tweepy Tweets for both popular & mixed tweets
@@ -1256,6 +1293,7 @@ def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
+@time_function
 def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that uses aliases via boxscores function
@@ -1462,6 +1500,7 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
         return data
 
 
+@time_function
 def schedule_scraper(
     feature_flags_df: pd.DataFrame,
     year: str,
