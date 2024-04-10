@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_boxscores_source
     date timestamp without time zone,
     type text COLLATE pg_catalog."default",
     scrape_date date,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_boxscores UNIQUE (player, date)
 );
 
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_odds_source
     date date,
     datetime1 timestamp without time zone,
     scrape_ts timestamp default current_timestamp,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_odds UNIQUE (team, date)
 );
 
@@ -81,8 +81,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_pbp_data_source
     marginscore double precision,
     date date,
     scrape_date date,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_pbp_data UNIQUE (hometeam, awayteam, date, timequarter, numberperiod, descriptionplayvisitor, descriptionplayhome)
 );
 
@@ -99,8 +99,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_opp_stats_source
     threep_made_opp double precision,
     ppg_opp double precision,
     scrape_date date,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_opp_stats UNIQUE (team)
 );
 
@@ -133,8 +133,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_shooting_stats_source
     heaves_makes text COLLATE pg_catalog."default",
     scrape_date date,
     scrape_ts timestamp without time zone,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_shooting_stats UNIQUE (player)
 );
 
@@ -154,8 +154,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_reddit_data_source
     body text COLLATE pg_catalog."default",
     scrape_date date,
     scrape_time timestamp without time zone,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_reddit_data UNIQUE (reddit_url)
 );
 
@@ -182,8 +182,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_reddit_comment_data_source
     sentiment bigint,
     row_col bigint,
     md5_pk text COLLATE pg_catalog."default",
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_reddit_comment_data UNIQUE (md5_pk)
 );
 
@@ -197,8 +197,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_transactions_source
     date timestamp without time zone,
     transaction text COLLATE pg_catalog."default",
     scrape_date date,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_transactions UNIQUE (date, transaction)
 );
 
@@ -214,8 +214,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_injury_data_source
     description text COLLATE pg_catalog."default",
     date text COLLATE pg_catalog."default",
     scrape_date date,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_injury_data UNIQUE (player, team, description)
 );
 
@@ -227,7 +227,7 @@ DROP TABLE IF EXISTS nba_source.aws_twitter_tweepy_data_source;
 CREATE TABLE IF NOT EXISTS nba_source.aws_twitter_tweepy_data_source
 (
     tweet_id text COLLATE pg_catalog."default",
-    created_at text COLLATE pg_catalog."default",
+    api_created_at text COLLATE pg_catalog."default",
     username text COLLATE pg_catalog."default",
     user_id double precision,
     tweet text COLLATE pg_catalog."default",
@@ -242,13 +242,13 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_twitter_tweepy_data_source
     neu double precision,
     pos double precision,
     sentiment bigint,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_twitter_tweepy_data UNIQUE (tweet_id)
 );
 
 INSERT INTO nba_source.aws_twitter_tweepy_data_source(
-	tweet_id, created_at, username, user_id, tweet, likes, retweets, language, scrape_ts, profile_img, url, compound, neg, neu, pos, sentiment)
+	tweet_id, api_created_at, username, user_id, tweet, likes, retweets, language, scrape_ts, profile_img, url, compound, neg, neu, pos, sentiment)
 	VALUES ('1546907743050612736', 'Wed Jul 13 00:20:47 +0000 2022', 'wojespn', 2379056251.0, 'ESPN Sources: EuroLeague', 1, 1, 'en', current_timestamp, 'z', 'z', 1.0, 1.0, 1.0, 1.0, 1);
 
 DROP TABLE IF EXISTS nba_source.aws_schedule_source;
@@ -259,8 +259,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_schedule_source
     home_team text COLLATE pg_catalog."default",
     date text COLLATE pg_catalog."default",
     proper_date date,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_schedule UNIQUE (away_team, home_team, proper_date)
 );
 
@@ -301,8 +301,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_stats_source
     pf text COLLATE pg_catalog."default",
     pts double precision,
     scrape_date date,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp
 );
 
 DROP TABLE IF EXISTS nba_source.aws_adv_stats_source;
@@ -337,8 +337,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_adv_stats_source
     attendance double precision,
     "att/game" double precision,
     scrape_date date,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp
 );
 
 DROP TABLE IF EXISTS nba_prod.feature_flags;
@@ -379,7 +379,7 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_odds_upsert_source
     date date,
     datetime1 timestamp without time zone,
     scrape_ts timestamp default current_timestamp,
-    created timestamp default current_timestamp,
-    modified timestamp default current_timestamp,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_odds_v2 UNIQUE (team, date)
 );

@@ -1220,7 +1220,7 @@ def scrape_tweets_tweepy(
             api.search_tweets, search_parameter, count=count, result_type=result_type
         ).items(count):
             df = {
-                "created_at": tweet._json["created_at"],
+                "api_created_at": tweet._json["created_at"],
                 "tweet_id": tweet._json["id_str"],
                 "username": tweet._json["user"]["screen_name"],
                 "user_id": tweet._json["user"]["id"],
@@ -1772,7 +1772,7 @@ def write_to_sql_upsert(
             update_column_stmt = ", ".join(
                 [f'"{col}" = EXCLUDED."{col}"' for col in columns]
             )
-            update_column_stmt += ', "modified" = CURRENT_TIMESTAMP'
+            update_column_stmt += ', "modified_at" = CURRENT_TIMESTAMP'
 
             # For the ON CONFLICT clause, postgres requires that the columns have
             # unique constraint

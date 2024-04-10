@@ -244,7 +244,7 @@ transactions_schema = {
 }
 
 twitter_data_schema = {
-    "created_at": np.dtype("O"),
+    "api_created_at": np.dtype("O"),
     "date": np.dtype("O"),
     "username": np.dtype("O"),
     "tweet": np.dtype("O"),
@@ -263,7 +263,7 @@ twitter_data_schema = {
 }
 
 twitter_tweepy_schema = {
-    "created_at": np.dtype("O"),
+    "api_created_at": np.dtype("O"),
     "tweet_id": np.dtype("int64"),
     "username": np.dtype("O"),
     "user_id": np.dtype("float64"),
