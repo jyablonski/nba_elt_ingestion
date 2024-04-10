@@ -60,7 +60,6 @@ boxscores_cols = [
     "gmsc",
     "date",
     "type",
-    "season",
     "scrape_date",
 ]
 

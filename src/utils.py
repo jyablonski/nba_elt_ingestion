@@ -344,7 +344,6 @@ def get_boxscores_data(
         df["date"] = str(year) + "-" + str(month) + "-" + str(day)
         df["date"] = pd.to_datetime(df["date"])
         df["Type"] = season_type
-        df["Season"] = 2022  # this isn't being used so whatever
         df["Location"] = df["Location"].apply(lambda x: "A" if x == "@" else "H")
         df["Team"] = df["Team"].str.replace("PHO", "PHX")
         df["Team"] = df["Team"].str.replace("CHO", "CHA")
@@ -1773,6 +1772,7 @@ def write_to_sql_upsert(
             update_column_stmt = ", ".join(
                 [f'"{col}" = EXCLUDED."{col}"' for col in columns]
             )
+            update_column_stmt += ', "modified" = CURRENT_TIMESTAMP'
 
             # For the ON CONFLICT clause, postgres requires that the columns have
             # unique constraint
@@ -1792,6 +1792,7 @@ def write_to_sql_upsert(
             ON CONFLICT ({index_sql_txt}) DO UPDATE 
             SET {update_column_stmt};
             """
+            # print(query_upsert)
             conn.execute(text(query_upsert))
             conn.execute(text(f"DROP TABLE {temp_table_name};"))
             logging.info(

@@ -61,7 +61,6 @@ boxscores_schema = {
     "gmsc": np.dtype("float64"),
     "date": np.dtype("<M8[ns]"),
     "type": np.dtype("O"),
-    "season": np.dtype("int64"),
     "scrape_date": np.dtype("O"),
 }
 
@@ -94,7 +93,6 @@ boxscores_schema_fake = {
     "gmsc": np.dtype("float64"),
     "date": np.dtype("<M8[ns]"),
     "type": np.dtype("O"),
-    "season": np.dtype("int64"),
     "FAKE_COLUMN": np.dtype("O"),
 }
 
