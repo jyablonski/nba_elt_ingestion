@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "python-docker"
+name = "nba-elt-ingestion"
 version = "1.12.8"
 description = "Ingestion Script for NBA ELT Project"
 authors = ["jyablonski9 <jyablonski9@gmail.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
