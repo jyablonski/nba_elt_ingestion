@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install --with dev --no-root
+          poetry install --with dev
           poetry run python -m nltk.downloader vader_lexicon
 
       - name: Create and populate .coveralls.yml file
