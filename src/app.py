@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("Starting Ingestion Script Version: 1.12.8")
+logging.info("Starting Ingestion Script Version: 1.12.9")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -101,7 +101,9 @@ if __name__ == "__main__":
     odds = scrape_odds(feature_flags_df=feature_flags)
     reddit_data = get_reddit_data(feature_flags_df=feature_flags, sub="nba")
     opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
-    schedule = schedule_scraper(feature_flags_df=feature_flags, year="2024")
+    schedule = schedule_scraper(
+        feature_flags_df=feature_flags, year="2024", month_list=["april", "may", "june"]
+    )
     shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
     twitter_tweepy_data = scrape_tweets_combo(feature_flags_df=feature_flags)
     reddit_comment_data = get_reddit_comments(
@@ -244,4 +246,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("Finished Ingestion Script Version: 1.12.8")
+    logging.info("Finished Ingestion Script Version: 1.12.9")

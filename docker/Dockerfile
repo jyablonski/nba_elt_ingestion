@@ -11,7 +11,7 @@ COPY poetry.lock .
 
 RUN ./install_packages.sh
 RUN pip install poetry
-RUN poetry install --no-root
+RUN poetry install
 
 FROM base AS runtime
 

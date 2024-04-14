@@ -1,4 +1,4 @@
-created_at,tweet_id,username,user_id,tweet,likes,retweets,language,scrape_ts,profile_img,url,compound,neg,neu,pos,sentiment
+api_created_at,tweet_id,username,user_id,tweet,likes,retweets,language,scrape_ts,profile_img,url,compound,neg,neu,pos,sentiment
 Tue Jul 12 17:22:00 +0000 2022,1546907743050612736,wojespn,50323173.0,ESPN Sources: EuroLeague MVP Vasilije Micic continues to attract significant interest among several NBA teams who’d… https://t.co/CS9bxmxDqe,8151.0,607.0,en,2022-07-13 11:08:32.453337,http://pbs.twimg.com/profile_images/1509990164415893517/qIuzsMq6_normal.jpg,https://twitter.com/twitter/statuses/1546907743050612736,0.743,0.0,0.657,0.343,1
 Wed Jul 13 01:07:17 +0000 2022,1547024832801521664,BleacherReport,890891.0,"The NBA Board of Governors has approved a new ""transition take foul"" rule for the 2022-23 season.
 

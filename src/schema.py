@@ -60,7 +60,6 @@ boxscores_cols = [
     "gmsc",
     "date",
     "type",
-    "season",
     "scrape_date",
 ]
 
@@ -160,7 +159,7 @@ stats_cols = [
 transactions_cols = ["date", "transaction", "scrape_date"]
 
 twitter_cols = [
-    "created_at",
+    "api_created_at",
     "date",
     "username",
     "tweet",
