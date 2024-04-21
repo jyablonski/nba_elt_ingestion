@@ -61,10 +61,12 @@ def filter_spread(value: str) -> str:
     """
     parts = value.split()
     filtered_parts = [
-        part
-        if (part[0] in ["+", "-"] and float(part[1:]) <= 25)
-        or (part.isdigit() and int(part) <= 25)
-        else ""
+        (
+            part
+            if (part[0] in ["+", "-"] and float(part[1:]) <= 25)
+            or (part.isdigit() and int(part) <= 25)
+            else ""
+        )
         for part in parts
     ]
     result = " ".join(filtered_parts).strip()
@@ -1573,7 +1575,9 @@ def schedule_scraper(
         schedule_df = schedule_df[
             ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
         ]
-        schedule_df["proper_date"] = pd.to_datetime(schedule_df["Date"]).dt.date
+        schedule_df["proper_date"] = pd.to_datetime(
+            schedule_df["Date"], format="%a, %b %d, %Y"
+        ).dt.date
         schedule_df.columns = schedule_df.columns.str.lower()
         schedule_df = schedule_df.rename(
             columns={
@@ -1596,7 +1600,9 @@ def schedule_scraper(
         schedule_df = schedule_df[
             ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
         ]
-        schedule_df["proper_date"] = pd.to_datetime(schedule_df["Date"]).dt.date
+        schedule_df["proper_date"] = pd.to_datetime(
+            schedule_df["Date"], format="%a, %b %d, %Y"
+        ).dt.date
         schedule_df.columns = schedule_df.columns.str.lower()
         schedule_df = schedule_df.rename(
             columns={
