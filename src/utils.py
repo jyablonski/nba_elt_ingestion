@@ -1543,8 +1543,8 @@ def schedule_scraper(
     try:
         schedule_df = pd.DataFrame()
         completed_months = []
-        for i in month_list:
-            url = f"https://www.basketball-reference.com/leagues/NBA_{year}_games-{i}.html"
+        for month in month_list:
+            url = f"https://www.basketball-reference.com/leagues/NBA_{year}_games-{month}.html"
             html = requests.get(url).content
             soup = BeautifulSoup(html, "html.parser")
 
@@ -1567,55 +1567,35 @@ def schedule_scraper(
             schedule["Date"] = date_info
 
             logging.info(
-                f"Schedule Function Completed for {i}, retrieving {len(schedule)} rows"
+                f"Schedule Function Completed for {month}, retrieving {len(schedule)} rows"
             )
-            completed_months.append(i)
+            completed_months.append(month)
             schedule_df = pd.concat([schedule, schedule_df])
 
-        schedule_df = schedule_df[
-            ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
-        ]
-        schedule_df["proper_date"] = pd.to_datetime(
-            schedule_df["Date"], format="%a, %b %d, %Y"
-        ).dt.date
-        schedule_df.columns = schedule_df.columns.str.lower()
-        schedule_df = schedule_df.rename(
-            columns={
-                "start (et)": "start_time",
-                "visitor/neutral": "away_team",
-                "home/neutral": "home_team",
-            }
-        )
-
-        logging.info(
-            f"Schedule Function Completed for {' '.join(completed_months)}, "
-            f"retrieving {len(schedule_df)} total rows"
-        )
-        return schedule_df
     except IndexError:
         logging.info(
-            f"{i} currently has no data in basketball-reference, "
+            f"{month} currently has no data in basketball-reference, "
             f"stopping the function and returning data for {' '.join(completed_months)}"
         )
-        schedule_df = schedule_df[
-            ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
-        ]
-        schedule_df["proper_date"] = pd.to_datetime(
-            schedule_df["Date"], format="%a, %b %d, %Y"
-        ).dt.date
-        schedule_df.columns = schedule_df.columns.str.lower()
-        schedule_df = schedule_df.rename(
-            columns={
-                "start (et)": "start_time",
-                "visitor/neutral": "away_team",
-                "home/neutral": "home_team",
-            }
-        )
-        return schedule_df
-    except BaseException as e:
-        logging.error(f"Schedule Scraper Function Failed, {e}")
-        df = pd.DataFrame()
-        return df
+    finally:
+        if not schedule_df.empty:
+            schedule_df = schedule_df[
+                ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
+            ]
+            schedule_df["proper_date"] = pd.to_datetime(
+                schedule_df["Date"], format="%a, %b %d, %Y"
+            ).dt.date
+            schedule_df.columns = schedule_df.columns.str.lower()
+            schedule_df = schedule_df.rename(
+                columns={
+                    "start (et)": "start_time",
+                    "visitor/neutral": "away_team",
+                    "home/neutral": "home_team",
+                }
+            )
+            return schedule_df
+        else:
+            return pd.DataFrame()
 
 
 def write_to_s3(
