@@ -1530,6 +1530,7 @@ def schedule_scraper(
         DataFrame of Schedule Data to be stored.
 
     """
+    current_date = datetime.now().date()
     feature_flag = "schedule"
     feature_flag_check = check_feature_flag(
         flag=feature_flag, flags_df=feature_flags_df
@@ -1593,6 +1594,7 @@ def schedule_scraper(
                     "home/neutral": "home_team",
                 }
             )
+            schedule_df = schedule_df.query("proper_date >= @current_date")
             return schedule_df
         else:
             return pd.DataFrame()
