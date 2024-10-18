@@ -1594,6 +1594,8 @@ def schedule_scraper(
                     "home/neutral": "home_team",
                 }
             )
+            # filtering the data to only rows beyond the current date because we already have
+            # the historical records
             schedule_df = schedule_df.query("proper_date >= @current_date")
             return schedule_df
         else:
