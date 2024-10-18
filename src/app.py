@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("Starting Ingestion Script Version: 1.12.10")
+logging.info("Starting Ingestion Script Version: 1.12.11")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -166,9 +166,6 @@ if __name__ == "__main__":
             ],
         )
         write_to_sql_upsert(
-            conn=connection, table_name="opp_stats", df=opp_stats, pd_index=["team"]
-        )
-        write_to_sql_upsert(
             conn=connection,
             table_name="shooting_stats",
             df=shooting_stats,
@@ -205,7 +202,9 @@ if __name__ == "__main__":
             df=twitter_tweepy_data,
             pd_index=["tweet_id"],
         )
-
+        write_to_sql_upsert(
+            conn=connection, table_name="opp_stats", df=opp_stats, pd_index=["team"]
+        )
         # cant upsert on these bc the column names have % and i kept getting issues
         # even after changing the col names to _pct instead etc.  no clue dude fk it
         write_to_sql(con=connection, table_name="stats", df=stats, table_type="append")
@@ -246,4 +245,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("Finished Ingestion Script Version: 1.12.10")
+    logging.info("Finished Ingestion Script Version: 1.12.11")

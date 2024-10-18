@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
-from sqlalchemy.engine.base import Engine
+from sqlalchemy.engine.base import Connection
 
 from src.utils import (
     add_sentiment_analysis,
@@ -62,7 +62,7 @@ def aws_credentials():
 
 
 @pytest.fixture(scope="session")
-def postgres_conn() -> Engine:
+def postgres_conn() -> Connection:
     """Fixture to connect to Docker Postgres Container"""
     # small override for local + docker testing to work fine
     if os.environ.get("ENV_TYPE") == "docker_dev":
@@ -274,15 +274,11 @@ def schedule_data(
 ) -> pd.DataFrame:
     """
     Fixture to load schedule data from an html file for testing.
-    *** THIS WORKS FOR ANY REQUESTS.GET MOCKING IN THE FUTURE ***
     """
     fname = os.path.join(os.path.dirname(__file__), "fixtures/schedule.html")
     with open(fname, "rb") as fp:
         mock_content = fp.read()
 
-    # IT WORKS
-    # you have to first patch the requests.get response, and subsequently the
-    # return value of requests.get(url).content
     mocker.patch("src.utils.requests.get").return_value.content = mock_content
 
     schedule = schedule_scraper(
