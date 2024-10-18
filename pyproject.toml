@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nba-elt-ingestion"
-version = "1.12.10"
+version = "1.12.11"
 description = "Ingestion Script for NBA ELT Project"
 authors = ["jyablonski9 <jyablonski9@gmail.com>"]
 readme = "README.md"
