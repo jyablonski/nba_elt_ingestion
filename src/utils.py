@@ -89,10 +89,10 @@ def get_season_type(todays_date: date | None = None) -> str:
     if todays_date is None:
         todays_date = datetime.now().date()
 
-    if todays_date < datetime(2024, 4, 15).date():
+    if todays_date < datetime(2025, 4, 15).date():
         season_type = "Regular Season"
-    elif (todays_date >= datetime(2024, 4, 16).date()) & (
-        todays_date < datetime(2024, 4, 21).date()
+    elif (todays_date >= datetime(2025, 4, 16).date()) & (
+        todays_date < datetime(2025, 4, 21).date()
     ):
         season_type = "Play-In"
     else:
@@ -198,7 +198,7 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     # stats = stats.rename(columns={"fg%": "fg_pct", "3p%": "3p_pct",
     # "2p%": "2p_pct", "efg%": "efg_pct", "ft%": "ft_pct"})
     try:
-        year_stats = 2024
+        year_stats = 2025
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_per_game.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
@@ -415,7 +415,7 @@ def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
     year = (datetime.now() - timedelta(1)).year
     month = (datetime.now() - timedelta(1)).month
     day = (datetime.now() - timedelta(1)).day
-    year_stats = 2024
+    year_stats = 2025
 
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
@@ -515,7 +515,7 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     try:
-        url = "https://www.basketball-reference.com/leagues/NBA_2024_transactions.html"
+        url = "https://www.basketball-reference.com/leagues/NBA_2025_transactions.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
         # theres a bunch of garbage in the first 50 rows - no matter what
@@ -582,7 +582,7 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = pd.DataFrame()
         return df
 
-    year_stats = 2024
+    year_stats = 2025
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
         df = pd.read_html(url)
@@ -662,7 +662,7 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = pd.DataFrame()
         return df
 
-    year_stats = 2024
+    year_stats = 2025
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_shooting.html"
         df = pd.read_html(url)[0]
@@ -1797,7 +1797,7 @@ def write_to_sql_upsert(
             f"SQL Upsert Function Failed for EXISTING {table_name} "
             f"({len(df)} rows), {error}"
         )
-        pass
+        raise error
 
 
 def sql_connection(

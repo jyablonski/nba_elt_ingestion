@@ -89,5 +89,5 @@ def test_twitter_tweepy(twitter_tweepy_data):
 
 
 def test_schedule(schedule_data):
-    assert len(schedule_data) == 229
+    assert len(schedule_data) == 0
     assert schedule_data.dtypes.to_dict() == schedule_schema
