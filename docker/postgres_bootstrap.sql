@@ -1,5 +1,5 @@
 CREATE SCHEMA nba_source;
-CREATE SCHEMA nba_prod;
+CREATE SCHEMA marts;
 
 SET search_path TO nba_source;
 
@@ -341,8 +341,8 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_adv_stats_source
     modified_at timestamp default current_timestamp
 );
 
-DROP TABLE IF EXISTS nba_prod.feature_flags;
-CREATE TABLE IF NOT EXISTS nba_prod.feature_flags
+DROP TABLE IF EXISTS marts.feature_flags;
+CREATE TABLE IF NOT EXISTS marts.feature_flags
 (
 	id serial primary key,
 	flag text,
@@ -351,7 +351,7 @@ CREATE TABLE IF NOT EXISTS nba_prod.feature_flags
 	modified_at timestamp without time zone default now(),
     CONSTRAINT flag_unique UNIQUE (flag)
 );
-INSERT INTO nba_prod.feature_flags(flag, is_enabled)
+INSERT INTO marts.feature_flags(flag, is_enabled)
 VALUES ('season', 1),
        ('playoffs', 1),
        ('pbp', 1),
