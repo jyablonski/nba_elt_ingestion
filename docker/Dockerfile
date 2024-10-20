@@ -1,4 +1,4 @@
-FROM python:3.11-slim as base
+FROM python:3.12-slim AS base
 
 ENV POETRY_VIRTUALENVS_IN_PROJECT=1 \
     POETRY_NO_INTERACTION=1
@@ -9,9 +9,9 @@ COPY docker/install_packages.sh .
 COPY pyproject.toml .
 COPY poetry.lock .
 
-RUN ./install_packages.sh
-RUN pip install poetry
-RUN poetry install
+RUN ./install_packages.sh && \
+    pip install poetry && \
+    poetry install
 
 FROM base AS runtime
 
@@ -24,8 +24,7 @@ USER appuser
 
 COPY src/ ./src
 
-RUN mkdir logs
-RUN cat > logs/example.log
+RUN mkdir logs && touch logs/example.log
 RUN ["python3", "-c", "import nltk; nltk.download('vader_lexicon')"]
 
 CMD ["python3", "-m", "src.app"]

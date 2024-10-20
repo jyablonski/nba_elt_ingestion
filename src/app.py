@@ -89,7 +89,10 @@ logging.info("Loaded Functions")
 
 if __name__ == "__main__":
     logging.info("Starting Web Scrape")
-    engine = sql_connection(rds_schema=os.environ.get("RDS_SCHEMA", default="default"))
+    engine = sql_connection(
+        rds_schema=os.environ.get("RDS_SCHEMA", default="default"),
+        rds_port=os.environ.get("RDS_PORT", default=5432),
+    )
     feature_flags = get_feature_flags(connection=engine)
 
     # STEP 1: Extract Raw Data
@@ -101,9 +104,7 @@ if __name__ == "__main__":
     odds = scrape_odds(feature_flags_df=feature_flags)
     reddit_data = get_reddit_data(feature_flags_df=feature_flags, sub="nba")
     opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
-    schedule = schedule_scraper(
-        feature_flags_df=feature_flags, year="2024", month_list=["april", "may", "june"]
-    )
+    schedule = schedule_scraper(feature_flags_df=feature_flags, year="2025")
     shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
     twitter_tweepy_data = scrape_tweets_combo(feature_flags_df=feature_flags)
     reddit_comment_data = get_reddit_comments(

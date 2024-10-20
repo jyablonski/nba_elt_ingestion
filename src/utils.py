@@ -541,7 +541,7 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         ).reset_index()  # filters out nulls and empty values
         transactions = transactions.explode("Transaction")
         transactions["Date"] = transactions["Date"].str.replace(
-            "\\?", "Jan 1, 2023", regex=True  # bad data 10-14-21
+            "\\?", "October 1, 2024", regex=True  # bad data 10-14-21
         )
         transactions["Date"] = pd.to_datetime(transactions["Date"])
         transactions.columns = transactions.columns.str.lower()
@@ -1808,6 +1808,7 @@ def sql_connection(
     rds_pw: str = os.environ.get("RDS_PW", "postgres"),
     rds_ip: str = os.environ.get("IP", "postgres"),
     rds_db: str = os.environ.get("RDS_DB", "postgres"),
+    rds_port: int = os.environ.get("RDS_PORT", 5432),
 ) -> Engine:
     """
     SQL Connection function to define the SQL Driver + connection
@@ -1822,9 +1823,10 @@ def sql_connection(
     Returns:
         SQL Connection variable to a specified schema in my PostgreSQL DB
     """
+    db_url = f"postgresql+psycopg2://{rds_user}:{rds_pw}@{rds_ip}:{rds_port}/{rds_db}"
     try:
         engine = create_engine(
-            f"postgresql+psycopg2://{rds_user}:{rds_pw}@{rds_ip}:5432/{rds_db}",
+            url=db_url,
             # pool_size=0,
             # max_overflow=20,
             connect_args={
@@ -1833,10 +1835,10 @@ def sql_connection(
             # defining schema to connect to
             echo=False,
         )
-        logging.info(f"SQL Engine for {rds_ip}:5432/{rds_db}/{rds_schema} created")
+        logging.info(f"SQL Engine for {db_url} created")
         return engine
     except exc.SQLAlchemyError as e:
-        logging.error(f"SQL Engine for {rds_ip}:5432/{rds_db}/{rds_schema} failed, {e}")
+        logging.error(f"SQL Engine for {db_url} failed, {e}")
         sentry_sdk.capture_exception(e)
         raise e
 
@@ -1930,7 +1932,7 @@ def sql_connection(
 
 def get_feature_flags(connection: Connection | Engine) -> pd.DataFrame:
     flags = pd.read_sql_query(
-        sql="select * from nba_prod.feature_flags;", con=connection
+        sql="select * from marts.feature_flags;", con=connection
     )
 
     logging.info(f"Retrieving {len(flags)} Feature Flags")
