@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("Starting Ingestion Script Version: 1.12.11")
+logging.info("Starting Ingestion Script Version: 1.13.0")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -246,4 +246,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("Finished Ingestion Script Version: 1.12.11")
+    logging.info("Finished Ingestion Script Version: 1.13.0")
