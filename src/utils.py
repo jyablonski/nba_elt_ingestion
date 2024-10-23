@@ -773,10 +773,10 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = pd.read_html(url)
         odds = df[0]
         odds["spread"] = df[3]["Unnamed: 4"]
-        odds = odds[["Time (ET)  Game  Props  Open", "Unnamed: 4", "spread"]]
+        odds = odds[["Time (ET)  Game  Open", "Unnamed: 4", "spread"]]
         odds = odds.rename(
             columns={
-                "Time (ET)  Game  Props  Open": "datetime1",
+                "Time (ET)  Game  Open": "datetime1",
                 "Unnamed: 4": "moneyline",
             }
         )
