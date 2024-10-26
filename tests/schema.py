@@ -200,7 +200,7 @@ shooting_stats_schema = {
     "heaves_att": np.dtype("O"),
     "heaves_makes": np.dtype("O"),
     "scrape_date": np.dtype("O"),
-    "scrape_ts": np.dtype("<M8[us]"),
+    "scrape_ts": np.dtype("<M8[ns]"),
 }
 
 
@@ -208,7 +208,7 @@ stats_schema = {
     "player": np.dtype("O"),
     "pos": np.dtype("O"),
     "age": np.dtype("O"),
-    "tm": np.dtype("O"),
+    "team": np.dtype("O"),
     "g": np.dtype("O"),
     "gs": np.dtype("O"),
     "mp": np.dtype("O"),

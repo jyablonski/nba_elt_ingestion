@@ -779,15 +779,16 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         odds = odds.rename(
             columns={
                 odds.columns[0]: "datetime1",  # Rename first column
-                odds.columns[1]: "moneyline",  # Rename 5th column
+                odds.columns[1]: "moneyline",  # Rename second column
             }
         )
+        # filter out any records not from today
         odds = odds.query(
             "datetime1 != 'FINAL' and datetime1 == datetime1 and datetime1.str.contains('Today')",
             engine="python",
         ).copy()
-        # ^ this logic removes old games, removes null rows, and filters to
-        #  only grab records for today's games
+        # PK is a pick em game, so we'll set the spread to -1.0
+        odds["spread"] = odds["spread"].str.replace("PK", "-1.0")
         if len(odds) == 0:
             logging.info("No Odds Records available for today's games")
             return []
