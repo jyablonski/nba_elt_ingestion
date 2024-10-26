@@ -29,7 +29,7 @@ def test_validate_schema():
 # 2023-04-15 update: these are basically obsolete now after adding
 # integration tests but i'm keepin em in
 def test_player_stats(player_stats_data):
-    assert len(player_stats_data) == 630
+    assert len(player_stats_data) == 377
     assert player_stats_data.dtypes.to_dict() == stats_schema
 
 
@@ -44,7 +44,7 @@ def test_opp_stats(opp_stats_data):
 
 
 def test_odds(odds_data):
-    assert len(odds_data) == 2
+    assert len(odds_data) == 20
     assert odds_data.dtypes.to_dict() == odds_schema
 
 

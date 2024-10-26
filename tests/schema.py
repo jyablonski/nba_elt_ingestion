@@ -208,7 +208,7 @@ stats_schema = {
     "player": np.dtype("O"),
     "pos": np.dtype("O"),
     "age": np.dtype("O"),
-    "tm": np.dtype("O"),
+    "team": np.dtype("O"),
     "g": np.dtype("O"),
     "gs": np.dtype("O"),
     "mp": np.dtype("O"),

@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("Starting Ingestion Script Version: 1.13.1")
+logging.info("Starting Ingestion Script Version: 1.13.2")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -226,19 +226,19 @@ if __name__ == "__main__":
     # STEP 4: Write to S3
     logging.info("Starting Writes to S3")
 
-    write_to_s3("stats", stats)
-    write_to_s3("boxscores", boxscores)
-    write_to_s3("injury_data", injury_data)
-    write_to_s3("transactions", transactions)
-    write_to_s3("adv_stats", adv_stats)
-    write_to_s3("odds", odds)
-    write_to_s3("reddit_data", reddit_data)
-    write_to_s3("reddit_comment_data", reddit_comment_data)
-    write_to_s3("pbp_data", pbp_data)
-    write_to_s3("opp_stats", opp_stats)
-    write_to_s3("twitter_tweepy_data", twitter_tweepy_data)
-    write_to_s3("schedule", schedule)
-    write_to_s3("shooting_stats", shooting_stats)
+    write_to_s3(file_name="stats", df=stats)
+    write_to_s3(file_name="boxscores", df=boxscores)
+    write_to_s3(file_name="injury_data", df=injury_data)
+    write_to_s3(file_name="transactions", df=transactions)
+    write_to_s3(file_name="adv_stats", df=adv_stats)
+    write_to_s3(file_name="odds", df=odds)
+    write_to_s3(file_name="reddit_data", df=reddit_data)
+    write_to_s3(file_name="reddit_comment_data", df=reddit_comment_data)
+    write_to_s3(file_name="pbp_data", df=pbp_data)
+    write_to_s3(file_name="opp_stats", df=opp_stats)
+    write_to_s3(file_name="twitter_tweepy_data", df=twitter_tweepy_data)
+    write_to_s3(file_name="schedule", df=schedule)
+    write_to_s3(file_name="shooting_stats", df=shooting_stats)
 
     logging.info("Finished Writes to S3")
 
@@ -246,4 +246,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("Finished Ingestion Script Version: 1.13.1")
+    logging.info("Finished Ingestion Script Version: 1.13.2")
