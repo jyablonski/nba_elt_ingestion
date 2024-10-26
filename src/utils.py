@@ -219,7 +219,7 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         )
         stats.columns = stats.columns.str.lower()
         stats["scrape_date"] = datetime.now().date()
-        stats = stats.drop("index", axis=1)
+        stats = stats.drop(columns=["index", "awards"], axis=1)
         logging.info(
             "General Stats Transformation Function Successful, "
             f"retrieving {len(stats)} updated rows"
@@ -772,12 +772,14 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         url = "https://www.covers.com/sport/basketball/nba/odds"
         df = pd.read_html(url)
         odds = df[0]
-        odds["spread"] = df[3]["Unnamed: 4"]
-        odds = odds[["Time (ET)  Game  Props  Open", "Unnamed: 4", "spread"]]
+        odds["spread"] = df[3].iloc[:, 4]  # 5th column in df[3]
+        # Select columns by index: First column (index 0), 5th column (index 4), and 'spread'
+        odds = odds.iloc[:, [0, 4, -1]]
+        # Rename the selected columns
         odds = odds.rename(
             columns={
-                "Time (ET)  Game  Props  Open": "datetime1",
-                "Unnamed: 4": "moneyline",
+                odds.columns[0]: "datetime1",  # Rename first column
+                odds.columns[1]: "moneyline",  # Rename 5th column
             }
         )
         odds = odds.query(
@@ -1931,9 +1933,7 @@ def sql_connection(
 
 
 def get_feature_flags(connection: Connection | Engine) -> pd.DataFrame:
-    flags = pd.read_sql_query(
-        sql="select * from marts.feature_flags;", con=connection
-    )
+    flags = pd.read_sql_query(sql="select * from marts.feature_flags;", con=connection)
 
     logging.info(f"Retrieving {len(flags)} Feature Flags")
     return flags
