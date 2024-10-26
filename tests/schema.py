@@ -200,7 +200,7 @@ shooting_stats_schema = {
     "heaves_att": np.dtype("O"),
     "heaves_makes": np.dtype("O"),
     "scrape_date": np.dtype("O"),
-    "scrape_ts": np.dtype("<M8[ns]"),
+    "scrape_ts": np.dtype("<M8[us]"),
 }
 
 
