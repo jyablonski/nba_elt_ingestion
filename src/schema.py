@@ -125,9 +125,9 @@ odds_cols = ["team", "spread", "total", "moneyline", "date", "datetime1"]
 
 stats_cols = [
     "player",
-    "pos",
     "age",
-    "tm",
+    "team",
+    "pos",
     "g",
     "gs",
     "mp",
