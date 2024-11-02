@@ -18,7 +18,7 @@ import requests
 from sqlalchemy import exc, create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 import sentry_sdk
-import tweepy
+# import tweepy
 
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
 sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
@@ -1196,105 +1196,105 @@ def get_reddit_comments(
         return df
 
 
-def scrape_tweets_tweepy(
-    search_parameter: str, count: int, result_type: str
-) -> pd.DataFrame:
-    """
-    Web Scrape function w/ Tweepy to scrape Tweets made within last ~ 7 days
+# def scrape_tweets_tweepy(
+#     search_parameter: str, count: int, result_type: str
+# ) -> pd.DataFrame:
+#     """
+#     Web Scrape function w/ Tweepy to scrape Tweets made within last ~ 7 days
 
-    Args:
-        search_parameter (str): The string you're interested in finding Tweets for
+#     Args:
+#         search_parameter (str): The string you're interested in finding Tweets for
 
-        count (int): Number of tweets to grab
+#         count (int): Number of tweets to grab
 
-        result_type (str): Either mixed, recent, or popular.
+#         result_type (str): Either mixed, recent, or popular.
 
-    Returns:
-        Pandas DataFrame of recent Tweets
-    """
-    auth = tweepy.OAuthHandler(
-        os.environ.get("twitter_consumer_api_key"),
-        os.environ.get("twitter_consumer_api_secret"),
-    )
+#     Returns:
+#         Pandas DataFrame of recent Tweets
+#     """
+#     auth = tweepy.OAuthHandler(
+#         os.environ.get("twitter_consumer_api_key"),
+#         os.environ.get("twitter_consumer_api_secret"),
+#     )
 
-    api = tweepy.API(auth, wait_on_rate_limit=True)
+#     api = tweepy.API(auth, wait_on_rate_limit=True)
 
-    full_tweet_df = pd.DataFrame()
-    try:
-        for tweet in tweepy.Cursor(  # result_type can be mixed, recent, or popular.
-            api.search_tweets, search_parameter, count=count, result_type=result_type
-        ).items(count):
-            df = {
-                "api_created_at": tweet._json["created_at"],
-                "tweet_id": tweet._json["id_str"],
-                "username": tweet._json["user"]["screen_name"],
-                "user_id": tweet._json["user"]["id"],
-                "tweet": tweet._json["text"],
-                "likes": tweet._json["favorite_count"],
-                "retweets": tweet._json["retweet_count"],
-                "language": tweet._json["lang"],
-                "scrape_ts": datetime.now(),
-                "profile_img": tweet._json["user"]["profile_image_url"],
-                "url": f"https://twitter.com/twitter/statuses/{tweet._json['id']}",
-            }
-            full_tweet_df = pd.concat([df, full_tweet_df])
+#     full_tweet_df = pd.DataFrame()
+#     try:
+#         for tweet in tweepy.Cursor(  # result_type can be mixed, recent, or popular.
+#             api.search_tweets, search_parameter, count=count, result_type=result_type
+#         ).items(count):
+#             df = {
+#                 "api_created_at": tweet._json["created_at"],
+#                 "tweet_id": tweet._json["id_str"],
+#                 "username": tweet._json["user"]["screen_name"],
+#                 "user_id": tweet._json["user"]["id"],
+#                 "tweet": tweet._json["text"],
+#                 "likes": tweet._json["favorite_count"],
+#                 "retweets": tweet._json["retweet_count"],
+#                 "language": tweet._json["lang"],
+#                 "scrape_ts": datetime.now(),
+#                 "profile_img": tweet._json["user"]["profile_image_url"],
+#                 "url": f"https://twitter.com/twitter/statuses/{tweet._json['id']}",
+#             }
+#             full_tweet_df = pd.concat([df, full_tweet_df])
 
-        df = add_sentiment_analysis(df, "tweet")
-        logging.info(f"Twitter Scrape Successful, retrieving {len(df)} Tweets")
-        return df
-    except BaseException as e:
-        logging.error(f"Error Occurred for Scrape Tweets Tweepy, {e}")
-        sentry_sdk.capture_exception(e)
-        df = pd.DataFrame()
-        return df
+#         df = add_sentiment_analysis(df, "tweet")
+#         logging.info(f"Twitter Scrape Successful, retrieving {len(df)} Tweets")
+#         return df
+#     except BaseException as e:
+#         logging.error(f"Error Occurred for Scrape Tweets Tweepy, {e}")
+#         sentry_sdk.capture_exception(e)
+#         df = pd.DataFrame()
+#         return df
 
 
-@time_function
-def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Web Scrape function to scrape Tweepy Tweets for both popular & mixed tweets
+# @time_function
+# def scrape_tweets_combo(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
+#     """
+#     Web Scrape function to scrape Tweepy Tweets for both popular & mixed tweets
 
-    Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
-            to run this function or not
+#     Args:
+#         feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
+#             to run this function or not
 
-    Returns:
-        Pandas DataFrame of both popular and mixed tweets.
-    """
-    feature_flag = "twitter"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
+#     Returns:
+#         Pandas DataFrame of both popular and mixed tweets.
+#     """
+#     feature_flag = "twitter"
+#     feature_flag_check = check_feature_flag(
+#         flag=feature_flag, flags_df=feature_flags_df
+#     )
 
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
+#     if feature_flag_check is False:
+#         logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
+#         df = pd.DataFrame()
+#         return df
 
-    try:
-        df1 = scrape_tweets_tweepy("nba", 1000, "popular")
-        df2 = scrape_tweets_tweepy("nba", 5000, "mixed")
+#     try:
+#         df1 = scrape_tweets_tweepy("nba", 1000, "popular")
+#         df2 = scrape_tweets_tweepy("nba", 5000, "mixed")
 
-        # so the scrape_ts column screws up with filtering duplicates out so
-        # this code ignores that column to correctly drop the duplicates
-        df_combo = pd.concat([df1, df2])
-        df_combo = df_combo.drop_duplicates(
-            subset=df_combo.columns.difference(
-                ["scrape_ts", "likes", "retweets", "tweet"]
-            )
-        )
+#         # so the scrape_ts column screws up with filtering duplicates out so
+#         # this code ignores that column to correctly drop the duplicates
+#         df_combo = pd.concat([df1, df2])
+#         df_combo = df_combo.drop_duplicates(
+#             subset=df_combo.columns.difference(
+#                 ["scrape_ts", "likes", "retweets", "tweet"]
+#             )
+#         )
 
-        logging.info(
-            f"Grabbing {len(df1)} Popular Tweets and {len(df2)} Mixed Tweets "
-            f"for {len(df_combo)} Total, {(len(df1) + len(df2) - len(df_combo))} "
-            "were duplicates"
-        )
-        return df_combo
-    except BaseException as e:
-        logging.error(f"Error Occurred for Scrape Tweets Combo, {e}")
-        sentry_sdk.capture_exception(e)
-        df = pd.DataFrame()
-        return df
+#         logging.info(
+#             f"Grabbing {len(df1)} Popular Tweets and {len(df2)} Mixed Tweets "
+#             f"for {len(df_combo)} Total, {(len(df1) + len(df2) - len(df_combo))} "
+#             "were duplicates"
+#         )
+#         return df_combo
+#     except BaseException as e:
+#         logging.error(f"Error Occurred for Scrape Tweets Combo, {e}")
+#         sentry_sdk.capture_exception(e)
+#         df = pd.DataFrame()
+#         return df
 
 
 @time_function
@@ -1437,7 +1437,7 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                         "4th OT",
                     ]
                     df["Quarter"] = np.select(conditions, values, default=None)
-                    df["Quarter"] = df["Quarter"].fillna(method="ffill")
+                    df["Quarter"] = df["Quarter"].ffill()
                     df = df.query(
                         'Time != "Time" & '
                         'Time != "2nd Q" & '
@@ -1458,10 +1458,11 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                         "-", expand=True, n=1
                     )
                     df["scoreAway"] = pd.to_numeric(df["scoreAway"], errors="coerce")
-                    df["scoreAway"] = df["scoreAway"].fillna(method="ffill")
+                    df["scoreAway"] = df["scoreAway"].ffill()
                     df["scoreAway"] = df["scoreAway"].fillna(0)
                     df["scoreHome"] = pd.to_numeric(df["scoreHome"], errors="coerce")
-                    df["scoreHome"] = df["scoreHome"].fillna(method="ffill")
+                    df["scoreHome"] = df["scoreHome"].ffill()
+
                     df["scoreHome"] = df["scoreHome"].fillna(0)
                     df["marginScore"] = df["scoreHome"] - df["scoreAway"]
                     df["Date"] = game_date

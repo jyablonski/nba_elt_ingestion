@@ -27,7 +27,7 @@ from src.utils import (
     get_transactions_data,
     schedule_scraper,
     scrape_odds,
-    scrape_tweets_tweepy,
+    # scrape_tweets_tweepy,
     sql_connection,
 )
 from src.app import validate_schema
@@ -320,22 +320,22 @@ def reddit_comments_data(
     return reddit_comments_data
 
 
-@pytest.fixture()
-def twitter_tweepy_data(mocker: MockerFixture) -> pd.DataFrame:
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/tweepy_tweets.csv")
-    twitter_csv = pd.read_csv(fname)
+# @pytest.fixture()
+# def twitter_tweepy_data(mocker: MockerFixture) -> pd.DataFrame:
+#     fname = os.path.join(os.path.dirname(__file__), "fixtures/tweepy_tweets.csv")
+#     twitter_csv = pd.read_csv(fname)
 
-    mocker.patch("src.utils.tweepy.OAuthHandler").return_value = 1
-    mocker.patch("src.utils.tweepy.API.search_tweets").return_value = 1
-    mocker.patch("src.utils.tweepy.Cursor").return_value = 1
-    mocker.patch("src.utils.tweepy.Cursor").return_value.items().return_value = 1
-    mocker.patch("src.utils.pd.DataFrame").return_value = twitter_csv
+#     mocker.patch("src.utils.tweepy.OAuthHandler").return_value = 1
+#     mocker.patch("src.utils.tweepy.API.search_tweets").return_value = 1
+#     mocker.patch("src.utils.tweepy.Cursor").return_value = 1
+#     mocker.patch("src.utils.tweepy.Cursor").return_value.items().return_value = 1
+#     mocker.patch("src.utils.pd.DataFrame").return_value = twitter_csv
 
-    twitter_data = scrape_tweets_tweepy(
-        search_parameter="nba", count=1, result_type="popular"
-    )
-    twitter_data = twitter_data.drop_duplicates(subset=["tweet_id"])
-    return twitter_data
+#     twitter_data = scrape_tweets_tweepy(
+#         search_parameter="nba", count=1, result_type="popular"
+#     )
+#     twitter_data = twitter_data.drop_duplicates(subset=["tweet_id"])
+#     return twitter_data
 
 
 @pytest.fixture(scope="function")
