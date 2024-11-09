@@ -16,7 +16,7 @@ from src.schema import (
     shooting_stats_cols,
     stats_cols,
     transactions_cols,
-    twitter_tweepy_cols,
+    # twitter_tweepy_cols,
 )
 
 from src.utils import (
