@@ -16,7 +16,7 @@ from src.schema import (
     shooting_stats_cols,
     stats_cols,
     transactions_cols,
-    twitter_tweepy_cols,
+    # twitter_tweepy_cols,
 )
 
 from src.utils import (
@@ -34,7 +34,7 @@ from src.utils import (
     query_logs,
     schedule_scraper,
     scrape_odds,
-    scrape_tweets_combo,
+    # scrape_tweets_combo,
     sql_connection,
     write_to_slack,
     write_to_sql,
@@ -49,7 +49,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logs/example.log"), logging.StreamHandler()],
 )
 logging.getLogger("requests").setLevel(logging.WARNING)  # get rid of https debug stuff
-logging.info("Starting Ingestion Script Version: 1.13.2")
+logging.info("Starting Ingestion Script Version: 1.13.3")
 
 
 # helper validation function - has to be here instead of utils bc of globals().items()
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
     schedule = schedule_scraper(feature_flags_df=feature_flags, year="2025")
     shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
-    twitter_tweepy_data = scrape_tweets_combo(feature_flags_df=feature_flags)
+    # twitter_tweepy_data = scrape_tweets_combo(feature_flags_df=feature_flags)
     reddit_comment_data = get_reddit_comments(
         feature_flags_df=feature_flags, urls=reddit_data["reddit_url"]
     )
@@ -130,9 +130,9 @@ if __name__ == "__main__":
         df=reddit_comment_data, schema=reddit_comment_cols
     )
     odds = validate_schema(df=odds, schema=odds_cols)
-    twitter_tweepy_data = validate_schema(
-        df=twitter_tweepy_data, schema=twitter_tweepy_cols
-    )
+    # twitter_tweepy_data = validate_schema(
+    #     df=twitter_tweepy_data, schema=twitter_tweepy_cols
+    # )
     transactions = validate_schema(df=transactions, schema=transactions_cols)
     schedule = validate_schema(df=schedule, schema=schedule_cols)
     shooting_stats = validate_schema(df=shooting_stats, schema=shooting_stats_cols)
@@ -197,12 +197,12 @@ if __name__ == "__main__":
             pd_index=["player", "team", "description"],
         )
 
-        write_to_sql_upsert(
-            conn=connection,
-            table_name="twitter_tweepy_data",
-            df=twitter_tweepy_data,
-            pd_index=["tweet_id"],
-        )
+        # write_to_sql_upsert(
+        #     conn=connection,
+        #     table_name="twitter_tweepy_data",
+        #     df=twitter_tweepy_data,
+        #     pd_index=["tweet_id"],
+        # )
         write_to_sql_upsert(
             conn=connection, table_name="opp_stats", df=opp_stats, pd_index=["team"]
         )
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     write_to_s3(file_name="reddit_comment_data", df=reddit_comment_data)
     write_to_s3(file_name="pbp_data", df=pbp_data)
     write_to_s3(file_name="opp_stats", df=opp_stats)
-    write_to_s3(file_name="twitter_tweepy_data", df=twitter_tweepy_data)
+    # write_to_s3(file_name="twitter_tweepy_data", df=twitter_tweepy_data)
     write_to_s3(file_name="schedule", df=schedule)
     write_to_s3(file_name="shooting_stats", df=shooting_stats)
 
@@ -246,4 +246,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logging.info("Finished Ingestion Script Version: 1.13.2")
+    logging.info("Finished Ingestion Script Version: 1.13.3")
