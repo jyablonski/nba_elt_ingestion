@@ -207,7 +207,7 @@ def shooting_stats_data(
     """
     Fixture to load shooting stats data from a pickle file for testing.
     """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/shooting_stats.pickle")
+    fname = os.path.join(os.path.dirname(__file__), "fixtures/shooting_stats.pkl")
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 

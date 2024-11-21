@@ -64,7 +64,7 @@ def test_advanced_stats(advanced_stats_data):
 
 
 def test_shooting_stats(shooting_stats_data):
-    assert len(shooting_stats_data) == 605
+    assert len(shooting_stats_data) == 474
     assert shooting_stats_data.dtypes.to_dict() == shooting_stats_schema
 
 
