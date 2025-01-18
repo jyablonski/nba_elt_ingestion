@@ -98,22 +98,22 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_COLOR: ${{ job.status }}
-          SLACK_MESSAGE: 'Common Modules Deployed to Production'
-          SLACK_TITLE: Deploy Pipeline
+          SLACK_MESSAGE: 'Ingestion Script Deployed to Production'
+          SLACK_TITLE: Ingestion Script Deploy Pipeline
           SLACK_USERNAME: GitHub Actions
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   deploy-alert-failure:
     needs: cd_pipeline
     runs-on: ubuntu-latest
-    if: failure()
+    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v2
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_COLOR: ${{ job.status }}
-          SLACK_MESSAGE: 'Common Modules Failed to deploy properly'
-          SLACK_TITLE: Common Modules Deploy Failure
+          SLACK_MESSAGE: 'Ingestion Script Failed to deploy properly'
+          SLACK_TITLE: Ingestion Script Deploy Failure
           SLACK_USERNAME: GitHub Actions
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
