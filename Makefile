@@ -1,6 +1,6 @@
 # Lints all python files
 .PHONY: lint
-lint: 
+lint:
 	black src/app.py src/utils.py tests/conftest.py tests/unit_test.py
 
 .PHONY: create-venv
@@ -14,7 +14,6 @@ venv:
 .PHONY: test
 test:
 	@docker compose -f docker/docker-compose-test.yml down
-	@docker compose -f docker/docker-compose-test.yml up
 	@docker compose -f docker/docker-compose-test.yml up --exit-code-from ingestion_script_test_runner
 
 .PHONY: docker-build
