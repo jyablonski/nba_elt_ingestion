@@ -9,7 +9,7 @@ def test_adv_stats_insert(postgres_conn, advanced_stats_data):
     # insert 30 records
     write_to_sql(
         con=postgres_conn,
-        table_name="adv_stats",
+        table_name="aws_adv_stats_source",
         df=advanced_stats_data,
         table_type="replace",
     )

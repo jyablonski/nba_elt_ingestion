@@ -9,7 +9,7 @@ def test_schedule_upsert(postgres_conn, schedule_data):
     # upsert 229 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="schedule",
+        table="aws_schedule_source",
         schema="nba_source",
         df=schedule_data,
         primary_keys=["away_team", "home_team", "proper_date"],

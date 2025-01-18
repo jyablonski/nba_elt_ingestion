@@ -9,7 +9,7 @@ def test_shooting_stats_upsert(postgres_conn, shooting_stats_data):
     # upsert 473 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="shooting_stats",
+        table="aws_shooting_stats_source",
         schema="nba_source",
         df=shooting_stats_data,
         primary_keys=["player"],

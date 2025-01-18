@@ -9,7 +9,7 @@ def test_pbp_upsert(postgres_conn, pbp_transformed_data):
     # upsert 100 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="pbp_data",
+        table="aws_pbp_data_source",
         schema="nba_source",
         df=pbp_transformed_data,
         primary_keys=[

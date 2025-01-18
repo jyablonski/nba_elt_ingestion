@@ -10,7 +10,7 @@ def test_odds_upsert(postgres_conn, odds_data):
 
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="odds",
+        table="aws_odds_source",
         schema="nba_source",
         df=odds_data,
         primary_keys=["team", "date"],

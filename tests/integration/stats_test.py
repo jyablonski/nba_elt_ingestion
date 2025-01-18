@@ -9,7 +9,7 @@ def test_stats_insert(postgres_conn, player_stats_data):
     # insert 630 records
     write_to_sql(
         con=postgres_conn,
-        table_name="stats",
+        table_name="aws_stats_source",
         df=player_stats_data,
         table_type="replace",
     )

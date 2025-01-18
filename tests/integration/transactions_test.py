@@ -9,7 +9,7 @@ def test_transactions_upsert(postgres_conn, transactions_data):
     # upsert 1313 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="transactions",
+        table="aws_transactions_source",
         schema="nba_source",
         df=transactions_data,
         primary_keys=["date", "transaction"],

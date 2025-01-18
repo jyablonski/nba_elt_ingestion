@@ -9,7 +9,7 @@ def test_reddit_comment_data_upsert(postgres_conn, reddit_comments_data):
     # upsert 999 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="reddit_comment_data",
+        table="aws_reddit_comment_data_source",
         schema="nba_source",
         df=reddit_comments_data,
         primary_keys=["md5_pk"],

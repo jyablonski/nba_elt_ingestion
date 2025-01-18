@@ -6,7 +6,6 @@ import os
 import re
 import time
 from typing import Any, Callable
-import uuid
 
 import awswrangler as wr
 from bs4 import BeautifulSoup
@@ -15,7 +14,6 @@ import numpy as np
 import pandas as pd
 import praw
 import requests
-from sqlalchemy import exc, create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 import sentry_sdk
 
@@ -1535,7 +1533,9 @@ def schedule_scraper(
         DataFrame of Schedule Data to be stored.
 
     """
-    current_date = datetime.now().date() # DO NOT REMOVE, used in df.query function later
+    current_date = (
+        datetime.now().date()
+    )  # DO NOT REMOVE, used in df.query function later
     feature_flag = "schedule"
     feature_flag_check = check_feature_flag(
         flag=feature_flag, flags_df=feature_flags_df
@@ -1673,7 +1673,7 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
     try:
         if len(df) == 0:
             logging.info(f"{table_name} is empty, not writing to SQL")
-        elif df.schema == "Validated":
+        else:
             df.to_sql(
                 con=con,
                 name=f"aws_{table_name}_source",
@@ -1683,8 +1683,8 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
             logging.info(
                 f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL"
             )
-        else:
-            logging.info(f"{table_name} Schema Invalidated, not writing to SQL")
+
+        return None
     except BaseException as error:
         logging.error(f"SQL Write Script Failed, {error}")
         sentry_sdk.capture_exception(error)

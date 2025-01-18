@@ -9,7 +9,7 @@ def test_opp_stats_upsert(postgres_conn, opp_stats_data):
     # upsert 30 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="opp_stats",
+        table="aws_opp_stats_source",
         schema="nba_source",
         df=opp_stats_data,
         primary_keys=["team"],

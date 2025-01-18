@@ -73,7 +73,7 @@ def test_boxscores_upsert(postgres_conn, boxscores_data):
     # upsert 145 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="boxscores",
+        table="aws_boxscores_source",
         schema="nba_source",
         df=boxscores_data,
         primary_keys=["player", "date"],

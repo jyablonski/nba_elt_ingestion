@@ -9,7 +9,7 @@ def test_injury_data_upsert(postgres_conn, injuries_data):
     # upsert 17 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="injury_data",
+        table="aws_injury_data_source",
         schema="nba_source",
         df=injuries_data,
         primary_keys=["player", "team", "description"],
