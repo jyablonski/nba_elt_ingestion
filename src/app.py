@@ -149,9 +149,14 @@ if __name__ == "__main__":
         )
         # cant upsert on these bc the column names have % and i kept getting issues
         # even after changing the col names to _pct instead etc.  no clue dude fk it
-        write_to_sql(con=connection, table_name="stats", df=stats, table_type="append")
         write_to_sql(
-            con=connection, table_name="adv_stats", df=adv_stats, table_type="append"
+            con=connection, table_name="aws_stats_source", df=stats, table_type="append"
+        )
+        write_to_sql(
+            con=connection,
+            table_name="aws_adv_stats_source",
+            df=adv_stats,
+            table_type="append",
         )
 
         write_to_sql_upsert(

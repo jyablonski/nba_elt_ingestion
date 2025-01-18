@@ -1654,7 +1654,7 @@ def write_to_s3(
 
 def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> None:
     """
-    SQL Table function to write a pandas data frame in aws_dfname_source format
+    Simple Wrapper Function to write a Pandas DataFrame to SQL
 
     Args:
         con (SQL Connection): The connection to the SQL DB.
@@ -1676,7 +1676,7 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
         else:
             df.to_sql(
                 con=con,
-                name=f"aws_{table_name}_source",
+                name=table_name,
                 index=False,
                 if_exists=table_type,
             )
