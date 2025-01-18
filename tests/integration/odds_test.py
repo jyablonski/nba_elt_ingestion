@@ -1,6 +1,5 @@
+from jyablonski_common_modules.sql import write_to_sql_upsert
 import pandas as pd
-
-from src.utils import write_to_sql_upsert
 
 
 def test_odds_upsert(postgres_conn, odds_data):
@@ -10,7 +9,11 @@ def test_odds_upsert(postgres_conn, odds_data):
     count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)
 
     write_to_sql_upsert(
-        conn=postgres_conn, table_name="odds", df=odds_data, pd_index=["team", "date"]
+        conn=postgres_conn,
+        table="aws_odds_source",
+        schema="nba_source",
+        df=odds_data,
+        primary_keys=["team", "date"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)

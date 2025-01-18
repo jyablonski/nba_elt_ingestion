@@ -6,7 +6,6 @@ import os
 import re
 import time
 from typing import Any, Callable
-import uuid
 
 import awswrangler as wr
 from bs4 import BeautifulSoup
@@ -15,9 +14,9 @@ import numpy as np
 import pandas as pd
 import praw
 import requests
-from sqlalchemy import exc, create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 import sentry_sdk
+
 # import tweepy
 
 sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
@@ -1534,7 +1533,9 @@ def schedule_scraper(
         DataFrame of Schedule Data to be stored.
 
     """
-    current_date = datetime.now().date()
+    current_date = (
+        datetime.now().date()
+    )  # DO NOT REMOVE, used in df.query function later
     feature_flag = "schedule"
     feature_flag_check = check_feature_flag(
         flag=feature_flag, flags_df=feature_flags_df
@@ -1607,7 +1608,10 @@ def schedule_scraper(
 
 
 def write_to_s3(
-    file_name: str, df: pd.DataFrame, bucket: str = os.environ.get("S3_BUCKET")
+    file_name: str,
+    df: pd.DataFrame,
+    date: datetime.date = datetime.now().date(),
+    bucket: str = os.environ.get("S3_BUCKET"),
 ) -> None:
     """
     S3 Function using awswrangler to write file.  Only supports parquet right now.
@@ -1615,38 +1619,31 @@ def write_to_s3(
     Args:
         file_name (str): The base name of the file (boxscores, opp_stats)
 
-        df (pd.DataFrame): The Pandas DataFrame to write
+        df (pd.DataFrame): The Pandas DataFrame to write to S3
 
         bucket (str): The Bucket to write to.  Defaults to `os.environ.get('S3_BUCKET')`
+
+        date (datetime.date): Date to partition the data by.  Defaults to `datetime.now().date()`
 
     Returns:
         Writes the Pandas DataFrame to an S3 File.
 
     """
-    month_prefix = get_leading_zeroes(datetime.now().month)
-    # df['file_name'] = f'{file_name}-{datetime.now().date()}.parquet'
+    year_partition = date.year
+    month_partition = get_leading_zeroes(value=date.month)
+    file_name_jn = f"{file_name}-{date}"
     try:
         if len(df) == 0:
             logging.info(f"Not storing {file_name} to s3 because it's empty.")
             pass
-        elif df.schema == "Validated":
-            wr.s3.to_parquet(
-                df=df,
-                path=f"s3://{bucket}/{file_name}/validated/year={datetime.now().year}/month={month_prefix}/{file_name}-{datetime.now().date()}.parquet",
-                index=False,
-            )
-            logging.info(
-                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/validated/{month_prefix}/{file_name}-{datetime.now().date()}.parquet)"
-            )
-            pass
         else:
             wr.s3.to_parquet(
                 df=df,
-                path=f"s3://{bucket}/{file_name}/invalidated/year={datetime.now().year}/month={month_prefix}/{file_name}-{datetime.now().date()}.parquet",
+                path=f"s3://{bucket}/{file_name}/validated/year={year_partition}/month={month_partition}/{file_name_jn}.parquet",
                 index=False,
             )
             logging.info(
-                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/invalidated/{month_prefix}/{file_name}-{datetime.now().date()}.parquet)"
+                f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/validated/{year_partition}/{file_name_jn}.parquet)"
             )
             pass
     except BaseException as error:
@@ -1657,7 +1654,7 @@ def write_to_s3(
 
 def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> None:
     """
-    SQL Table function to write a pandas data frame in aws_dfname_source format
+    Simple Wrapper Function to write a Pandas DataFrame to SQL
 
     Args:
         con (SQL Connection): The connection to the SQL DB.
@@ -1676,175 +1673,21 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
     try:
         if len(df) == 0:
             logging.info(f"{table_name} is empty, not writing to SQL")
-        elif df.schema == "Validated":
+        else:
             df.to_sql(
                 con=con,
-                name=f"aws_{table_name}_source",
+                name=table_name,
                 index=False,
                 if_exists=table_type,
             )
             logging.info(
                 f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL"
             )
-        else:
-            logging.info(f"{table_name} Schema Invalidated, not writing to SQL")
+
+        return None
     except BaseException as error:
         logging.error(f"SQL Write Script Failed, {error}")
         sentry_sdk.capture_exception(error)
-
-
-def write_to_sql_upsert(
-    conn: Connection,
-    table_name: str,
-    df: pd.DataFrame,
-    pd_index: list[str],
-) -> None:
-    """
-    SQL Table function to upsert a Pandas DataFrame into a SQL Table.
-
-    Will create a new table if it doesn't exist.  If it does, it will
-    insert new records and upsert new column values onto existing
-    records (if applicable).
-
-    You have to do some extra index stuff to the pandas df to specify
-    what the primary key of the records is (this data does not get upserted).
-
-    Args:
-        conn (SQL Connection): The connection to the SQL DB.
-
-        table_name (str): The Table name to write to SQL as.
-
-        df (DataFrame): The Pandas DataFrame to store in SQL
-
-        pd_index (list[str]): The columns that make up the composite
-            primary key of the SQL Table.
-
-    Returns:
-        Upserts any new data in the Pandas DataFrame to the table in Postgres
-            in the {nba_source_dev} schema
-
-    """
-    sql_table_name = f"aws_{table_name}_source"
-    if len(df) == 0:
-        logging.info(f"{sql_table_name} is empty, not storing to SQL")
-        return
-    # 2 try except blocks bc in event of an error there needs to be different
-    # logic to safely exit out and continue script
-    try:
-        df = df.set_index(pd_index)
-        df = df.rename_axis(pd_index)
-
-        table_exists = conn.execute(
-            text(
-                f"""SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE  table_schema = 'nba_source' 
-                AND    table_name   = '{sql_table_name}');
-                """
-            )
-        ).first()[0]
-
-        if not table_exists:
-            df.to_sql(sql_table_name, conn)
-            logging.info(
-                f"Table {sql_table_name} not found, creating it."
-                f"SQL Upsert Function Successful, {len(df)} records "
-                f"added to NEW Table {sql_table_name}"
-            )
-        else:
-            # If it already exists...
-            temp_table_name = f"temp_{uuid.uuid4().hex[:6]}"
-            df.to_sql(temp_table_name, conn, index=True)
-
-            index = list(df.index.names)
-            index_sql_txt = ", ".join([f'"{i}"' for i in index])
-            columns = list(df.columns)
-            headers = index + columns
-            headers_sql_txt = ", ".join([f'"{i}"' for i in headers])
-            # this is excluding the primary key columns needed to identify
-            # the unique rows.
-            update_column_stmt = ", ".join(
-                [f'"{col}" = EXCLUDED."{col}"' for col in columns]
-            )
-            update_column_stmt += ', "modified_at" = CURRENT_TIMESTAMP'
-
-            # For the ON CONFLICT clause, postgres requires that the columns have
-            # unique constraint
-            query_pk = f"""
-            ALTER TABLE "{sql_table_name}" DROP CONSTRAINT IF EXISTS
-            unique_constraint_for_upsert_{table_name};
-            ALTER TABLE "{sql_table_name}" ADD CONSTRAINT
-            unique_constraint_for_upsert_{table_name} UNIQUE ({index_sql_txt});
-            """
-
-            conn.execute(text(query_pk))
-
-            # Compose and execute upsert query
-            query_upsert = f"""
-            INSERT INTO "{sql_table_name}" ({headers_sql_txt}) 
-            SELECT {headers_sql_txt} FROM "{temp_table_name}"
-            ON CONFLICT ({index_sql_txt}) DO UPDATE 
-            SET {update_column_stmt};
-            """
-            # print(query_upsert)
-            conn.execute(text(query_upsert))
-            conn.execute(text(f"DROP TABLE {temp_table_name};"))
-            logging.info(
-                f"SQL Upsert Function Successful, {len(df)} records "
-                f"added or upserted into {table_name}"
-            )
-            pass
-    except BaseException as error:
-        if "temp_table_name" in locals():
-            conn.execute(text(f"DROP TABLE {temp_table_name};"))
-
-        sentry_sdk.capture_exception(error)
-        logging.error(
-            f"SQL Upsert Function Failed for EXISTING {table_name} "
-            f"({len(df)} rows), {error}"
-        )
-        raise error
-
-
-def sql_connection(
-    rds_schema: str,
-    rds_user: str = os.environ.get("RDS_USER", "postgres"),
-    rds_pw: str = os.environ.get("RDS_PW", "postgres"),
-    rds_ip: str = os.environ.get("IP", "postgres"),
-    rds_db: str = os.environ.get("RDS_DB", "postgres"),
-    rds_port: int = os.environ.get("RDS_PORT", 5432),
-) -> Engine:
-    """
-    SQL Connection function to define the SQL Driver + connection
-    variables needed to connect to the DB.
-
-    This doesn't actually make the connection, use conn.connect()
-    in a context manager to create 1 re-usable connection
-
-    Args:
-        rds_schema (str): The Schema in the DB to connect to.
-
-    Returns:
-        SQL Connection variable to a specified schema in my PostgreSQL DB
-    """
-    db_url = f"postgresql+psycopg2://{rds_user}:{rds_pw}@{rds_ip}:{rds_port}/{rds_db}"
-    try:
-        engine = create_engine(
-            url=db_url,
-            # pool_size=0,
-            # max_overflow=20,
-            connect_args={
-                "options": f"-csearch_path={rds_schema}",
-            },
-            # defining schema to connect to
-            echo=False,
-        )
-        logging.info(f"SQL Engine for {db_url} created")
-        return engine
-    except exc.SQLAlchemyError as e:
-        logging.error(f"SQL Engine for {db_url} failed, {e}")
-        sentry_sdk.capture_exception(e)
-        raise e
 
 
 # deprecated as of 2023-10-17 rip

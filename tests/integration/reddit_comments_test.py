@@ -1,6 +1,5 @@
+from jyablonski_common_modules.sql import write_to_sql_upsert
 import pandas as pd
-
-from src.utils import write_to_sql_upsert
 
 
 def test_reddit_comment_data_upsert(postgres_conn, reddit_comments_data):
@@ -10,9 +9,10 @@ def test_reddit_comment_data_upsert(postgres_conn, reddit_comments_data):
     # upsert 999 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table_name="reddit_comment_data",
+        table="aws_reddit_comment_data_source",
+        schema="nba_source",
         df=reddit_comments_data,
-        pd_index=["md5_pk"],
+        primary_keys=["md5_pk"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)

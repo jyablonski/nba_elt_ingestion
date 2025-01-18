@@ -7,8 +7,9 @@ import os
 import pickle
 import socket
 import time
-from typing import TYPE_CHECKING
+from typing import Generator, TYPE_CHECKING
 
+from jyablonski_common_modules.sql import create_sql_engine
 import pandas as pd
 import pytest
 from sqlalchemy.engine.base import Connection
@@ -27,10 +28,7 @@ from src.utils import (
     get_transactions_data,
     schedule_scraper,
     scrape_odds,
-    # scrape_tweets_tweepy,
-    sql_connection,
 )
-from src.app import validate_schema
 
 from typing import TYPE_CHECKING
 
@@ -62,7 +60,7 @@ def aws_credentials():
 
 
 @pytest.fixture(scope="session")
-def postgres_conn() -> Connection:
+def postgres_conn() -> Generator[Connection, None, None]:
     """Fixture to connect to Docker Postgres Container"""
     # small override for local + docker testing to work fine
     if os.environ.get("ENV_TYPE") == "docker_dev":
@@ -70,19 +68,20 @@ def postgres_conn() -> Connection:
     else:
         host = "localhost"
 
-    conn = sql_connection(
-        rds_schema="nba_source",
-        rds_user="postgres",
-        rds_pw="postgres",
-        rds_ip=host,
-        rds_db="postgres",
+    conn = create_sql_engine(
+        schema="nba_source",
+        user="postgres",
+        password="postgres",
+        host=host,
+        database="postgres",
+        port=5432,
     )
     with conn.begin() as conn:
         yield conn
 
 
 @pytest.fixture(scope="session")
-def get_feature_flags_postgres(postgres_conn: Engine) -> pd.DataFrame:
+def get_feature_flags_postgres(postgres_conn) -> Generator[pd.DataFrame, None, None]:
     # test suite was shitting itself at the very beginning while trying
     # to run this without a `time.sleep()`
     time.sleep(1)
@@ -106,7 +105,6 @@ def player_stats_data(
     mocker.patch("src.utils.requests.get").return_value.content = mock_content
 
     df = get_player_stats_data(feature_flags_df=get_feature_flags_postgres)
-    df.schema = "Validated"
     return df
 
 
@@ -192,7 +190,6 @@ def advanced_stats_data(
     mocker.patch("src.utils.pd.read_html").return_value = df
 
     adv_stats = get_advanced_stats_data(feature_flags_df=get_feature_flags_postgres)
-    adv_stats.schema = "Validated"
     return adv_stats
 
 
@@ -364,8 +361,6 @@ def players_df() -> pd.DataFrame:
 def mock_globals_df(mocker: MockerFixture) -> pd.DataFrame:
     mocker.patch("src.app.globals").return_value = {"df": "df"}
     df = pd.DataFrame({"df": [1, 2], "b": [3, 4]})
-
-    df = validate_schema(df, ["a", "b"])
     return df
 
 
