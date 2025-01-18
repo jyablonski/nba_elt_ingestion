@@ -14,6 +14,7 @@ venv:
 .PHONY: test
 test:
 	@docker compose -f docker/docker-compose-test.yml down
+	@docker compose -f docker/docker-compose-test.yml up
 	@docker compose -f docker/docker-compose-test.yml up --exit-code-from ingestion_script_test_runner
 
 .PHONY: docker-build

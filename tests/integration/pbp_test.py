@@ -1,6 +1,5 @@
+from jyablonski_common_modules.sql import write_to_sql_upsert
 import pandas as pd
-
-from src.utils import write_to_sql_upsert
 
 
 def test_pbp_upsert(postgres_conn, pbp_transformed_data):
@@ -10,9 +9,10 @@ def test_pbp_upsert(postgres_conn, pbp_transformed_data):
     # upsert 100 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table_name="pbp_data",
+        table="pbp_data",
+        schema="nba_source",
         df=pbp_transformed_data,
-        pd_index=[
+        primary_keys=[
             "hometeam",
             "awayteam",
             "date",

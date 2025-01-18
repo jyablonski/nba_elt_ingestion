@@ -1,6 +1,5 @@
+from jyablonski_common_modules.sql import write_to_sql_upsert
 import pandas as pd
-
-from src.utils import write_to_sql_upsert
 
 
 def test_shooting_stats_upsert(postgres_conn, shooting_stats_data):
@@ -10,9 +9,10 @@ def test_shooting_stats_upsert(postgres_conn, shooting_stats_data):
     # upsert 473 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table_name="shooting_stats",
+        table="shooting_stats",
+        schema="nba_source",
         df=shooting_stats_data,
-        pd_index=["player"],
+        primary_keys=["player"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)
