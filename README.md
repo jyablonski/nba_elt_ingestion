@@ -2,7 +2,7 @@
 
 ![Tests](https://github.com/jyablonski/python_docker/actions/workflows/test.yml/badge.svg) ![ECR Deployment](https://github.com/jyablonski/python_docker/actions/workflows/deploy.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jyablonski/python_docker/badge.svg?branch=master)](https://coveralls.io/github/jyablonski/python_docker?branch=master) ![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)
 
-Version: 1.13.4
+Version: 1.13.5
 
 ## Ingestion Script
 
@@ -29,4 +29,3 @@ The same Test Suite is ran after every commit on a PR via GitHub Actions.
     * [Terraform](https://github.com/jyablonski/aws_terraform)
     * [ML Pipeline](https://github.com/jyablonski/nba_elt_mlflow)
     * [REST API](https://github.com/jyablonski/nba_elt_rest_api)
- 
