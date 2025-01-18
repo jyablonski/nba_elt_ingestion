@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     logger.info("Starting SQL Upserts")
 
-    # STEP 2: Append Transformed Data to SQL
+    # STEP 2: Write Data to SQL
     with engine.begin() as connection:
         write_to_sql_upsert(
             conn=connection,
@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
     logger.info("Finished Writes to S3")
 
-    # STEP 4: Grab Logs from previous steps & send slack message for any failures
+    # STEP 4: Grab Logs from previous steps & send 1 slack message for any errors
     logs = query_logs()
     write_to_slack(errors=logs)
 
