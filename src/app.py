@@ -64,7 +64,6 @@ if __name__ == "__main__":
 
     logger.info("Finished Web Scrape")
 
-    logger.info("Starting Schema Validation")
     logger.info("Starting SQL Upserts")
 
     # STEP 2: Append Transformed Data to SQL
