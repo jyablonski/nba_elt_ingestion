@@ -13,8 +13,12 @@ env:
   POETRY_VERSION: "1.8.3"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   IAM_ROLE: ${{ secrets.IAM_ROLE_ECR }}
-  AWS_REGION : "us-east-1"
-  ECR_REPO : ${{ secrets.ECR_REPO }}
+  AWS_REGION: "us-east-1"
+  ECR_REPO: ${{ secrets.ECR_REPO }}
+
+permissions:
+  id-token: write
+  contents: read # This is required for actions/checkout
 
 jobs:
   ci_pipeline:
@@ -83,7 +87,7 @@ jobs:
       - name: Push Docker Image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY:  ${{ env.ECR_REPO }}
+          ECR_REPOSITORY: ${{ env.ECR_REPO }}
           IMAGE_TAG: nba_elt_pipeline_ingestion
         run: |
           docker compose -f docker/docker-compose.yml build
@@ -98,7 +102,7 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_COLOR: ${{ job.status }}
-          SLACK_MESSAGE: 'Ingestion Script Deployed to Production'
+          SLACK_MESSAGE: "Ingestion Script Deployed to Production"
           SLACK_TITLE: Ingestion Script Deploy Pipeline
           SLACK_USERNAME: GitHub Actions
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -113,7 +117,7 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_COLOR: ${{ job.status }}
-          SLACK_MESSAGE: 'Ingestion Script Failed to deploy properly'
+          SLACK_MESSAGE: "Ingestion Script Failed to deploy properly"
           SLACK_TITLE: Ingestion Script Deploy Failure
           SLACK_USERNAME: GitHub Actions
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
