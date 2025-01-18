@@ -54,7 +54,6 @@ if __name__ == "__main__":
     opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
     schedule = schedule_scraper(feature_flags_df=feature_flags, year="2025")
     shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
-    # twitter_tweepy_data = scrape_tweets_combo(feature_flags_df=feature_flags)
     reddit_comment_data = get_reddit_comments(
         feature_flags_df=feature_flags, urls=reddit_data["reddit_url"]
     )
@@ -133,12 +132,6 @@ if __name__ == "__main__":
             primary_keys=["player", "team", "description"],
         )
 
-        # write_to_sql_upsert(
-        #     conn=connection,
-        #     table_name="twitter_tweepy_data",
-        #     df=twitter_tweepy_data,
-        #     primary_keys=["tweet_id"],
-        # )
         write_to_sql_upsert(
             conn=connection,
             table="aws_opp_stats_source",
@@ -146,6 +139,7 @@ if __name__ == "__main__":
             df=opp_stats,
             primary_keys=["team"],
         )
+
         # cant upsert on these bc the column names have % and i kept getting issues
         # even after changing the col names to _pct instead etc.  no clue dude fk it
         write_to_sql(
@@ -182,7 +176,6 @@ if __name__ == "__main__":
     write_to_s3(file_name="reddit_comment_data", df=reddit_comment_data)
     write_to_s3(file_name="pbp_data", df=pbp_data)
     write_to_s3(file_name="opp_stats", df=opp_stats)
-    # write_to_s3(file_name="twitter_tweepy_data", df=twitter_tweepy_data)
     write_to_s3(file_name="schedule", df=schedule)
     write_to_s3(file_name="shooting_stats", df=shooting_stats)
 
