@@ -28,7 +28,10 @@ def test_get_boxscores_data_no_games_played(mocker, get_feature_flags_postgres, 
         feature_flags_df=get_feature_flags_postgres, day=2, month=1, year=2024
     )
 
-    assert "No Games were played on 2024-01-02; no Box Scores to pull" in caplog.text
+    assert (
+        "Box Scores Function Warning, no games played on 2024-01-02 so no data available"
+        in caplog.text
+    )
     assert len(boxscores) == 0
 
 
@@ -57,7 +60,7 @@ def test_get_boxscores_data_no_data_available(
 
     # Assert on log messages
     assert (
-        "Box Scores Function Failed, no Data Available yet for 2024-01-01"
+        "Box Scores Function Failed, Box Scores aren't available yet for 2024-01-01"
         in caplog.text
     )
     assert len(boxscores) == 0

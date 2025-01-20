@@ -16,7 +16,8 @@ def test_time_function_decorator(mock_logging):
     assert "jacobs_dummy_function" in mock_logging.record_tuples[0][2]
     assert "seconds" in mock_logging.record_tuples[0][2]
 
-    # pull the actual execution time out, turn it into a float, and assert it's >= 1 second(s)
+    # pull the actual execution time out, turn it into a float
+    # and assert it's >= 1 second(s)
     assert (
         float(
             mock_logging.record_tuples[0][2]

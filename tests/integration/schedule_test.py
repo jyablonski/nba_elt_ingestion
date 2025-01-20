@@ -21,5 +21,4 @@ def test_schedule_upsert(postgres_conn, schedule_data):
         count_check_results_before["count"][0] == 1
     )  # check row count is 1 from the bootstrap
 
-    # TODO: adding in the current date filter messes, with this test, need to figure out how to handle this
     assert count_check_results_after["count"][0] == 1  # check row count is 1

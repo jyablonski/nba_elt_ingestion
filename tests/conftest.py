@@ -7,11 +7,12 @@ import os
 import pickle
 import socket
 import time
-from typing import Generator, TYPE_CHECKING
+from typing import Generator
 
 from jyablonski_common_modules.sql import create_sql_engine
 import pandas as pd
 import pytest
+from pytest_mock import MockerFixture
 from sqlalchemy.engine.base import Connection
 
 from src.utils import (
@@ -29,11 +30,6 @@ from src.utils import (
     schedule_scraper,
     scrape_odds,
 )
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pytest_mock import MockerFixture
 
 
 def guard(*args, **kwargs):
