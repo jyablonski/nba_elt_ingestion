@@ -100,6 +100,23 @@ def get_season_type(todays_date: date | None = None) -> str:
     return season_type
 
 
+def check_schedule(date: datetime.date) -> bool:
+    """
+    Small Function used in Boxscores + PBP Functions to check if
+    there are any games scheduled for a given date.
+
+    Args:
+        date (datetime.date): The Date to check for games on.
+
+    Returns:
+        Boolean: True if there are games scheduled, False if not.
+    """
+    schedule_endpoint = f"https://api.jyablonski.dev/schedule?date={date}"
+    schedule_data = requests.get(schedule_endpoint).json()
+
+    return True if len(schedule_data) > 0 else False
+
+
 def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame:
     """
     Function to add Sentiment Analysis columns to a DataFrame via nltk Vader Lexicon.
@@ -366,20 +383,25 @@ def get_boxscores_data(
             f"retrieving {len(df)} rows for {date}"
         )
         return df
-    except IndexError as error:
-        schedule_endpoint = f"https://api.jyablonski.dev/schedule?date={date}"
-        schedule_data = requests.get(schedule_endpoint).json()
+    except IndexError:
 
-        if len(schedule_data) > 0:
+        # if no boxscores available, check the schedule. this will log an error
+        # if there are games played and the data isnt available yet, or log a
+        # message that no games were found bc there were no games played on that date
+        is_games_played = check_schedule(date=date)
+
+        if is_games_played:
             logging.error(
-                f"""Box Scores Function Failed, no Data Available yet for {date}"""
+                "Box Scores Function Failed, Box Scores aren't available yet "
+                f"for {date}"
             )
-            df = pd.DataFrame()
-            return df
         else:
-            logging.info(f"No Games were played on {date}; no Box Scores to pull")
-            df = pd.DataFrame()
-            return df
+            logging.info(
+                f"Box Scores Function Warning, no games played on {date} so "
+                "no data available"
+            )
+
+        return pd.DataFrame()
 
     except BaseException as error:
         logging.error(f"Box Scores Function Failed, {error}")
@@ -772,7 +794,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         df = pd.read_html(url)
         odds = df[0]
         odds["spread"] = df[3].iloc[:, 4]  # 5th column in df[3]
-        # Select columns by index: First column (index 0), 5th column (index 4), and 'spread'
+        # Select columns by index: First column (index 0),
+        # 5th column (index 4), and 'spread'
         odds = odds.iloc[:, [0, 4, -1]]
         # Rename the selected columns
         odds = odds.rename(
@@ -800,7 +823,8 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         # \b: Word boundary anchor, ensures that the match occurs at a word boundary.
         # (: Start of a capturing group.
         # [A-Z]: Character class matching any uppercase letter from 'A' to 'Z'.
-        # {2,3}: Quantifier specifying that the preceding character class [A-Z] should appear 2 to 3 times.
+        # {2,3}: Quantifier specifying that the preceding character class [A-Z]
+        #       should appear 2 to 3 times.
         # ): End of the capturing group.
         # \b: Word boundary anchor, again ensuring that the match occurs at a word boundary.
 
@@ -1480,7 +1504,7 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                 )
                 logging.info(
                     "PBP Data Transformation Function Successful, "
-                    f"retrieving {len(pbp_list)} rows for {datetime.now().date()}"
+                    f"retrieving {len(pbp_list)} rows for {game_date}"
                 )
                 # filtering only scoring plays here, keep other all other rows in future
                 # for lineups stuff etc.
@@ -1492,9 +1516,9 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                 return df
         else:
             df = pd.DataFrame()
-            logging.warning(
+            logging.error(
                 "PBP Transformation Function Failed, no data available "
-                f"for {datetime.now().date()}"
+                f"for {game_date}"
             )
             return df
     except BaseException as error:
@@ -1573,7 +1597,8 @@ def schedule_scraper(
             schedule["Date"] = date_info
 
             logging.info(
-                f"Schedule Function Completed for {month}, retrieving {len(schedule)} rows"
+                f"Schedule Function Completed for {month}, retrieving {len(schedule)} "
+                "rows"
             )
             completed_months.append(month)
             schedule_df = pd.concat([schedule, schedule_df])
@@ -1601,7 +1626,7 @@ def schedule_scraper(
             )
             # filtering the data to only rows beyond the current date because we already have
             # the historical records
-            schedule_df = schedule_df.query("proper_date >= @current_date")
+            schedule_df = schedule_df[schedule_df["proper_date"] >= current_date]
             return schedule_df
         else:
             return pd.DataFrame()
@@ -1623,7 +1648,8 @@ def write_to_s3(
 
         bucket (str): The Bucket to write to.  Defaults to `os.environ.get('S3_BUCKET')`
 
-        date (datetime.date): Date to partition the data by.  Defaults to `datetime.now().date()`
+        date (datetime.date): Date to partition the data by.
+            Defaults to `datetime.now().date()`
 
     Returns:
         Writes the Pandas DataFrame to an S3 File.
