@@ -109,7 +109,7 @@ def check_schedule(date: datetime.date) -> bool:
         date (datetime.date): The Date to check for games on.
 
     Returns:
-        Empty
+        Boolean: True if there are games scheduled, False if not.
     """
     schedule_endpoint = f"https://api.jyablonski.dev/schedule?date={date}"
     schedule_data = requests.get(schedule_endpoint).json()
