@@ -383,3 +383,15 @@ CREATE TABLE IF NOT EXISTS nba_source.aws_odds_upsert_source
     modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_upsert_odds_v2 UNIQUE (team, date)
 );
+
+CREATE TABLE nba_source.play_in_details(
+    id serial primary key,
+    name varchar,
+    start_date date,
+    end_date date,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp
+);
+
+INSERT INTO nba_source.play_in_details(name, start_date, end_date)
+VALUES ('Play-In', '2025-04-15', '2025-04-18');
