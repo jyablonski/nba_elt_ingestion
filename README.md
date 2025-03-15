@@ -1,8 +1,8 @@
 # Ingestion Script
 
-![Tests](https://github.com/jyablonski/python_docker/actions/workflows/test.yml/badge.svg) ![ECR Deployment](https://github.com/jyablonski/python_docker/actions/workflows/deploy.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jyablonski/python_docker/badge.svg?branch=master)](https://coveralls.io/github/jyablonski/python_docker?branch=master) ![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)
+![CI CD](https://github.com/jyablonski/python_docker/actions/workflows/ci_cd.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jyablonski/python_docker/badge.svg?branch=master)](https://coveralls.io/github/jyablonski/python_docker?branch=master)
 
-Version: 1.13.6
+Version: 1.13.7
 
 ## Ingestion Script
 
