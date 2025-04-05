@@ -10,7 +10,7 @@ on:
 
 env:
   PYTHON_VERSION: "3.12"
-  POETRY_VERSION: "1.8.3"
+  UV_VERSION: "0.6.12"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   IAM_ROLE: ${{ secrets.IAM_ROLE_ECR }}
   AWS_REGION: "us-east-1"
@@ -28,23 +28,15 @@ jobs:
       - name: Checkout the Repo
         uses: actions/checkout@v4
 
-      - name: Install Poetry
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry==${{ env.POETRY_VERSION }}
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        id: setup_python
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: poetry
-          cache-dependency-path: poetry.lock
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          poetry install --with dev
-          poetry run python -m nltk.downloader vader_lexicon
+          uv run python -m nltk.downloader vader_lexicon
 
       - name: Create and populate .coveralls.yml file
         env:
