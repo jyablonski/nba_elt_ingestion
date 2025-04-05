@@ -77,6 +77,8 @@ def filter_spread(value: str) -> str:
 def get_season_type(todays_date: date | None = None) -> str:
     """
     Function to generate Season Type for a given Date.
+    **2025-03-16 NOTE** this has been deprecated as this logic
+    belongs in the dbt project
 
     Args:
         todays_date (date): The Date to generate a Season Type for.  Defaults to
@@ -140,10 +142,10 @@ def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame
         df["pos"] = [analyzer.polarity_scores(x)["pos"] for x in df[sentiment_col]]
         df["sentiment"] = np.where(df["compound"] > 0, 1, 0)
         return df
-    except BaseException as e:
+    except Exception as e:
         logging.error(f"Error Occurred while adding Sentiment Analysis, {e}")
         sentry_sdk.capture_exception(e)
-        raise e
+        raise
 
 
 def get_leading_zeroes(value: int) -> str:
@@ -183,10 +185,10 @@ def clean_player_names(name: str) -> str:
             .replace(" IV", "")
         )
         return cleaned_name
-    except BaseException as e:
+    except Exception as e:
         logging.error(f"Error Occurred with Clean Player Names, {e}")
         sentry_sdk.capture_exception(e)
-        raise e
+        raise
 
 
 @time_function
@@ -241,7 +243,7 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             f"retrieving {len(stats)} updated rows"
         )
         return stats
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"General Stats Extraction Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
@@ -287,7 +289,6 @@ def get_boxscores_data(
         return df
 
     url = f"https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={month}&day={day}&year={year}&type=all"
-    season_type = get_season_type()
     date = f"{year}-{month}-{day}"
 
     try:
@@ -361,7 +362,6 @@ def get_boxscores_data(
         )
         df["date"] = str(year) + "-" + str(month) + "-" + str(day)
         df["date"] = pd.to_datetime(df["date"])
-        df["Type"] = season_type
         df["Location"] = df["Location"].apply(lambda x: "A" if x == "@" else "H")
         df["Team"] = df["Team"].str.replace("PHO", "PHX")
         df["Team"] = df["Team"].str.replace("CHO", "CHA")
@@ -403,7 +403,7 @@ def get_boxscores_data(
 
         return pd.DataFrame()
 
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"Box Scores Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
@@ -459,7 +459,7 @@ def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             f"retrieving {len(df)} rows for {year}-{month}-{day}"
         )
         return df
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"Opp Stats Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
@@ -506,7 +506,7 @@ def get_injuries_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             f"Injury Transformation Function Successful, retrieving {len(df)} rows"
         )
         return df
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"Injury Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
@@ -574,7 +574,7 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             f"retrieving {len(transactions)} rows"
         )
         return transactions
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"Transaction Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
@@ -654,7 +654,7 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             """
         )
         return df
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"Advanced Stats Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
@@ -760,7 +760,7 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             f"retrieving {len(df)} rows"
         )
         return df
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"Shooting Stats Web Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         df = pd.DataFrame()
@@ -870,7 +870,7 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
             f"from {len(odds_final) // 2} games Today"
         )
         return odds_final
-    except BaseException as e:
+    except Exception as e:
         logging.error(f"Odds Function Web Scrape Failed, {e}")
         sentry_sdk.capture_exception(e)
         df = pd.DataFrame()
@@ -1025,7 +1025,7 @@ def scrape_odds(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
 #                         retrieving {len(data)} rows"""
 #                     )
 #                     return data
-#             except BaseException as error:
+#             except Exception as error:
 #                 logging.error(
 #                     f"Odds Transformation Failed for {len(df)} day objects, {error}"
 #                 )
@@ -1113,7 +1113,7 @@ def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.Data
             f"popular posts from r/{sub} subreddit"
         )
         return posts
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"Reddit Scrape Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         data = pd.DataFrame()
@@ -1212,7 +1212,7 @@ def get_reddit_comments(
             f"total comments from {len(urls)} total urls"
         )
         return df
-    except BaseException as e:
+    except Exception as e:
         logging.error(f"Reddit Comment Extraction Failed for url {i}, {e}")
         sentry_sdk.capture_exception(e)
         df = pd.DataFrame()
@@ -1265,7 +1265,7 @@ def get_reddit_comments(
 #         df = add_sentiment_analysis(df, "tweet")
 #         logging.info(f"Twitter Scrape Successful, retrieving {len(df)} Tweets")
 #         return df
-#     except BaseException as e:
+#     except Exception as e:
 #         logging.error(f"Error Occurred for Scrape Tweets Tweepy, {e}")
 #         sentry_sdk.capture_exception(e)
 #         df = pd.DataFrame()
@@ -1313,7 +1313,7 @@ def get_reddit_comments(
 #             "were duplicates"
 #         )
 #         return df_combo
-#     except BaseException as e:
+#     except Exception as e:
 #         logging.error(f"Error Occurred for Scrape Tweets Combo, {e}")
 #         sentry_sdk.capture_exception(e)
 #         df = pd.DataFrame()
@@ -1509,7 +1509,7 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                 # filtering only scoring plays here, keep other all other rows in future
                 # for lineups stuff etc.
                 return pbp_list
-            except BaseException as error:
+            except Exception as error:
                 logging.error(f"PBP Transformation Function Logic Failed, {error}")
                 sentry_sdk.capture_exception(error)
                 df = pd.DataFrame()
@@ -1521,7 +1521,7 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
                 f"for {game_date}"
             )
             return df
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"PBP Data Transformation Function Failed, {error}")
         sentry_sdk.capture_exception(error)
         data = pd.DataFrame()
@@ -1672,7 +1672,7 @@ def write_to_s3(
                 f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/validated/{year_partition}/{file_name_jn}.parquet)"
             )
             pass
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"S3 Storage Function Failed {file_name}, {error}")
         sentry_sdk.capture_exception(error)
         pass
@@ -1711,7 +1711,7 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
             )
 
         return None
-    except BaseException as error:
+    except Exception as error:
         logging.error(f"SQL Write Script Failed, {error}")
         sentry_sdk.capture_exception(error)
 
@@ -1798,7 +1798,7 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
 #         elif len(logs) == 0:
 #             logging.info("No Errors!")
 #             send_aws_email(logs)
-#     except BaseException as error:
+#     except Exception as error:
 #         logging.error(f"Failed Email Alert, {error}")
 #         sentry_sdk.capture_exception(error)
 
@@ -1865,7 +1865,7 @@ def write_to_slack(
                 data=json.dumps(
                     {
                         "text": (
-                            f"\U0001F6D1 {num_errors} Errors during NBA ELT "
+                            f"\U0001f6d1 {num_errors} Errors during NBA ELT "
                             f"Ingestion on {date}: \n {str_dump}"
                         )
                     }
@@ -1880,5 +1880,6 @@ def write_to_slack(
         else:
             logging.info("No Error Logs, not writing to Slack.  Exiting out ...")
             return None
-    except BaseException as e:
-        raise e
+    except Exception as e:
+        logging.error(f"Error Writing to Slack, {e}")
+        raise
