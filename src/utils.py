@@ -145,7 +145,7 @@ def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame
     except Exception as e:
         logging.error(f"Error Occurred while adding Sentiment Analysis, {e}")
         sentry_sdk.capture_exception(e)
-        raise e
+        raise
 
 
 def get_leading_zeroes(value: int) -> str:
@@ -188,7 +188,7 @@ def clean_player_names(name: str) -> str:
     except Exception as e:
         logging.error(f"Error Occurred with Clean Player Names, {e}")
         sentry_sdk.capture_exception(e)
-        raise e
+        raise
 
 
 @time_function
@@ -1881,4 +1881,5 @@ def write_to_slack(
             logging.info("No Error Logs, not writing to Slack.  Exiting out ...")
             return None
     except Exception as e:
-        raise e
+        logging.error(f"Error Writing to Slack, {e}")
+        raise
