@@ -54,7 +54,7 @@ jobs:
 
       - name: Coveralls
         run: |
-          poetry run coveralls
+          uv run coveralls
 
   cd_pipeline:
     runs-on: ubuntu-latest
