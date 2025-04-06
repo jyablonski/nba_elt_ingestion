@@ -6,26 +6,24 @@ ENV DEBIAN_FRONTEND=noninteractive \
     UV_PYTHON_DOWNLOADS=never \
     UV_PYTHON=3.12
 
-# dependency setup stage
+# install OS-level deps once in base (so we don't repeat in each stage)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# -------------------------------
+# Stage: Install Python deps
+# -------------------------------
 FROM base AS python-deps
 
 COPY pyproject.toml uv.lock ./
 
-# Install required system tools
-RUN set -eux; \
-    apt-get update && \
-    apt-get -y upgrade && \
-    apt-get -y install --no-install-recommends \
-        curl \
-        ca-certificates
+RUN pip install uv==0.6.12 && \
+    uv sync --frozen --no-dev
 
-# download uv
-RUN pip install uv==0.6.12
-
-# install python dependencies
-RUN uv sync --frozen --no-dev
-
-# runtime stage
+# -------------------------------
+# Stage: Runtime
+# -------------------------------
 FROM base AS runtime
 
 COPY --from=python-deps ./.venv ./.venv
