@@ -2,7 +2,7 @@
 
 ![CI CD](https://github.com/jyablonski/python_docker/actions/workflows/ci_cd.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jyablonski/python_docker/badge.svg?branch=master)](https://coveralls.io/github/jyablonski/python_docker?branch=master)
 
-Version: 1.13.8
+Version: 1.13.9
 
 ## Ingestion Script
 
