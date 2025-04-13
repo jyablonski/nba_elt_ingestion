@@ -4,7 +4,7 @@ from typing import Any, Callable
 
 import pandas as pd
 
-from src.database import check_feature_flag
+FEATURE_FLAGS = {}
 
 
 def time_function(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -34,16 +34,10 @@ def time_function(func: Callable[..., Any]) -> Callable[..., Any]:
 def feature_flagged(flag_name: str):
     def decorator(func):
         def wrapper(*args, **kwargs):
-            feature_flags_df = kwargs.get("feature_flags_df")
-            if feature_flags_df is not None:
-                is_enabled = check_feature_flag(
-                    flag=flag_name, flags_df=feature_flags_df
-                )
-                if not is_enabled:
-                    logging.info(
-                        f"Feature Flag {flag_name} is disabled, skipping function"
-                    )
-                    return pd.DataFrame()
+            is_enabled = FEATURE_FLAGS.get(flag_name, False)
+            if not is_enabled:
+                logging.info(f"Feature Flag {flag_name} is disabled, skipping function")
+                return pd.DataFrame()
             return func(*args, **kwargs)
 
         return wrapper
