@@ -9,12 +9,6 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 import numpy as np
 import pandas as pd
 import requests
-import sentry_sdk
-
-# import tweepy
-
-# sentry_sdk.init(os.environ.get("SENTRY_TOKEN"), traces_sample_rate=1.0)
-# sentry_sdk.set_user({"email": "jyablonski9@gmail.com"})
 
 
 def filter_spread(value: str) -> str:
