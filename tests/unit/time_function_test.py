@@ -1,11 +1,11 @@
 import logging
 import time
 
-from src.decorators import time_function
+from src.decorators import record_function_time_decorator
 
 
 def test_time_function_decorator(mock_logging):
-    @time_function
+    @record_function_time_decorator
     def jacobs_dummy_function():
         time.sleep(1)  # Sleep for 1 second to simulate a time-consuming task
 

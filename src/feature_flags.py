@@ -20,5 +20,7 @@ class FeatureFlagManager:
         cls._flags = df.set_index("flag")["is_enabled"].to_dict()
 
     @classmethod
-    def get(cls, flag):
-        return cls._flags.get(flag, False)
+    def get(cls, flag: str) -> bool:
+        if flag not in cls._flags:
+            return None  # or raise here if you want
+        return cls._flags[flag]

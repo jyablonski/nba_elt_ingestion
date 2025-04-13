@@ -8,7 +8,7 @@ import pandas as pd
 from src.feature_flags import FeatureFlagManager
 
 
-def time_function(func: Callable[..., Any]) -> Callable[..., Any]:
+def record_function_time_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator function used to record the execution time of any
     function it's applied to.
@@ -32,11 +32,18 @@ def time_function(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def check_feature_flag_decorator(flag_name: str):
+def check_feature_flag_decorator(*, flag_name: str):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            if not FeatureFlagManager.get(flag=flag_name):
+            value = FeatureFlagManager.get(flag=flag_name)
+
+            if value is None:
+                raise ValueError(
+                    f"Feature flag '{flag_name}' not found in loaded flags."
+                )
+
+            if not value:
                 logging.info(
                     f"Feature flag '{flag_name}' is disabled. Skipping {func.__name__}."
                 )

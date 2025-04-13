@@ -6,7 +6,6 @@ import logging
 import os
 import pickle
 import socket
-import time
 from typing import Generator
 
 from jyablonski_common_modules.sql import create_sql_engine
@@ -15,7 +14,7 @@ import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.engine.base import Connection
 
-from src.database import get_feature_flags
+from src.feature_flags import FeatureFlagManager
 from src.scrapers import (
     add_sentiment_analysis,
     get_advanced_stats_data,
@@ -76,21 +75,26 @@ def postgres_conn() -> Generator[Connection, None, None]:
         yield conn
 
 
-@pytest.fixture(scope="session")
-def get_feature_flags_postgres(postgres_conn) -> Generator[pd.DataFrame, None, None]:
-    # test suite was shitting itself at the very beginning while trying
-    # to run this without a `time.sleep()`
-    time.sleep(1)
-    feature_flags = get_feature_flags(postgres_conn)
+@pytest.fixture(scope="session", autouse=True)
+def load_feature_flags():
+    if os.environ.get("ENV_TYPE") == "docker_dev":
+        host = "postgres"
+    else:
+        host = "localhost"
 
-    # feature_flags.to_parquet('feature_flags.parquet')
-    yield feature_flags
+    engine = create_sql_engine(
+        schema="nba_source",
+        user="postgres",
+        password="postgres",
+        host=host,
+        database="postgres",
+        port=5432,
+    )
+    FeatureFlagManager.load(engine=engine)
 
 
 @pytest.fixture(scope="function")
-def player_stats_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
-) -> pd.DataFrame:
+def player_stats_data(mocker: MockerFixture) -> pd.DataFrame:
     """
     Fixture to load player stats data from an html file for testing.
     """
@@ -100,14 +104,12 @@ def player_stats_data(
 
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
 
-    df = get_player_stats_data(feature_flags_df=get_feature_flags_postgres)
+    df = get_player_stats_data()
     return df
 
 
 @pytest.fixture(scope="function")
-def boxscores_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
-) -> pd.DataFrame:
+def boxscores_data(mocker: MockerFixture) -> pd.DataFrame:
     """
     Fixture to load boxscores data from an html file for testing.
     """
@@ -117,14 +119,12 @@ def boxscores_data(
 
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
 
-    boxscores = get_boxscores_data(feature_flags_df=get_feature_flags_postgres)
+    boxscores = get_boxscores_data()
     return boxscores
 
 
 @pytest.fixture(scope="function")
-def opp_stats_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
-) -> pd.DataFrame:
+def opp_stats_data(mocker: MockerFixture) -> pd.DataFrame:
     """
     Fixture to load team opponent stats data from a pickle file for testing.
     """
@@ -134,14 +134,12 @@ def opp_stats_data(
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
 
-    opp_stats = get_opp_stats_data(feature_flags_df=get_feature_flags_postgres)
+    opp_stats = get_opp_stats_data()
     return opp_stats
 
 
 @pytest.fixture(scope="function")
-def injuries_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
-) -> pd.DataFrame:
+def injuries_data(mocker: MockerFixture) -> pd.DataFrame:
     """
     Fixture to load injuries data from a pickle file for testing.
     """
@@ -151,14 +149,12 @@ def injuries_data(
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
 
-    injuries = get_injuries_data(feature_flags_df=get_feature_flags_postgres)
+    injuries = get_injuries_data()
     return injuries
 
 
 @pytest.fixture(scope="function")
-def transactions_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
-) -> pd.DataFrame:
+def transactions_data(mocker: MockerFixture) -> pd.DataFrame:
     """
     Fixture to load transactions data from an html file for testing.
     """
@@ -168,14 +164,12 @@ def transactions_data(
 
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
 
-    transactions = get_transactions_data(feature_flags_df=get_feature_flags_postgres)
+    transactions = get_transactions_data()
     return transactions
 
 
 @pytest.fixture(scope="function")
-def advanced_stats_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker
-) -> pd.DataFrame:
+def advanced_stats_data(mocker) -> pd.DataFrame:
     """
     Fixture to load team advanced stats data from a pickle file for testing.
     """
@@ -185,7 +179,7 @@ def advanced_stats_data(
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
 
-    adv_stats = get_advanced_stats_data(feature_flags_df=get_feature_flags_postgres)
+    adv_stats = get_advanced_stats_data()
     return adv_stats
 
 
@@ -194,9 +188,7 @@ def advanced_stats_data(
 
 
 @pytest.fixture(scope="function")
-def shooting_stats_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker
-) -> pd.DataFrame:
+def shooting_stats_data(mocker) -> pd.DataFrame:
     """
     Fixture to load shooting stats data from a pickle file for testing.
     """
@@ -206,17 +198,13 @@ def shooting_stats_data(
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
 
-    shooting_stats = get_shooting_stats_data(
-        feature_flags_df=get_feature_flags_postgres
-    )
+    shooting_stats = get_shooting_stats_data()
     return shooting_stats
 
 
 # has to be pickle bc odds data can be returned in list of 1 or 2 objects
 @pytest.fixture(scope="function")
-def odds_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
-) -> pd.DataFrame:
+def odds_data(mocker: MockerFixture) -> pd.DataFrame:
     """
     Fixture to load odds data from a pickle file for testing.
     """
@@ -226,14 +214,12 @@ def odds_data(
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
 
-    odds = get_odds_data(feature_flags_df=get_feature_flags_postgres)
+    odds = get_odds_data()
     return odds
 
 
 @pytest.fixture(scope="function")
-def pbp_transformed_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker
-) -> pd.DataFrame:
+def pbp_transformed_data(mocker) -> pd.DataFrame:
     """
     Fixture to load boxscores data from a csv file for PBP Transform testing.
     """
@@ -246,9 +232,7 @@ def pbp_transformed_data(
         df = pickle.load(fp)
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
-    pbp_transformed = get_pbp_data(
-        feature_flags_df=get_feature_flags_postgres, df=boxscores_df
-    )
+    pbp_transformed = get_pbp_data(df=boxscores_df)
     return pbp_transformed
 
 
@@ -262,9 +246,7 @@ def logs_data():
 
 
 @pytest.fixture()
-def schedule_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker: MockerFixture
-) -> pd.DataFrame:
+def schedule_data(mocker: MockerFixture) -> pd.DataFrame:
     """
     Fixture to load schedule data from an html file for testing.
     """
@@ -274,11 +256,7 @@ def schedule_data(
 
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
 
-    schedule = get_schedule_data(
-        feature_flags_df=get_feature_flags_postgres,
-        year="2022",
-        month_list=["february", "march"],
-    )
+    schedule = get_schedule_data(year="2022", month_list=["february", "march"])
 
     schedule = schedule.drop_duplicates(
         subset=["away_team", "home_team", "proper_date"]
@@ -287,9 +265,7 @@ def schedule_data(
 
 
 @pytest.fixture()
-def reddit_comments_data(
-    get_feature_flags_postgres: pd.DataFrame, mocker
-) -> pd.DataFrame:
+def reddit_comments_data(mocker) -> pd.DataFrame:
     """
     Fixture to load reddit_comments data from a csv file for testing.
     """
@@ -307,9 +283,7 @@ def reddit_comments_data(
     ).return_value.submission.comments.list().return_value = 1
     mocker.patch("src.scrapers.pd.DataFrame").return_value = reddit_comments_fixture
 
-    reddit_comments_data = get_reddit_comments(
-        feature_flags_df=get_feature_flags_postgres, urls=["fake", "test"]
-    )
+    reddit_comments_data = get_reddit_comments(urls=["fake", "test"])
     return reddit_comments_data
 
 

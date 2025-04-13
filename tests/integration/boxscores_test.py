@@ -7,7 +7,7 @@ import pandas as pd
 from src.scrapers import get_boxscores_data
 
 
-def test_get_boxscores_data_no_games_played(mocker, get_feature_flags_postgres, caplog):
+def test_get_boxscores_data_no_games_played(mocker, caplog):
     fname = os.path.join(
         os.path.dirname(__file__), "../fixtures/boxscores_no_data.html"
     )
@@ -24,9 +24,7 @@ def test_get_boxscores_data_no_games_played(mocker, get_feature_flags_postgres, 
     caplog.clear()
     caplog.set_level(logging.INFO)
 
-    boxscores = get_boxscores_data(
-        feature_flags_df=get_feature_flags_postgres, day=2, month=1, year=2024
-    )
+    boxscores = get_boxscores_data(day=2, month=1, year=2024)
 
     assert (
         "Box Scores Function Warning, no games played on 2024-01-02 so no data available"
@@ -35,9 +33,7 @@ def test_get_boxscores_data_no_games_played(mocker, get_feature_flags_postgres, 
     assert len(boxscores) == 0
 
 
-def test_get_boxscores_data_no_data_available(
-    mocker, get_feature_flags_postgres, schedule_mock_data, caplog
-):
+def test_get_boxscores_data_no_data_available(mocker, schedule_mock_data, caplog):
     fname = os.path.join(
         os.path.dirname(__file__), "../fixtures/boxscores_no_data.html"
     )
@@ -54,9 +50,7 @@ def test_get_boxscores_data_no_data_available(
     caplog.clear()
     caplog.set_level(logging.INFO)
 
-    boxscores = get_boxscores_data(
-        feature_flags_df=get_feature_flags_postgres, day=1, month=1, year=2024
-    )
+    boxscores = get_boxscores_data(day=1, month=1, year=2024)
 
     # Assert on log messages
     assert (

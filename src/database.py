@@ -1,23 +1,6 @@
 import logging
 
 import pandas as pd
-from sqlalchemy.engine.base import Connection, Engine
-
-
-def get_feature_flags(connection: Connection | Engine) -> pd.DataFrame:
-    flags = pd.read_sql_query(sql="select * from marts.feature_flags;", con=connection)
-
-    logging.info(f"Retrieving {len(flags)} Feature Flags")
-    return flags
-
-
-def check_feature_flag(flag: str, flags_df: pd.DataFrame) -> bool:
-    flags_df = flags_df.query(f"flag == '{flag}'")
-
-    if len(flags_df) > 0 and flags_df["is_enabled"].iloc[0] == 1:
-        return True
-    else:
-        return False
 
 
 def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> None:

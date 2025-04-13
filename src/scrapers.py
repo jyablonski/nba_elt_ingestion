@@ -9,8 +9,7 @@ import pandas as pd
 import praw
 import requests
 
-from src.decorators import time_function
-from src.database import check_feature_flag
+from src.decorators import check_feature_flag_decorator, record_function_time_decorator
 from src.utils import (
     add_sentiment_analysis,
     check_schedule,
@@ -20,28 +19,18 @@ from src.utils import (
 )
 
 
-@time_function
-def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="stats")
+@record_function_time_decorator
+def get_player_stats_data() -> pd.DataFrame:
     """
     Web Scrape function w/ BS4 that grabs aggregate season stats
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to
-            check whether to run this function or not
+        None
 
     Returns:
         DataFrame of Player Aggregate Season stats
     """
-    feature_flag = "stats"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     # stats = stats.rename(columns={"fg%": "fg_pct", "3p%": "3p_pct",
     # "2p%": "2p_pct", "efg%": "efg_pct", "ft%": "ft_pct"})
     try:
@@ -78,9 +67,9 @@ def get_player_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-@time_function
+@check_feature_flag_decorator(flag_name="boxscores")
+@record_function_time_decorator
 def get_boxscores_data(
-    feature_flags_df: pd.DataFrame,
     month: int = (datetime.now() - timedelta(1)).month,
     day: int = (datetime.now() - timedelta(1)).day,
     year: int = (datetime.now() - timedelta(1)).year,
@@ -105,16 +94,6 @@ def get_boxscores_data(
     """
     day = get_leading_zeroes(value=day)
     month = get_leading_zeroes(value=month)
-
-    feature_flag = "boxscores"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
 
     url = f"https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={month}&day={day}&year={year}&type=all"
     date = f"{year}-{month}-{day}"
@@ -237,29 +216,19 @@ def get_boxscores_data(
         return df
 
 
-@time_function
-def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="opp_stats")
+@record_function_time_decorator
+def get_opp_stats_data() -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all
         regular season opponent team stats
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame
-            to check whether to run this function or not
+        None
 
     Returns:
         Pandas DataFrame of all current team opponent stats
     """
-    feature_flag = "opp_stats"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     year = (datetime.now() - timedelta(1)).year
     month = (datetime.now() - timedelta(1)).month
     day = (datetime.now() - timedelta(1)).day
@@ -292,28 +261,18 @@ def get_opp_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-@time_function
-def get_injuries_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="injuries")
+@record_function_time_decorator
+def get_injuries_data() -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all current injuries
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check
-            whether to run this function or not
+        None
 
     Returns:
         Pandas DataFrame of all current player injuries & their associated team
     """
-    feature_flag = "injuries"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     try:
         url = "https://www.basketball-reference.com/friv/injuries.fcgi"
         df = pd.read_html(url)[0]
@@ -338,28 +297,18 @@ def get_injuries_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-@time_function
-def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="transactions")
+@record_function_time_decorator
+def get_transactions_data() -> pd.DataFrame:
     """
     Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
-            to run this function or not
+        None
 
     Returns:
         Pandas DataFrame of all season transactions, trades, player waives etc.
     """
-    feature_flag = "transactions"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     try:
         url = "https://www.basketball-reference.com/leagues/NBA_2025_transactions.html"
         html = requests.get(url).content
@@ -405,28 +354,18 @@ def get_transactions_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-@time_function
-def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="adv_stats")
+@record_function_time_decorator
+def get_advanced_stats_data() -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all team advanced stats
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check
-            whether to run this function or not
+        None
 
     Returns:
         DataFrame of all current Team Advanced Stats
     """
-    feature_flag = "adv_stats"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     year_stats = 2025
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
@@ -484,28 +423,18 @@ def get_advanced_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-@time_function
-def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="shooting_stats")
+@record_function_time_decorator
+def get_shooting_stats_data() -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that grabs all raw shooting stats
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
-            to run this function or not
+        None
 
     Returns:
         DataFrame of raw shooting stats
     """
-    feature_flag = "shooting_stats"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     year_stats = 2025
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_shooting.html"
@@ -589,28 +518,18 @@ def get_shooting_stats_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-@time_function
-def get_odds_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="odds")
+@record_function_time_decorator
+def get_odds_data() -> pd.DataFrame:
     """
     Function to web scrape Gambling Odds from cover.com
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
-            to run this function or not
+        None
 
     Returns:
         DataFrame of Gambling Odds for Today's Games
     """
-    feature_flag = "odds"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     try:
         url = "https://www.covers.com/sport/basketball/nba/odds"
         df = pd.read_html(url)
@@ -698,197 +617,20 @@ def get_odds_data(feature_flags_df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-# def get_odds_data() -> pd.DataFrame:
-#     """
-#     *********** DEPRECATED AS OF 2022-10-19 ***********
-
-#     Web Scrape function w/ pandas read_html that grabs current day's
-#         nba odds in raw format. There are 2 objects [0], [1] if the days
-#         are split into 2.  AWS ECS operates in UTC time so the game start
-#         times are actually 5-6+ hours ahead of what they actually are, so
-#         there are 2 html tables.
-
-#     Args:
-#         None
-
-#     Returns:
-#         Pandas DataFrame of NBA moneyline + spread odds for upcoming games
-#    for that day
-#     """
-#     year = (datetime.now() - timedelta(1)).year
-
-#     try:
-#         url = "https://sportsbook.draftkings.com/leagues/basketball/nba"
-#         df = pd.read_html(url)
-#         if len(df) == 0:
-#             logging.info("Odds Transformation Failed, no Odds Data available.")
-#             df = pd.DataFrame()
-#             return df
-#         else:
-#             try:
-#                 data1 = df[0].copy()
-#                 data1.columns.values[0] = "Tomorrow"
-#                 date_try = str(year) + " " + data1.columns[0]
-#                 data1["date"] = np.where(
-#                     date_try == "2022 Tomorrow",
-#                     datetime.now().date(),  # if the above is true, then return this
-#                     str(year) + " " + data1.columns[0],  # if false then return this
-#                 )
-#                 # )
-#                 date_try = data1["date"].iloc[0]
-#                 data1.reset_index(drop=True)
-#                 data1["Tomorrow"] = data1["Tomorrow"].str.replace(
-#                     "LA Clippers", "LAC Clippers", regex=True
-#                 )
-
-#                 data1["Tomorrow"] = data1["Tomorrow"].str.replace(
-#                     "AM", "AM ", regex=True
-#                 )
-#                 data1["Tomorrow"] = data1["Tomorrow"].str.replace(
-#                     "PM", "PM ", regex=True
-#                 )
-#                 data1["Time"] = data1["Tomorrow"].str.split().str[0]
-#                 data1["datetime1"] = (
-#                     pd.to_datetime(date_try.strftime("%Y-%m-%d") + " "
-#                                   + data1["Time"])
-#                     - timedelta(hours=6)
-#                     + timedelta(days=1)
-#                 )
-#                 if len(df) > 1:  # if more than 1 day's data appears then do this
-#                     data2 = df[1].copy()
-#                     data2.columns.values[0] = "Tomorrow"
-#                     data2.reset_index(drop=True)
-#                     data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-#                         "LA Clippers", "LAC Clippers", regex=True
-#                     )
-#                     data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-#                         "AM", "AM ", regex=True
-#                     )
-#                     data2["Tomorrow"] = data2["Tomorrow"].str.replace(
-#                         "PM", "PM ", regex=True
-#                     )
-#                     data2["Time"] = data2["Tomorrow"].str.split().str[0]
-#                     data2["datetime1"] = (
-#                         pd.to_datetime(
-#                             date_try.strftime("%Y-%m-%d") + " " + data2["Time"]
-#                         )
-#                         - timedelta(hours=6)
-#                         + timedelta(days=1)
-#                     )
-#                     data2["date"] = data2["datetime1"].dt.date
-
-#                     data = pd.concat([data1, data2])
-#                     data["SPREAD"] = data["SPREAD"].str[:-4]
-#                     data["TOTAL"] = data["TOTAL"].str[:-4]
-#                     data["TOTAL"] = data["TOTAL"].str[2:]
-#                     data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
-#                     data["Tomorrow"] = pd.DataFrame(
-#                         [
-#                             str(line).strip("[").strip("]").replace("'", "")
-#                             for line in data["Tomorrow"]
-#                         ]
-#                     )
-#                     data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1",
-#                           regex=True)
-#                     data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
-#                     data.columns = data.columns.str.lower()
-#                     data = data[
-#                         [
-#                             "tomorrow",
-#                             "spread",
-#                             "total",
-#                             "moneyline",
-#                             "date",
-#                             "datetime1",
-#                         ]
-#                     ]
-#                     data = data.rename(columns={data.columns[0]: "team"})
-#                     data = data.query(
-#                         "date == date.min()"
-#                     )  # only grab games from upcoming day
-#                     logging.info(
-#                         f"""Odds Transformation Function Successful {len(df)} day, \
-#                         retrieving {len(data)} rows"""
-#                     )
-#                     return data
-#                 else:  # if there's only 1 day of data then just use that
-#                     data = data1.reset_index(drop=True)
-#                     data["SPREAD"] = data["SPREAD"].str[:-4]
-#                     data["TOTAL"] = data["TOTAL"].str[:-4]
-#                     data["TOTAL"] = data["TOTAL"].str[2:]
-#                     data["Tomorrow"] = data["Tomorrow"].str.split().str[1:2]
-#                     data["Tomorrow"] = pd.DataFrame(
-#                         [
-#                             str(line).strip("[").strip("]").replace("'", "")
-#                             for line in data["Tomorrow"]
-#                         ]
-#                     )
-#                     data["SPREAD"] = data["SPREAD"].str.replace("pk", "-1",
-#                        regex=True)
-#                     data["SPREAD"] = data["SPREAD"].str.replace("+", "", regex=True)
-#                     data.columns = data.columns.str.lower()
-#                     data = data[
-#                         [
-#                             "tomorrow",
-#                             "spread",
-#                             "total",
-#                             "moneyline",
-#                             "date",
-#                             "datetime1",
-#                         ]
-#                     ]
-#                     data = data.rename(columns={data.columns[0]: "team"})
-#                     data = data.query(
-#                         "date == date.min()"
-#                     )  # only grab games from upcoming day
-#                     logging.info(
-#                         f"""Odds Transformation Successful {len(df)} day, \
-#                         retrieving {len(data)} rows"""
-#                     )
-#                     return data
-#             except Exception as error:
-#                 logging.error(
-#                     f"Odds Transformation Failed for {len(df)} day objects, {error}"
-#                 )
-#                 sentry_sdk.capture_exception(error)
-#                 data = pd.DataFrame()
-#                 return data
-#     except (
-#         BaseException,
-#         ValueError,
-#     ) as error:  # valueerror fucked shit up apparently idfk
-#         logging.error(f"Odds Function Web Scrape Failed, {error}")
-#         sentry_sdk.capture_exception(error)
-#         df = pd.DataFrame()
-#         return df
-
-
-@time_function
-def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="reddit_posts")
+@record_function_time_decorator
+def get_reddit_data(sub: str = "nba") -> pd.DataFrame:
     """
     Web Scrape function w/ PRAW that grabs top ~27 top posts from a given subreddit.
     Left sub as an argument in case I want to scrape multi subreddits in the future
     (r/nba, r/nbadiscussion, r/sportsbook etc)
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
-            to run this function or not
-
         sub (string): subreddit to query
 
     Returns:
         Pandas DataFrame of all current top posts on r/nba
     """
-    feature_flag = "reddit_posts"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     reddit = praw.Reddit(
         client_id=os.environ.get("reddit_accesskey"),
         client_secret=os.environ.get("reddit_secretkey"),
@@ -940,33 +682,19 @@ def get_reddit_data(feature_flags_df: pd.DataFrame, sub: str = "nba") -> pd.Data
         return data
 
 
-@time_function
-def get_reddit_comments(
-    feature_flags_df: pd.DataFrame, urls: pd.Series
-) -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="reddit_comments")
+@record_function_time_decorator
+def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
     """
     Web Scrape function w/ PRAW that iteratively extracts comments from provided
     reddit post urls.
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
-            to run this function or not
-
         urls (Series): The (reddit) urls to extract comments from
 
     Returns:
         Pandas DataFrame of all comments from the provided reddit urls
     """
-    feature_flag = "reddit_comments"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     reddit = praw.Reddit(
         client_id=os.environ.get("reddit_accesskey"),
         client_secret=os.environ.get("reddit_secretkey"),
@@ -1038,33 +766,21 @@ def get_reddit_comments(
         return df
 
 
-@time_function
-def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
+@check_feature_flag_decorator(flag_name="pbp")
+@record_function_time_decorator
+def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Web Scrape function w/ pandas read_html that uses aliases via boxscores function
     to scrape the pbp data iteratively for each game played the previous day.
     It assumes there is a location column in the df being passed in.
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
-            to run this function or not
-
         df (DataFrame) - The Boxscores DataFrame
 
     Returns:
         All PBP Data for the games in the input df
 
     """
-    feature_flag = "pbp"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
-
     if len(df) > 0:
         game_date = df["date"][0]
     else:
@@ -1244,9 +960,9 @@ def get_pbp_data(feature_flags_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFra
         return data
 
 
-@time_function
+@check_feature_flag_decorator(flag_name="schedule")
+@record_function_time_decorator
 def get_schedule_data(
-    feature_flags_df: pd.DataFrame,
     year: str,
     month_list: list[str] = [
         "october",
@@ -1262,9 +978,6 @@ def get_schedule_data(
     Web Scrape Function to scrape Schedule data by iterating through a list of months
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to check whether
-            to run this function or not
-
         year (str) - The year to scrape
 
         month_list (list) - List of full-month names to scrape
@@ -1276,15 +989,6 @@ def get_schedule_data(
     current_date = (
         datetime.now().date()
     )  # DO NOT REMOVE, used in df.query function later
-    feature_flag = "schedule"
-    feature_flag_check = check_feature_flag(
-        flag=feature_flag, flags_df=feature_flags_df
-    )
-
-    if feature_flag_check is False:
-        logging.info(f"Feature Flag {feature_flag} is disabled, skipping function")
-        df = pd.DataFrame()
-        return df
 
     try:
         schedule_df = pd.DataFrame()

@@ -5,7 +5,7 @@ from jyablonski_common_modules.logging import create_logger
 from jyablonski_common_modules.sql import create_sql_engine, write_to_sql_upsert
 
 from src.aws import write_to_s3
-from src.database import get_feature_flags, write_to_sql
+from src.database import write_to_sql
 from src.feature_flags import FeatureFlagManager
 from src.scrapers import (
     get_advanced_stats_data,
@@ -43,26 +43,21 @@ if __name__ == "__main__":
     # load feature flags which implicitly get used in all of the
     # `get_*_data functions`
     FeatureFlagManager.load(engine=engine)
-    feature_flags = get_feature_flags(connection=engine)
     source_schema = "nba_source"
 
     # STEP 1: Extract Raw Data
-    stats = get_player_stats_data(feature_flags_df=feature_flags)
-    boxscores = get_boxscores_data(feature_flags_df=feature_flags)
-    injury_data = get_injuries_data(feature_flags_df=feature_flags)
-    transactions = get_transactions_data(feature_flags_df=feature_flags)
-    adv_stats = get_advanced_stats_data(feature_flags_df=feature_flags)
-    odds = get_odds_data(feature_flags_df=feature_flags)
-    reddit_data = get_reddit_data(feature_flags_df=feature_flags, sub="nba")
-    opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
-    schedule = get_schedule_data(feature_flags_df=feature_flags, year="2025")
-    shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
-    reddit_comment_data = get_reddit_comments(
-        feature_flags_df=feature_flags, urls=reddit_data["reddit_url"]
-    )
-    pbp_data = get_pbp_data(
-        feature_flags_df=feature_flags, df=boxscores
-    )  # this uses the transformed boxscores
+    stats = get_player_stats_data()
+    boxscores = get_boxscores_data()
+    injury_data = get_injuries_data()
+    transactions = get_transactions_data()
+    adv_stats = get_advanced_stats_data()
+    odds = get_odds_data()
+    reddit_data = get_reddit_data(sub="nba")
+    opp_stats = get_opp_stats_data()
+    schedule = get_schedule_data(year="2025")
+    shooting_stats = get_shooting_stats_data()
+    reddit_comment_data = get_reddit_comments(urls=reddit_data["reddit_url"])
+    pbp_data = get_pbp_data(df=boxscores)
 
     logger.info("Finished Web Scrape")
 
