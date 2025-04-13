@@ -6,6 +6,7 @@ from jyablonski_common_modules.sql import create_sql_engine, write_to_sql_upsert
 
 from src.aws import write_to_s3
 from src.database import get_feature_flags, write_to_sql
+from src.feature_flags import FeatureFlagManager
 from src.scrapers import (
     get_advanced_stats_data,
     get_boxscores_data,
@@ -39,6 +40,9 @@ if __name__ == "__main__":
         schema=os.environ.get("RDS_SCHEMA", default="default"),
         port=os.environ.get("RDS_PORT", default=5432),
     )
+    # load feature flags which implicitly get used in all of the
+    # `get_*_data functions`
+    FeatureFlagManager.load(engine=engine)
     feature_flags = get_feature_flags(connection=engine)
     source_schema = "nba_source"
 

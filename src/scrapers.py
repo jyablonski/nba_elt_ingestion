@@ -9,7 +9,7 @@ import pandas as pd
 import praw
 import requests
 
-from src.decorators import time_function, feature_flagged
+from src.decorators import time_function
 from src.database import check_feature_flag
 from src.utils import (
     add_sentiment_analysis,

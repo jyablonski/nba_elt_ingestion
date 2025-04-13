@@ -3,12 +3,12 @@ import logging
 
 import pandas as pd
 
-from src.decorators import time_function, feature_flagged
+from src.decorators import time_function, check_feature_flag_decorator
 from src.database import check_feature_flag
 from src.utils import clean_player_names
 
 
-@feature_flagged("injuries")
+@check_feature_flag_decorator("playoffs")
 @time_function
 def get_injuries_data() -> pd.DataFrame:
     """

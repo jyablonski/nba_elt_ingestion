@@ -56,14 +56,3 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
     except Exception as error:
         logging.error(f"SQL Write Script Failed, {error}")
         return None
-        # sentry_sdk.capture_exception(error)
-
-
-def load_feature_flags(engine: Engine) -> None:
-    global FEATURE_FLAGS
-
-    with engine.begin() as connection:
-        df = get_feature_flags(connection=connection)
-
-    FEATURE_FLAGS = df.set_index("flag")["is_enabled"].to_dict()
-    return None

@@ -1,10 +1,11 @@
+from functools import wraps
 import logging
 import time
 from typing import Any, Callable
 
 import pandas as pd
 
-FEATURE_FLAGS = {}
+from src.feature_flags import FeatureFlagManager
 
 
 def time_function(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -31,12 +32,14 @@ def time_function(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def feature_flagged(flag_name: str):
+def check_feature_flag_decorator(flag_name: str):
     def decorator(func):
+        @wraps(func)
         def wrapper(*args, **kwargs):
-            is_enabled = FEATURE_FLAGS.get(flag_name, False)
-            if not is_enabled:
-                logging.info(f"Feature Flag {flag_name} is disabled, skipping function")
+            if not FeatureFlagManager.get(flag=flag_name):
+                logging.info(
+                    f"Feature flag '{flag_name}' is disabled. Skipping {func.__name__}."
+                )
                 return pd.DataFrame()
             return func(*args, **kwargs)
 
