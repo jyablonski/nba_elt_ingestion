@@ -411,10 +411,8 @@ def get_advanced_stats_data() -> pd.DataFrame:
         df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
-            """
-            Advanced Stats Transformation Function Successful,
-            retrieving updated data for 30 Teams
-            """
+            "Advanced Stats Transformation Function Successful, "
+            "retrieving updated data for 30 Teams"
         )
         return df
     except Exception as error:
