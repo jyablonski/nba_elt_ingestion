@@ -1,4 +1,4 @@
-from src.utils import check_feature_flag
+from src.database import check_feature_flag
 
 
 def test_check_feature_flag_true(feature_flags_dataframe):

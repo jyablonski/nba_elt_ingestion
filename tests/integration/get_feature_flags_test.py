@@ -1,5 +1,5 @@
 import pytest
-from src.utils import check_feature_flag
+from src.database import check_feature_flag
 
 
 @pytest.mark.parametrize(

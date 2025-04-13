@@ -4,7 +4,7 @@ import os
 from jyablonski_common_modules.sql import write_to_sql_upsert
 import pandas as pd
 
-from src.utils import get_boxscores_data
+from src.scrapers import get_boxscores_data
 
 
 def test_get_boxscores_data_no_games_played(mocker, get_feature_flags_postgres, caplog):
@@ -14,7 +14,7 @@ def test_get_boxscores_data_no_games_played(mocker, get_feature_flags_postgres, 
     with open(fname, "rb") as fp:
         mock_content = fp.read()
 
-    mock_get = mocker.patch("src.utils.requests.get")
+    mock_get = mocker.patch("src.scrapers.requests.get")
     mock_get.return_value.content = mock_content
     mock_json = mocker.MagicMock()
     mock_get.return_value.json = mock_json
@@ -44,7 +44,7 @@ def test_get_boxscores_data_no_data_available(
     with open(fname, "rb") as fp:
         mock_content = fp.read()
 
-    mock_get = mocker.patch("src.utils.requests.get")
+    mock_get = mocker.patch("src.scrapers.requests.get")
     mock_get.return_value.content = mock_content
     mock_json = mocker.MagicMock()
     mock_get.return_value.json = mock_json

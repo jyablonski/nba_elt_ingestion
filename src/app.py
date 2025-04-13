@@ -4,25 +4,24 @@ import os
 from jyablonski_common_modules.logging import create_logger
 from jyablonski_common_modules.sql import create_sql_engine, write_to_sql_upsert
 
-from src.utils import (
+from src.aws import write_to_s3
+from src.database import get_feature_flags, write_to_sql
+from src.scrapers import (
     get_advanced_stats_data,
     get_boxscores_data,
-    get_feature_flags,
     get_injuries_data,
+    get_odds_data,
     get_opp_stats_data,
     get_pbp_data,
     get_player_stats_data,
     get_reddit_data,
     get_reddit_comments,
+    get_schedule_data,
     get_shooting_stats_data,
     get_transactions_data,
-    query_logs,
-    schedule_scraper,
-    scrape_odds,
-    write_to_slack,
-    write_to_sql,
-    write_to_s3,
 )
+from src.utils import query_logs, write_to_slack
+
 
 if __name__ == "__main__":
     logger = create_logger(log_file="logs/example.log")
@@ -49,10 +48,10 @@ if __name__ == "__main__":
     injury_data = get_injuries_data(feature_flags_df=feature_flags)
     transactions = get_transactions_data(feature_flags_df=feature_flags)
     adv_stats = get_advanced_stats_data(feature_flags_df=feature_flags)
-    odds = scrape_odds(feature_flags_df=feature_flags)
+    odds = get_odds_data(feature_flags_df=feature_flags)
     reddit_data = get_reddit_data(feature_flags_df=feature_flags, sub="nba")
     opp_stats = get_opp_stats_data(feature_flags_df=feature_flags)
-    schedule = schedule_scraper(feature_flags_df=feature_flags, year="2025")
+    schedule = get_schedule_data(feature_flags_df=feature_flags, year="2025")
     shooting_stats = get_shooting_stats_data(feature_flags_df=feature_flags)
     reddit_comment_data = get_reddit_comments(
         feature_flags_df=feature_flags, urls=reddit_data["reddit_url"]

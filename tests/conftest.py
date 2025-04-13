@@ -15,20 +15,20 @@ import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.engine.base import Connection
 
-from src.utils import (
+from src.database import get_feature_flags
+from src.scrapers import (
     add_sentiment_analysis,
     get_advanced_stats_data,
     get_boxscores_data,
-    get_feature_flags,
     get_injuries_data,
+    get_odds_data,
     get_opp_stats_data,
     get_pbp_data,
     get_player_stats_data,
     get_reddit_comments,
+    get_schedule_data,
     get_shooting_stats_data,
     get_transactions_data,
-    schedule_scraper,
-    scrape_odds,
 )
 
 
@@ -98,7 +98,7 @@ def player_stats_data(
     with open(fname, "rb") as fp:
         mock_content = fp.read()
 
-    mocker.patch("src.utils.requests.get").return_value.content = mock_content
+    mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
 
     df = get_player_stats_data(feature_flags_df=get_feature_flags_postgres)
     return df
@@ -115,7 +115,7 @@ def boxscores_data(
     with open(fname, "rb") as fp:
         mock_content = fp.read()
 
-    mocker.patch("src.utils.requests.get").return_value.content = mock_content
+    mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
 
     boxscores = get_boxscores_data(feature_flags_df=get_feature_flags_postgres)
     return boxscores
@@ -132,7 +132,7 @@ def opp_stats_data(
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 
-    mocker.patch("src.utils.pd.read_html").return_value = df
+    mocker.patch("src.scrapers.pd.read_html").return_value = df
 
     opp_stats = get_opp_stats_data(feature_flags_df=get_feature_flags_postgres)
     return opp_stats
@@ -149,7 +149,7 @@ def injuries_data(
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 
-    mocker.patch("src.utils.pd.read_html").return_value = df
+    mocker.patch("src.scrapers.pd.read_html").return_value = df
 
     injuries = get_injuries_data(feature_flags_df=get_feature_flags_postgres)
     return injuries
@@ -166,7 +166,7 @@ def transactions_data(
     with open(fname, "rb") as fp:
         mock_content = fp.read()
 
-    mocker.patch("src.utils.requests.get").return_value.content = mock_content
+    mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
 
     transactions = get_transactions_data(feature_flags_df=get_feature_flags_postgres)
     return transactions
@@ -183,7 +183,7 @@ def advanced_stats_data(
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 
-    mocker.patch("src.utils.pd.read_html").return_value = df
+    mocker.patch("src.scrapers.pd.read_html").return_value = df
 
     adv_stats = get_advanced_stats_data(feature_flags_df=get_feature_flags_postgres)
     return adv_stats
@@ -204,7 +204,7 @@ def shooting_stats_data(
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 
-    mocker.patch("src.utils.pd.read_html").return_value = df
+    mocker.patch("src.scrapers.pd.read_html").return_value = df
 
     shooting_stats = get_shooting_stats_data(
         feature_flags_df=get_feature_flags_postgres
@@ -224,9 +224,9 @@ def odds_data(
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 
-    mocker.patch("src.utils.pd.read_html").return_value = df
+    mocker.patch("src.scrapers.pd.read_html").return_value = df
 
-    odds = scrape_odds(feature_flags_df=get_feature_flags_postgres)
+    odds = get_odds_data(feature_flags_df=get_feature_flags_postgres)
     return odds
 
 
@@ -245,7 +245,7 @@ def pbp_transformed_data(
     with open(fname, "rb") as fp:
         df = pickle.load(fp)
 
-    mocker.patch("src.utils.pd.read_html").return_value = df
+    mocker.patch("src.scrapers.pd.read_html").return_value = df
     pbp_transformed = get_pbp_data(
         feature_flags_df=get_feature_flags_postgres, df=boxscores_df
     )
@@ -272,9 +272,9 @@ def schedule_data(
     with open(fname, "rb") as fp:
         mock_content = fp.read()
 
-    mocker.patch("src.utils.requests.get").return_value.content = mock_content
+    mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
 
-    schedule = schedule_scraper(
+    schedule = get_schedule_data(
         feature_flags_df=get_feature_flags_postgres,
         year="2022",
         month_list=["february", "march"],
@@ -300,12 +300,12 @@ def reddit_comments_data(
         )  # literally fuck indexes
 
     # mock a whole bunch of praw OOP gahbage
-    mocker.patch("src.utils.praw.Reddit").return_value = 1
-    mocker.patch("src.utils.praw.Reddit").return_value.submission = 1
+    mocker.patch("src.scrapers.praw.Reddit").return_value = 1
+    mocker.patch("src.scrapers.praw.Reddit").return_value.submission = 1
     mocker.patch(
-        "src.utils.praw.Reddit"
+        "src.scrapers.praw.Reddit"
     ).return_value.submission.comments.list().return_value = 1
-    mocker.patch("src.utils.pd.DataFrame").return_value = reddit_comments_fixture
+    mocker.patch("src.scrapers.pd.DataFrame").return_value = reddit_comments_fixture
 
     reddit_comments_data = get_reddit_comments(
         feature_flags_df=get_feature_flags_postgres, urls=["fake", "test"]

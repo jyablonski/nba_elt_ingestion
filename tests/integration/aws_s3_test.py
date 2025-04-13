@@ -4,10 +4,8 @@ from datetime import datetime
 import boto3
 from moto import mock_s3
 
-from src.utils import (
-    write_to_s3,
-    get_leading_zeroes,
-)
+from src.aws import write_to_s3
+from src.utils import get_leading_zeroes
 
 
 @mock_s3

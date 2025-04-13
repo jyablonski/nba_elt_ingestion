@@ -1,7 +1,7 @@
 import logging
 import time
 
-from src.utils import time_function
+from src.decorators import time_function
 
 
 def test_time_function_decorator(mock_logging):
