@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.utils import write_to_sql
+from src.database import write_to_sql
 
 
 def test_adv_stats_insert(postgres_conn, advanced_stats_data):
