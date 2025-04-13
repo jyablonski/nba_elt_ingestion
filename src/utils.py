@@ -108,7 +108,6 @@ def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame
         return df
     except Exception as e:
         logging.error(f"Error Occurred while adding Sentiment Analysis, {e}")
-        sentry_sdk.capture_exception(e)
         raise
 
 
@@ -151,7 +150,6 @@ def clean_player_names(name: str) -> str:
         return cleaned_name
     except Exception as e:
         logging.error(f"Error Occurred with Clean Player Names, {e}")
-        sentry_sdk.capture_exception(e)
         raise
 
 
@@ -175,7 +173,7 @@ def write_to_s3(
             Defaults to `datetime.now().date()`
 
     Returns:
-        Writes the Pandas DataFrame to an S3 File.
+        None, but writes the Pandas DataFrame to an S3 File.
 
     """
     year_partition = date.year
@@ -194,11 +192,10 @@ def write_to_s3(
             logging.info(
                 f"Storing {len(df)} {file_name} rows to S3 (s3://{bucket}/{file_name}/validated/{year_partition}/{file_name_jn}.parquet)"
             )
-            pass
+            return None
     except Exception as error:
         logging.error(f"S3 Storage Function Failed {file_name}, {error}")
-        sentry_sdk.capture_exception(error)
-        pass
+        return None
 
 
 def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> None:
@@ -236,10 +233,10 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
         return None
     except Exception as error:
         logging.error(f"SQL Write Script Failed, {error}")
-        sentry_sdk.capture_exception(error)
+        return None
 
 
-def query_logs(log_file: str = "logs/example.log") -> list:
+def query_logs(log_file: str = "logs/example.log") -> list[str]:
     """
     Small Function to read Logs CSV File and grab Errors
 

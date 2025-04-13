@@ -32,7 +32,29 @@ def record_function_time_decorator(func: Callable[..., Any]) -> Callable[..., An
     return wrapper
 
 
-def check_feature_flag_decorator(*, flag_name: str):
+def check_feature_flag_decorator(*, flag_name: str) -> Callable[..., pd.DataFrame]:
+    """
+    A decorator that checks the status of a feature flag before executing
+    the decorated function.
+
+    - If the feature flag is enabled, the function executes normally.
+    - If the feature flag is disabled, the function returns an empty DataFrame.
+    - If the feature flag is not found, a ValueError is raised.
+
+    The `*` in the function signature allows for keyword-only arguments, so
+    calling it like `(flag_name="boxscores")` is required.
+
+    Args:
+        flag_name (str): The name of the feature flag to check.
+
+    Returns:
+        Callable[..., pd.DataFrame]: A wrapped function that conditionally
+        executes based on the feature flag's value.
+
+    Raises:
+        ValueError: If the feature flag is not found in the loaded flags.
+    """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):

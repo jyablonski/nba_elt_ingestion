@@ -44,7 +44,7 @@ socket.socket = guard
 
 
 # mock s3 / mock ses
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 def aws_credentials():
     """Mocked AWS Credentials for moto."""
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
@@ -54,43 +54,35 @@ def aws_credentials():
     os.environ["USER_EMAIL"] = "jyablonski9@gmail.com"
 
 
+def get_postgres_host() -> str:
+    return "postgres" if os.environ.get("ENV_TYPE") == "docker_dev" else "localhost"
+
+
 @pytest.fixture(scope="session")
-def postgres_conn() -> Generator[Connection, None, None]:
-    """Fixture to connect to Docker Postgres Container"""
-    # small override for local + docker testing to work fine
-    if os.environ.get("ENV_TYPE") == "docker_dev":
-        host = "postgres"
-    else:
-        host = "localhost"
-
-    conn = create_sql_engine(
-        schema="nba_source",
-        user="postgres",
-        password="postgres",
-        host=host,
-        database="postgres",
-        port=5432,
-    )
-    with conn.begin() as conn:
-        yield conn
-
-
-@pytest.fixture(scope="session", autouse=True)
-def load_feature_flags():
-    if os.environ.get("ENV_TYPE") == "docker_dev":
-        host = "postgres"
-    else:
-        host = "localhost"
-
+def postgres_engine():
+    """Fixture to create a SQLAlchemy engine connected to Postgres."""
     engine = create_sql_engine(
         schema="nba_source",
         user="postgres",
         password="postgres",
-        host=host,
+        host=get_postgres_host(),
         database="postgres",
         port=5432,
     )
-    FeatureFlagManager.load(engine=engine)
+    return engine
+
+
+@pytest.fixture(scope="session")
+def postgres_conn(postgres_engine) -> Generator[Connection, None, None]:
+    """Fixture to connect to Docker Postgres Container."""
+    with postgres_engine.begin() as conn:
+        yield conn
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_feature_flags(postgres_conn):
+    """Autouse fixture to load feature flags from Postgres."""
+    FeatureFlagManager.load(engine=postgres_conn)
 
 
 @pytest.fixture(scope="function")
@@ -256,6 +248,7 @@ def schedule_data(mocker: MockerFixture) -> pd.DataFrame:
 
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
 
+    # Note: the year + month dates here are dependent on the mock html file that's used
     schedule = get_schedule_data(year="2022", month_list=["february", "march"])
 
     schedule = schedule.drop_duplicates(
@@ -287,24 +280,6 @@ def reddit_comments_data(mocker) -> pd.DataFrame:
     return reddit_comments_data
 
 
-# @pytest.fixture()
-# def twitter_tweepy_data(mocker: MockerFixture) -> pd.DataFrame:
-#     fname = os.path.join(os.path.dirname(__file__), "fixtures/tweepy_tweets.csv")
-#     twitter_csv = pd.read_csv(fname)
-
-#     mocker.patch("src.utils.tweepy.OAuthHandler").return_value = 1
-#     mocker.patch("src.utils.tweepy.API.search_tweets").return_value = 1
-#     mocker.patch("src.utils.tweepy.Cursor").return_value = 1
-#     mocker.patch("src.utils.tweepy.Cursor").return_value.items().return_value = 1
-#     mocker.patch("src.utils.pd.DataFrame").return_value = twitter_csv
-
-#     twitter_data = scrape_tweets_tweepy(
-#         search_parameter="nba", count=1, result_type="popular"
-#     )
-#     twitter_data = twitter_data.drop_duplicates(subset=["tweet_id"])
-#     return twitter_data
-
-
 @pytest.fixture(scope="function")
 def add_sentiment_analysis_df() -> pd.DataFrame:
     fname = os.path.join(os.path.dirname(__file__), "fixtures/reddit_comments_data.csv")
@@ -323,14 +298,6 @@ def players_df() -> pd.DataFrame:
     )
     df = pd.read_csv(fname)
 
-    return df
-
-
-# never got this workin fk it
-@pytest.fixture()
-def mock_globals_df(mocker: MockerFixture) -> pd.DataFrame:
-    mocker.patch("src.app.globals").return_value = {"df": "df"}
-    df = pd.DataFrame({"df": [1, 2], "b": [3, 4]})
     return df
 
 

@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 from src.decorators import check_feature_flag_decorator
+from src.feature_flags import FeatureFlagManager
 
 missing_flag = "flag_doesnt_exist"
 
@@ -38,3 +39,13 @@ def test_check_feature_flag_decorator_missing(load_feature_flags):
         ValueError, match=f"Feature flag '{missing_flag}' not found in loaded flags."
     ):
         decorated_missing()
+
+
+def test_feature_flag_manager_loads_flags(load_feature_flags):
+    flags = FeatureFlagManager._flags  # access internal state
+    assert isinstance(flags, dict)
+    assert "stats" in flags
+    assert isinstance(flags["stats"], int)
+    assert FeatureFlagManager.get("stats") == 1  # check it's enabled
+    assert FeatureFlagManager.get("fake") == 0  # check it's disabled
+    assert FeatureFlagManager.get(missing_flag) is None  # check it doesn't exist
