@@ -40,8 +40,8 @@ if __name__ == "__main__":
         schema=os.environ.get("RDS_SCHEMA", default="default"),
         port=os.environ.get("RDS_PORT", default=5432),
     )
-    # load feature flags which implicitly get used in all of the
-    # `get_*_data functions`
+    # load feature flags from db which implicitly get used in all of the
+    # `get_*_data functions` to check if they need to run or not
     FeatureFlagManager.load(engine=engine)
     source_schema = "nba_source"
 
