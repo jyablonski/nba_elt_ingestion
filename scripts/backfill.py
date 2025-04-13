@@ -1,16 +1,23 @@
 from datetime import datetime
+import logging
 import os
 
 import click
+from jyablonski_common_modules.logging import create_logger
 from jyablonski_common_modules.sql import create_sql_engine, write_to_sql_upsert
 
-from src.utils import get_boxscores_data, get_feature_flags, get_pbp_data
+from src.feature_flags import FeatureFlagManager
+from src.scrapers import get_boxscores_data, get_pbp_data
 
 
 # example usage: `python -m scripts.backfill --run_date 2025-01-01`
 @click.command()
 @click.option("--run_date", required=True, help="Run date to backfill for")
 def run_backfill(run_date: str) -> None:
+    logger = create_logger(log_file="logs/example.log")
+    logging.getLogger("requests").setLevel(
+        logging.WARNING
+    )  # get rid of https debug stuff
     click.echo(f"Running Backfill for {run_date}")
 
     # parse the run_date string into a datetime object
@@ -30,17 +37,16 @@ def run_backfill(run_date: str) -> None:
         schema=os.environ.get("RDS_SCHEMA", default="default"),
         port=os.environ.get("RDS_PORT", default=5432),
     )
-    feature_flags = get_feature_flags(connection=engine)
+    FeatureFlagManager.load(engine=engine)
     source_schema = "nba_source"
 
     boxscores = get_boxscores_data(
-        feature_flags_df=feature_flags,
         year=year,
         month=month,
         day=day,
     )
 
-    pbp_data = get_pbp_data(feature_flags_df=feature_flags, df=boxscores)
+    pbp_data = get_pbp_data(df=boxscores)
 
     # STEP 2: Write Data to SQL
     with engine.begin() as connection:

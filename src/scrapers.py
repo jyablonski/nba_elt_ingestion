@@ -552,7 +552,7 @@ def get_odds_data() -> pd.DataFrame:
         odds["spread"] = odds["spread"].str.replace("PK", "-1.0")
         if len(odds) == 0:
             logging.info("No Odds Records available for today's games")
-            return []
+            return pd.DataFrame()
 
         odds["spread"] = odds["spread"].apply(filter_spread)
         odds["spread"] = odds["spread"].apply(lambda x: " ".join(x.split()))

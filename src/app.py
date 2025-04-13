@@ -29,7 +29,7 @@ if __name__ == "__main__":
     logging.getLogger("requests").setLevel(
         logging.WARNING
     )  # get rid of https debug stuff
-    logger.info("Starting Ingestion Script Version: 2.0.0")
+    logger.info("Starting Ingestion Script Version: 2.0.1")
 
     logger.info("Starting Web Scrape")
     engine = create_sql_engine(
@@ -185,4 +185,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logger.info("Finished Ingestion Script Version: 2.0.0")
+    logger.info("Finished Ingestion Script Version: 2.0.1")
