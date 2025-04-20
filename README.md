@@ -2,7 +2,7 @@
 
 ![CI CD](https://github.com/jyablonski/python_docker/actions/workflows/ci_cd.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jyablonski/python_docker/badge.svg?branch=master)](https://coveralls.io/github/jyablonski/python_docker?branch=master)
 
-Version: 2.0.1
+Version: 2.0.2
 
 The Ingestion Script scrapes from the following sources to extract data and load it to PostgreSQL + S3:
 - basketball-reference
