@@ -535,9 +535,9 @@ def get_odds_data() -> pd.DataFrame:
 
         # pull from the first available betting site
         # NOTE: 2025-04-20 dratkings stops showing up for some reason
-        odds["spread"] = df[3].iloc[:, 2]  # 3th column in df[3]
+        odds["spread"] = df[3].iloc[:, 2]  # 3rd column in df[3]
         # Select columns by index: First column (index 0),
-        # 3th column (index 4), and 'spread'
+        # 3rd column (index 2), and 'spread'
         odds = odds.iloc[:, [0, 2, -1]]
         # Rename the selected columns
         odds = odds.rename(
