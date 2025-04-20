@@ -532,10 +532,13 @@ def get_odds_data() -> pd.DataFrame:
         url = "https://www.covers.com/sport/basketball/nba/odds"
         df = pd.read_html(url)
         odds = df[0]
-        odds["spread"] = df[3].iloc[:, 4]  # 5th column in df[3]
+
+        # pull from the first available betting site
+        # NOTE: 2025-04-20 dratkings stops showing up for some reason
+        odds["spread"] = df[3].iloc[:, 2]  # 3rd column in df[3]
         # Select columns by index: First column (index 0),
-        # 5th column (index 4), and 'spread'
-        odds = odds.iloc[:, [0, 4, -1]]
+        # 3rd column (index 2), and 'spread'
+        odds = odds.iloc[:, [0, 2, -1]]
         # Rename the selected columns
         odds = odds.rename(
             columns={
