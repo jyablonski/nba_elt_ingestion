@@ -367,7 +367,8 @@ VALUES ('season', 1),
        ('odds', 1),
        ('schedule', 1),
        ('shooting_stats', 1),
-       ('fake', 0);
+       ('fake', 0),
+       ('["october", "november", "december", "january", "february", "march", "april"]', 1);
 
 DROP TABLE IF EXISTS nba_source.aws_odds_upsert_source;
 CREATE TABLE IF NOT EXISTS nba_source.aws_odds_upsert_source

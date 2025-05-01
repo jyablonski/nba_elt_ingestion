@@ -21,7 +21,7 @@ from src.scrapers import (
     get_shooting_stats_data,
     get_transactions_data,
 )
-from src.utils import query_logs, write_to_slack
+from src.utils import generate_schedule_pull_type, query_logs, write_to_slack
 
 
 if __name__ == "__main__":
@@ -44,6 +44,10 @@ if __name__ == "__main__":
     # `get_*_data functions` to check if they need to run or not
     FeatureFlagManager.load(engine=engine)
     source_schema = "nba_source"
+    schedule_months_to_pull = generate_schedule_pull_type(
+        season_type=FeatureFlagManager.get("season"),
+        playoff_type=FeatureFlagManager.get("playoffs"),
+    )
 
     # STEP 1: Extract Raw Data
     stats = get_player_stats_data()
@@ -56,7 +60,7 @@ if __name__ == "__main__":
     opp_stats = get_opp_stats_data()
 
     # TODO: use environment variable for the year
-    schedule = get_schedule_data(year="2025", month_list=["may", "june"])
+    schedule = get_schedule_data(year="2025", month_list=schedule_months_to_pull)
     shooting_stats = get_shooting_stats_data()
     reddit_comment_data = get_reddit_comments(urls=reddit_data["reddit_url"])
     pbp_data = get_pbp_data(df=boxscores)

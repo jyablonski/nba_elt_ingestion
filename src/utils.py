@@ -255,3 +255,26 @@ def write_to_slack(
     except Exception as e:
         logging.error(f"Error Writing to Slack, {e}")
         raise
+
+
+def generate_schedule_pull_type(season_type: int, playoff_type: int) -> list[str]:
+    """
+    Small Utility Function to generate the months to pull for the schedule
+    based on the season type and playoff type.
+
+    Args:
+        season_type (int): The Season Type (0 = Regular Season, 1 = Playoffs)
+
+        playoff_type (int): The Playoff Type (0 = Regular Season, 1 = Playoffs)
+
+    Returns:
+        list: The list of months to pull for the schedule
+    """
+    if not season_type:
+        return []
+
+    return (
+        ["october", "november", "december", "january", "february", "march", "april"]
+        if not playoff_type
+        else ["april", "may", "june"]
+    )
