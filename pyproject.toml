@@ -1,6 +1,6 @@
 [project]
 name = "nba-elt-ingestion"
-version = "2.0.2"
+version = "2.0.3"
 description = "Ingestion Script for NBA ELT Project"
 authors = [{ name = "jyablonski9", email = "jyablonski9@gmail.com" }]
 requires-python = "~=3.12"
