@@ -56,7 +56,7 @@ if __name__ == "__main__":
     opp_stats = get_opp_stats_data()
 
     # TODO: use environment variable for the year
-    schedule = get_schedule_data(year="2025")
+    schedule = get_schedule_data(year="2025", month_list=["may", "june"])
     shooting_stats = get_shooting_stats_data()
     reddit_comment_data = get_reddit_comments(urls=reddit_data["reddit_url"])
     pbp_data = get_pbp_data(df=boxscores)
