@@ -965,89 +965,94 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
 @record_function_time_decorator
 def get_schedule_data(
     year: str,
-    month_list: list[str] = [
-        "october",
-        "november",
-        "december",
-        "january",
-        "february",
-        "march",
-        "april",
-    ],
+    month_list: list[str] = None,
+    include_past_games: bool = False,
 ) -> pd.DataFrame:
     """
     Web Scrape Function to scrape Schedule data by iterating through a list of months
 
     Args:
-        year (str) - The year to scrape
+        year (str): The season year to scrape.
 
-        month_list (list) - List of full-month names to scrape
+        month_list (list[str], optional): List of full month names to scrape. Defaults to season months.
+
+        include_past_games (bool, optional): If True, includes games before today. Defaults to False.
 
     Returns:
         DataFrame of Schedule Data to be stored.
 
     """
-    current_date = (
-        datetime.now().date()
-    )  # DO NOT REMOVE, used in df.query function later
+    if month_list is None:
+        month_list = [
+            "october",
+            "november",
+            "december",
+            "january",
+            "february",
+            "march",
+            "april",
+        ]
 
-    try:
-        schedule_df = pd.DataFrame()
-        completed_months = []
-        for month in month_list:
+    current_date = datetime.now().date()
+    schedule_df = pd.DataFrame()
+    completed_months = []
+
+    for month in month_list:
+        try:
             url = f"https://www.basketball-reference.com/leagues/NBA_{year}_games-{month}.html"
             html = requests.get(url).content
             soup = BeautifulSoup(html, "html.parser")
+            rows = soup.find_all("tr")
 
-            headers = [th.getText() for th in soup.findAll("tr")[0].findAll("th")]
-            headers[6] = "boxScoreLink"
-            headers[7] = "isOT"
-            headers = headers[1:]
+            if not rows:
+                raise IndexError
 
-            rows = soup.findAll("tr")[1:]
-            date_info = [
-                [th.getText() for th in rows[i].findAll("th")] for i in range(len(rows))
+            headers = [th.getText() for th in rows[0].find_all("th")][1:]
+            headers[5] = "boxScoreLink"
+            headers[6] = "isOT"
+
+            data = [
+                (row.find("th").getText(), [td.getText() for td in row.find_all("td")])
+                for row in rows[1:]
+                if row.find_all("td")
             ]
 
-            game_info = [
-                [td.getText() for td in rows[i].findAll("td")] for i in range(len(rows))
-            ]
-            date_info = [i[0] for i in date_info]
+            if not data:
+                raise IndexError
 
-            schedule = pd.DataFrame(game_info, columns=headers)
-            schedule["Date"] = date_info
+            date_info, game_info = zip(*data)
+            month_df = pd.DataFrame(game_info, columns=headers)
+            month_df["date"] = date_info
+
+            schedule_df = pd.concat([schedule_df, month_df], ignore_index=True)
+            completed_months.append(month)
 
             logging.info(
-                f"Schedule Function Completed for {month}, retrieving {len(schedule)} "
-                "rows"
+                f"Schedule scrape completed for {month}, {len(month_df)} rows retrieved."
             )
-            completed_months.append(month)
-            schedule_df = pd.concat([schedule, schedule_df])
 
-    except IndexError:
-        logging.info(
-            f"{month} currently has no data in basketball-reference, "
-            f"stopping the function and returning data for {' '.join(completed_months)}"
-        )
-    finally:
-        if not schedule_df.empty:
-            schedule_df = schedule_df[
-                ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "Date"]
-            ]
-            schedule_df["proper_date"] = pd.to_datetime(
-                schedule_df["Date"], format="%a, %b %d, %Y"
-            ).dt.date
-            schedule_df.columns = schedule_df.columns.str.lower()
-            schedule_df = schedule_df.rename(
-                columns={
-                    "start (et)": "start_time",
-                    "visitor/neutral": "away_team",
-                    "home/neutral": "home_team",
-                }
-            )
-            # filtering the data to only rows beyond the current date because we already have
-            # the historical records
-            schedule_df = schedule_df[schedule_df["proper_date"] >= current_date]
-            return schedule_df
-        else:
-            return pd.DataFrame()
+        except IndexError:
+            logging.info(f"{month} has no data, skipping.")
+
+    if schedule_df.empty:
+        return pd.DataFrame()
+
+    # Format and clean columns
+    schedule_df = schedule_df[
+        ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "date"]
+    ].rename(
+        columns={
+            "Start (ET)": "start_time",
+            "Visitor/Neutral": "away_team",
+            "Home/Neutral": "home_team",
+        }
+    )
+    schedule_df["proper_date"] = pd.to_datetime(
+        schedule_df["date"], format="%a, %b %d, %Y"
+    ).dt.date
+    schedule_df.columns = schedule_df.columns.str.lower()
+
+    if not include_past_games:
+        schedule_df = schedule_df[schedule_df["proper_date"] >= current_date]
+
+    return schedule_df
