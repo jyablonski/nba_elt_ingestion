@@ -1,6 +1,6 @@
 [project]
 name = "nba-elt-ingestion"
-version = "2.0.3"
+version = "2.0.4"
 description = "Ingestion Script for NBA ELT Project"
 authors = [{ name = "jyablonski9", email = "jyablonski9@gmail.com" }]
 requires-python = "~=3.12"
@@ -15,10 +15,10 @@ dependencies = [
     "nltk>=3.8.1,<4",
     "psycopg2-binary>=2.9.8,<3",
     "requests>=2.32.0,<3",
-    "sqlalchemy>=2.0.37,<3",
+    "sqlalchemy>=2.0.40,<3",
     "awswrangler>=3.11.0,<4",
     "beautifulsoup4>=4.12.2,<5",
-    "jyablonski-common-modules>=0.0.7,<0.0.8",
+    "jyablonski-common-modules>=0.0.7",
 ]
 
 [dependency-groups]
