@@ -18,7 +18,7 @@ dependencies = [
     "sqlalchemy>=2.0.37,<3",
     "awswrangler>=3.11.0,<4",
     "beautifulsoup4>=4.12.2,<5",
-    "jyablonski-common-modules>=0.0.7,<0.0.8",
+    "jyablonski-common-modules>=0.0.7",
 ]
 
 [dependency-groups]

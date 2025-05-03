@@ -77,6 +77,7 @@ if __name__ == "__main__":
             schema=source_schema,
             df=boxscores,
             primary_keys=["player", "date"],
+            update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
             conn=connection,
@@ -84,6 +85,7 @@ if __name__ == "__main__":
             schema=source_schema,
             df=odds,
             primary_keys=["team", "date"],
+            update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
             conn=connection,
@@ -99,6 +101,7 @@ if __name__ == "__main__":
                 "descriptionplayvisitor",
                 "descriptionplayhome",
             ],
+            update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
             conn=connection,
@@ -106,6 +109,7 @@ if __name__ == "__main__":
             schema=source_schema,
             df=shooting_stats,
             primary_keys=["player"],
+            update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
             conn=connection,
@@ -113,6 +117,7 @@ if __name__ == "__main__":
             schema=source_schema,
             df=reddit_data,
             primary_keys=["reddit_url"],
+            update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
             conn=connection,
@@ -120,6 +125,7 @@ if __name__ == "__main__":
             schema=source_schema,
             df=reddit_comment_data,
             primary_keys=["md5_pk"],
+            update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
             conn=connection,
@@ -127,6 +133,7 @@ if __name__ == "__main__":
             schema=source_schema,
             df=transactions,
             primary_keys=["date", "transaction"],
+            update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
             conn=connection,
@@ -134,6 +141,7 @@ if __name__ == "__main__":
             schema=source_schema,
             df=injury_data,
             primary_keys=["player", "team", "description"],
+            update_timestamp_field="modified_at",
         )
 
         write_to_sql_upsert(
@@ -142,6 +150,7 @@ if __name__ == "__main__":
             schema=source_schema,
             df=opp_stats,
             primary_keys=["team"],
+            update_timestamp_field="modified_at",
         )
 
         # cant upsert on these bc the column names have % and i kept getting issues
@@ -162,6 +171,7 @@ if __name__ == "__main__":
             schema=source_schema,
             df=schedule,
             primary_keys=["away_team", "home_team", "proper_date"],
+            update_timestamp_field="modified_at",
         )
 
     engine.dispose()
