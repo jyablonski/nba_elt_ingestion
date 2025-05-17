@@ -73,7 +73,7 @@ jobs:
   deploy-alert:
     needs: cd_pipeline
     runs-on: ubuntu-latest
-    if: always()
+    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
 
