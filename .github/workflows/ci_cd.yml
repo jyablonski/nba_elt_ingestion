@@ -82,8 +82,9 @@ jobs:
           ECR_REPOSITORY: ${{ env.ECR_REPO }}
           IMAGE_TAG: nba_elt_pipeline_ingestion
         run: |
-          docker compose -f docker/docker-compose.yml build
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $IMAGE_URI -f docker/Dockerfile ../
+          docker push $IMAGE_URI
 
   deploy-alert-success:
     needs: cd_pipeline
