@@ -18,7 +18,7 @@ test:
 
 .PHONY: docker-build
 docker-build:
-	docker build -f docker/Dockerfile -t python_docker_local .
+	docker build -f docker/Dockerfile -t ingestion_script_prod .
 
 .PHONY: docker-run
 docker-run:
