@@ -35,8 +35,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: |
-          uv run python -m nltk.downloader vader_lexicon
+        run: uv run python -m nltk.downloader vader_lexicon
 
       - name: Create and populate .coveralls.yml file
         env:
@@ -49,67 +48,39 @@ jobs:
         shell: bash
 
       - name: Run Tests
-        run: |
-          make ci-test
+        run: make ci-test
 
       - name: Coveralls
-        run: |
-          uv run coveralls
+        run: uv run coveralls
 
   cd_pipeline:
     runs-on: ubuntu-latest
     needs: ci_pipeline
-    name: Deploy Pipeline
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' && success()
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Build and Push Docker Image to ECR
+        uses: jyablonski/actions/deploy@v1
         with:
-          role-to-assume: ${{ env.IAM_ROLE }} # use full arn
-          role-session-name: nba-elt-ingestion-cd
+          role-to-assume: ${{ env.IAM_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
+          ecr-repo: ${{ env.ECR_REPO }}
+          image-name: nba_elt_pipeline_ingestion
+          dockerfile: docker/Dockerfile
+          context: .
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Push Docker Image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ env.ECR_REPO }}
-          IMAGE_TAG: nba_elt_pipeline_ingestion
-        run: |
-          docker compose -f docker/docker-compose.yml build
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-  deploy-alert-success:
+  deploy-alert:
     needs: cd_pipeline
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
-      - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_COLOR: ${{ job.status }}
-          SLACK_MESSAGE: "Ingestion Script Deployed to Production"
-          SLACK_TITLE: Ingestion Script Deploy Pipeline
-          SLACK_USERNAME: GitHub Actions
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-  deploy-alert-failure:
-    needs: cd_pipeline
-    runs-on: ubuntu-latest
-    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_COLOR: ${{ job.status }}
-          SLACK_MESSAGE: "Ingestion Script Failed to deploy properly"
-          SLACK_TITLE: Ingestion Script Deploy Failure
-          SLACK_USERNAME: GitHub Actions
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Slack Deploy Notification
+        uses: jyablonski/actions/slack_alert@v1
+        with:
+          message: ${{ job.status == 'success' && 'Ingestion Script Deployed to Production' || 'Ingestion Script Failed to deploy properly' }}
+          title: ${{ job.status == 'success' && 'Ingestion Script Deploy Pipeline' || 'Ingestion Script Deploy Failure' }}
+          color: ${{ job.status == 'success' && 'good' || 'danger' }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
