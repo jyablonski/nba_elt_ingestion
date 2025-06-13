@@ -3,13 +3,13 @@ import pandas as pd
 
 
 def test_reddit_comment_data_upsert(postgres_conn, reddit_comments_data):
-    count_check = "SELECT count(*) FROM nba_source.aws_reddit_comment_data_source"
+    count_check = "SELECT count(*) FROM nba_source.reddit_comments"
     count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)
 
     # upsert 999 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="aws_reddit_comment_data_source",
+        table="reddit_comments",
         schema="nba_source",
         df=reddit_comments_data,
         primary_keys=["md5_pk"],

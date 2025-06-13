@@ -2,17 +2,17 @@ from jyablonski_common_modules.sql import write_to_sql_upsert
 import pandas as pd
 
 
-def test_injury_data_upsert(postgres_conn, injuries_data):
-    count_check = "SELECT count(*) FROM nba_source.aws_injury_data_source"
+def test_opp_stats_upsert(postgres_conn, opp_stats_data):
+    count_check = "SELECT count(*) FROM nba_source.bbref_team_opponent_shooting_stats"
     count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)
 
-    # upsert 17 records
+    # upsert 30 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="aws_injury_data_source",
+        table="bbref_team_opponent_shooting_stats",
         schema="nba_source",
-        df=injuries_data,
-        primary_keys=["player", "team", "description"],
+        df=opp_stats_data,
+        primary_keys=["team"],
     )
 
     count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)
@@ -22,5 +22,5 @@ def test_injury_data_upsert(postgres_conn, injuries_data):
     )  # check row count is 1 from the bootstrap
 
     assert (
-        count_check_results_after["count"][0] == 17
-    )  # check row count is 17, 16 new and 1 upsert
+        count_check_results_after["count"][0] == 30
+    )  # check row count is 30, 29 new and 1 upsert

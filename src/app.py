@@ -29,7 +29,7 @@ if __name__ == "__main__":
     logging.getLogger("requests").setLevel(
         logging.WARNING
     )  # get rid of https debug stuff
-    logger.info("Starting Ingestion Script Version: 2.0.5")
+    logger.info("Starting Ingestion Script Version: 2.0.6")
 
     logger.info("Starting Web Scrape")
     engine = create_sql_engine(
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     with engine.begin() as connection:
         write_to_sql_upsert(
             conn=connection,
-            table="aws_boxscores_source",
+            table="bbref_player_boxscores",
             schema=source_schema,
             df=boxscores,
             primary_keys=["player", "date"],
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         )
         write_to_sql_upsert(
             conn=connection,
-            table="aws_odds_source",
+            table="draftkings_game_odds",
             schema=source_schema,
             df=odds,
             primary_keys=["team", "date"],
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         )
         write_to_sql_upsert(
             conn=connection,
-            table="aws_pbp_data_source",
+            table="bbref_player_pbp",
             schema=source_schema,
             df=pbp_data,
             primary_keys=[
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         )
         write_to_sql_upsert(
             conn=connection,
-            table="aws_shooting_stats_source",
+            table="bbref_player_shooting_stats",
             schema=source_schema,
             df=shooting_stats,
             primary_keys=["player"],
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         )
         write_to_sql_upsert(
             conn=connection,
-            table="aws_reddit_data_source",
+            table="reddit_posts",
             schema=source_schema,
             df=reddit_data,
             primary_keys=["reddit_url"],
@@ -121,7 +121,7 @@ if __name__ == "__main__":
         )
         write_to_sql_upsert(
             conn=connection,
-            table="aws_reddit_comment_data_source",
+            table="reddit_comments",
             schema=source_schema,
             df=reddit_comment_data,
             primary_keys=["md5_pk"],
@@ -129,7 +129,7 @@ if __name__ == "__main__":
         )
         write_to_sql_upsert(
             conn=connection,
-            table="aws_transactions_source",
+            table="bbref_league_transactions",
             schema=source_schema,
             df=transactions,
             primary_keys=["date", "transaction"],
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         )
         write_to_sql_upsert(
             conn=connection,
-            table="aws_injury_data_source",
+            table="bbref_player_injuries",
             schema=source_schema,
             df=injury_data,
             primary_keys=["player", "team", "description"],
@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
         write_to_sql_upsert(
             conn=connection,
-            table="aws_opp_stats_source",
+            table="bbref_team_opponent_shooting_stats",
             schema=source_schema,
             df=opp_stats,
             primary_keys=["team"],
@@ -156,18 +156,21 @@ if __name__ == "__main__":
         # cant upsert on these bc the column names have % and i kept getting issues
         # even after changing the col names to _pct instead etc.  no clue dude fk it
         write_to_sql(
-            con=connection, table_name="aws_stats_source", df=stats, table_type="append"
+            con=connection,
+            table_name="bbref_player_stats_snapshot",
+            df=stats,
+            table_type="append",
         )
         write_to_sql(
             con=connection,
-            table_name="aws_adv_stats_source",
+            table_name="bbref_team_adv_stats_snapshot",
             df=adv_stats,
             table_type="append",
         )
 
         write_to_sql_upsert(
             conn=connection,
-            table="aws_schedule_source",
+            table="bbref_league_schedule",
             schema=source_schema,
             df=schedule,
             primary_keys=["away_team", "home_team", "proper_date"],
@@ -199,4 +202,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logger.info("Finished Ingestion Script Version: 2.0.5")
+    logger.info("Finished Ingestion Script Version: 2.0.6")
