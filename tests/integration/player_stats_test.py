@@ -4,12 +4,12 @@ from src.utils import write_to_sql
 
 
 def test_stats_insert(postgres_conn, player_stats_data):
-    count_check = "SELECT count(*) FROM nba_source.aws_stats_source"
+    count_check = "SELECT count(*) FROM nba_source.bbref_player_stats_snapshot"
 
     # insert 630 records
     write_to_sql(
         con=postgres_conn,
-        table_name="aws_stats_source",
+        table_name="bbref_player_stats_snapshot",
         df=player_stats_data,
         table_type="replace",
     )

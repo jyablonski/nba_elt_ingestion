@@ -3,14 +3,12 @@ import pandas as pd
 
 
 def test_odds_upsert(postgres_conn, odds_data):
-    # postgres_conn.execute(statement="truncate table nba_source.aws_odds_source;")
-
-    count_check = "SELECT count(*) FROM nba_source.aws_odds_source"
+    count_check = "SELECT count(*) FROM nba_source.draftkings_game_odds"
     count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)
 
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="aws_odds_source",
+        table="draftkings_game_odds",
         schema="nba_source",
         df=odds_data,
         primary_keys=["team", "date"],

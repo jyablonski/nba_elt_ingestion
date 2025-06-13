@@ -61,16 +61,13 @@ def test_get_boxscores_data_no_data_available(mocker, schedule_mock_data, caplog
 
 
 def test_boxscores_upsert(postgres_conn, boxscores_data):
-    # postgres_conn.execute(statement="truncate table
-    # nba_source.aws_boxscores_source;", con=postgres_conn)
-
-    count_check = "SELECT count(*) FROM nba_source.aws_boxscores_source"
+    count_check = "SELECT count(*) FROM nba_source.bbref_player_boxscores"
     count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)
 
     # upsert 145 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="aws_boxscores_source",
+        table="bbref_player_boxscores",
         schema="nba_source",
         df=boxscores_data,
         primary_keys=["player", "date"],

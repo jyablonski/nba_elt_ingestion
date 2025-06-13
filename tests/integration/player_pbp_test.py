@@ -3,13 +3,13 @@ import pandas as pd
 
 
 def test_pbp_upsert(postgres_conn, pbp_transformed_data):
-    count_check = "SELECT count(*) FROM nba_source.aws_pbp_data_source"
+    count_check = "SELECT count(*) FROM nba_source.bbref_player_pbp"
     count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)
 
     # upsert 100 records
     write_to_sql_upsert(
         conn=postgres_conn,
-        table="aws_pbp_data_source",
+        table="bbref_player_pbp",
         schema="nba_source",
         df=pbp_transformed_data,
         primary_keys=[
