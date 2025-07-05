@@ -2,7 +2,7 @@ from datetime import datetime
 
 
 import boto3
-from moto import mock_s3
+from moto import mock_aws
 import pandas as pd
 import pytest
 
@@ -10,7 +10,7 @@ from src.aws import write_to_s3
 from src.utils import get_leading_zeroes
 
 
-@mock_s3
+@mock_aws
 def test_write_to_s3_validated(player_stats_data):
     conn = boto3.resource("s3", region_name="us-east-1")
     today = datetime.now().date()
@@ -28,7 +28,7 @@ def test_write_to_s3_validated(player_stats_data):
     )
 
 
-@mock_s3
+@mock_aws
 def test_write_to_s3_empty():
     test_file_name = "test_data"
     bucket_name = "moto_test_bucket"

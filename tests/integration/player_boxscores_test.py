@@ -2,9 +2,9 @@ import logging
 import os
 
 from jyablonski_common_modules.sql import write_to_sql_upsert
-import pandas as pd
 
 from src.scrapers import get_boxscores_data
+from tests.utils.db_assertions import assert_db_row_count_change
 
 
 def test_get_boxscores_data_no_games_played(mocker, caplog):
@@ -61,24 +61,18 @@ def test_get_boxscores_data_no_data_available(mocker, schedule_mock_data, caplog
 
 
 def test_boxscores_upsert(postgres_conn, boxscores_data):
-    count_check = "SELECT count(*) FROM nba_source.bbref_player_boxscores"
-    count_check_results_before = pd.read_sql_query(sql=count_check, con=postgres_conn)
-
-    # upsert 145 records
-    write_to_sql_upsert(
+    assert_db_row_count_change(
         conn=postgres_conn,
         table="bbref_player_boxscores",
         schema="nba_source",
-        df=boxscores_data,
-        primary_keys=["player", "date"],
+        expected_before=1,
+        expected_after=145,
+        writer=write_to_sql_upsert,
+        writer_kwargs={
+            "conn": postgres_conn,
+            "table": "bbref_player_boxscores",
+            "schema": "nba_source",
+            "df": boxscores_data,
+            "primary_keys": ["player", "date"],
+        },
     )
-
-    count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)
-
-    assert (
-        count_check_results_before["count"][0] == 1
-    )  # check row count is 1 from the bootstrap
-
-    assert (
-        count_check_results_after["count"][0] == 145
-    )  # check row count is 145, 144 new and 1 upsert

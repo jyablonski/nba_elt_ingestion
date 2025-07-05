@@ -67,5 +67,5 @@ stop-postgres:
 .PHONY: ci-test
 ci-test:
 	@make start-postgres
-	@uv run --frozen pytest --cov --cov-report xml --color=yes
+	@uv run --frozen pytest -vv --cov-report term --cov-report xml:coverage.xml --cov=src --color=yes
 	@make stop-postgres

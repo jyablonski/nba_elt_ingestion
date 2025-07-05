@@ -1,18 +1,19 @@
-import pandas as pd
-
+from tests.utils.db_assertions import assert_db_row_count_change
 from src.database import write_to_sql
 
 
 def test_adv_stats_insert(postgres_conn, advanced_stats_data):
-    count_check = "SELECT count(*) FROM nba_source.bbref_team_adv_stats_snapshot"
-
-    # insert 30 records
-    write_to_sql(
-        con=postgres_conn,
-        table_name="bbref_team_adv_stats_snapshot",
-        df=advanced_stats_data,
-        table_type="replace",
+    assert_db_row_count_change(
+        conn=postgres_conn,
+        table="bbref_team_adv_stats_snapshot",
+        schema="nba_source",
+        expected_before=None,  # optional for replace
+        expected_after=30,
+        writer=write_to_sql,
+        writer_kwargs={
+            "con": postgres_conn,
+            "table_name": "bbref_team_adv_stats_snapshot",
+            "df": advanced_stats_data,
+            "table_type": "replace",
+        },
     )
-    count_check_results_after = pd.read_sql_query(sql=count_check, con=postgres_conn)
-
-    assert count_check_results_after["count"][0] == 30  # check row count is 30

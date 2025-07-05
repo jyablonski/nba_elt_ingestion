@@ -1,0 +1,35 @@
+def test_advanced_stats_data(advanced_stats_data):
+    expected_columns = [
+        "index",
+        "team",
+        "age",
+        "w",
+        "l",
+        "pw",
+        "pl",
+        "mov",
+        "sos",
+        "srs",
+        "ortg",
+        "drtg",
+        "nrtg",
+        "pace",
+        "ftr",
+        "3par",
+        "ts%",
+        "efg%",
+        "tov%",
+        "orb%",
+        "ft/fga",
+        "efg%_opp",
+        "tov%_opp",
+        "drb%_opp",
+        "ft/fga_opp",
+        "arena",
+        "attendance",
+        "att/game",
+        "scrape_date",
+    ]
+
+    assert list(advanced_stats_data.columns) == expected_columns
+    assert len(advanced_stats_data) == 30
