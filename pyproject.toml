@@ -3,7 +3,7 @@ name = "nba-elt-ingestion"
 version = "2.0.6"
 description = "Ingestion Script for NBA ELT Project"
 authors = [{ name = "jyablonski9", email = "jyablonski9@gmail.com" }]
-requires-python = "~=3.12"
+requires-python = ">=3.12.0, <3.13"
 readme = "README.md"
 dependencies = [
     "numpy>=1.25.2,<2",
