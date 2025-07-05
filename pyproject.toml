@@ -54,4 +54,8 @@ markers = [
 addopts = "-v"
 
 [tool.coverage.run]
-omit = ["src/app.py"]
+omit = ["src/app.py", "app.py"]
+
+# don't complain if non-runnable code is included in coverage
+[tool.coverage.report]
+exclude_also = ["if __name__ == .__main__.:"]
