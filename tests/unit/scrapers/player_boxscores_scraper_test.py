@@ -1,0 +1,33 @@
+def test_boxscores_data(boxscores_data):
+    expected_columns = [
+        "player",
+        "team",
+        "location",
+        "opponent",
+        "outcome",
+        "mp",
+        "fgm",
+        "fga",
+        "fgpercent",
+        "threepfgmade",
+        "threepattempted",
+        "threepointpercent",
+        "ft",
+        "fta",
+        "ftpercent",
+        "oreb",
+        "dreb",
+        "trb",
+        "ast",
+        "stl",
+        "blk",
+        "tov",
+        "pf",
+        "pts",
+        "plusminus",
+        "gmsc",
+        "date",
+        "scrape_date",
+    ]
+    assert list(boxscores_data.columns) == expected_columns
+    assert len(boxscores_data) == 145

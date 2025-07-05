@@ -1,0 +1,36 @@
+def test_player_stats_data(player_stats_data):
+    expected_columns = [
+        "player",
+        "age",
+        "team",
+        "pos",
+        "g",
+        "gs",
+        "mp",
+        "fg",
+        "fga",
+        "fg%",
+        "3p",
+        "3pa",
+        "3p%",
+        "2p",
+        "2pa",
+        "2p%",
+        "efg%",
+        "ft",
+        "fta",
+        "ft%",
+        "orb",
+        "drb",
+        "trb",
+        "ast",
+        "stl",
+        "blk",
+        "tov",
+        "pf",
+        "pts",
+        "scrape_date",
+    ]
+
+    assert list(player_stats_data.columns) == expected_columns
+    assert len(player_stats_data) == 377

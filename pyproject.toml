@@ -23,18 +23,18 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "black>=23.12.1,<24",
-    "coveralls>=3.3.1,<4",
-    "pytest>=7.4.2,<8",
-    "pytest-cov>=4.1.0,<5",
-    "pytest-mock>=3.11.1,<4",
-    "ipykernel>=6.25.2,<7",
-    "moto>=4.2.4,<5",
-    "ruff>=0.0.292,<0.0.293",
+    "black>=23.12.1",
+    "coveralls>=3.3.1",
+    "pytest>=7.4.2",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "ipykernel>=6.25.2",
+    "moto>=4.2.4",
+    "ruff>=0.0.292",
     "mypy>=1.7.1,<2",
-    "boto3-stubs>=1.29.6,<2",
-    "types-beautifulsoup4>=4.12.0.7,<5",
-    "click>=8.1.8,<9",
+    "boto3-stubs>=1.29.6",
+    "types-beautifulsoup4>=4.12.0.7",
+    "click>=8.1.8",
 ]
 
 [tool.uv]
@@ -45,12 +45,16 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
-filterwarnings =[
-    "ignore::DeprecationWarning",
-]
+filterwarnings = ["ignore::DeprecationWarning"]
 testpaths = ["tests"]
 markers = [
     "wip: work in progress",
     "infrastructure: mocks for dummy data (sql db, http endpoint etc)",
 ]
 addopts = "-v"
+
+[tool.coverage.run]
+omit = ["src/app.py"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:"]
