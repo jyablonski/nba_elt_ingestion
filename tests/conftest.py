@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from datetime import datetime
 import json
 import logging
 import os
 import pickle
 import socket
-from typing import Generator
+from collections.abc import Generator
+from datetime import datetime
+from pathlib import Path
+from typing import TYPE_CHECKING
 
-from jyablonski_common_modules.sql import create_sql_engine
 import pandas as pd
 import pytest
-from pytest_mock import MockerFixture
-from sqlalchemy.engine.base import Connection
+from jyablonski_common_modules.sql import create_sql_engine
 
 from src.feature_flags import FeatureFlagManager
 from src.scrapers import (
@@ -30,11 +30,18 @@ from src.scrapers import (
     get_transactions_data,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from pytest_mock import MockerFixture
+    from sqlalchemy.engine.base import Connection
+
 
 def guard(*args, **kwargs):
     raise Exception("you're using the internet hoe")
 
 
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 socket.socket = guard
 
 # pytest tests/scrape_test.py::test_player_stats - use this
@@ -61,7 +68,7 @@ def get_postgres_host() -> str:
 @pytest.fixture(scope="session")
 def postgres_engine():
     """Fixture to create a SQLAlchemy engine connected to Postgres."""
-    engine = create_sql_engine(
+    return create_sql_engine(
         schema="nba_source",
         user="postgres",
         password="postgres",
@@ -69,7 +76,6 @@ def postgres_engine():
         database="postgres",
         port=5432,
     )
-    return engine
 
 
 @pytest.fixture(scope="session")
@@ -87,188 +93,133 @@ def load_feature_flags(postgres_conn):
 
 @pytest.fixture(scope="function")
 def player_stats_data(mocker: MockerFixture) -> pd.DataFrame:
-    """
-    Fixture to load player stats data from an html file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/stats_html.html")
-    with open(fname, "rb") as fp:
+    """Fixture to load player stats data from an html file for testing."""
+    fname = FIXTURES_DIR / "stats_html.html"
+    with fname.open("rb") as fp:
         mock_content = fp.read()
 
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
-
-    df = get_player_stats_data()
-    return df
+    return get_player_stats_data()
 
 
 @pytest.fixture(scope="function")
 def boxscores_data(mocker: MockerFixture) -> pd.DataFrame:
-    """
-    Fixture to load boxscores data from an html file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/boxscores_html.html")
-    with open(fname, "rb") as fp:
+    """Fixture to load boxscores data from an html file for testing."""
+    fname = FIXTURES_DIR / "boxscores_html.html"
+    with fname.open("rb") as fp:
         mock_content = fp.read()
 
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
-
-    boxscores = get_boxscores_data()
-    return boxscores
+    return get_boxscores_data()
 
 
 @pytest.fixture(scope="function")
 def opp_stats_data(mocker: MockerFixture) -> pd.DataFrame:
-    """
-    Fixture to load team opponent stats data from a pickle file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/opp_stats.pickle")
-    with open(fname, "rb") as fp:
+    """Fixture to load team opponent stats data from a pickle file for testing."""
+    fname = FIXTURES_DIR / "opp_stats.pickle"
+    with fname.open("rb") as fp:
         df = pickle.load(fp)
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
-
-    opp_stats = get_opp_stats_data()
-    return opp_stats
+    return get_opp_stats_data()
 
 
 @pytest.fixture(scope="function")
 def injuries_data(mocker: MockerFixture) -> pd.DataFrame:
-    """
-    Fixture to load injuries data from a pickle file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/injuries_dump.pickle")
-    with open(fname, "rb") as fp:
+    """Fixture to load injuries data from a pickle file for testing."""
+    fname = FIXTURES_DIR / "injuries_dump.pickle"
+    with fname.open("rb") as fp:
         df = pickle.load(fp)
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
-
-    injuries = get_injuries_data()
-    return injuries
+    return get_injuries_data()
 
 
 @pytest.fixture(scope="function")
 def transactions_data(mocker: MockerFixture) -> pd.DataFrame:
-    """
-    Fixture to load transactions data from an html file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/transactions_html.html")
-    with open(fname, "rb") as fp:
+    """Fixture to load transactions data from an html file for testing."""
+    fname = FIXTURES_DIR / "transactions_html.html"
+    with fname.open("rb") as fp:
         mock_content = fp.read()
 
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
-
-    transactions = get_transactions_data()
-    return transactions
+    return get_transactions_data()
 
 
 @pytest.fixture(scope="function")
 def advanced_stats_data(mocker) -> pd.DataFrame:
-    """
-    Fixture to load team advanced stats data from a pickle file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/opp_stats.pickle")
-    with open(fname, "rb") as fp:
+    """Fixture to load team advanced stats data from a pickle file for testing."""
+    fname = FIXTURES_DIR / "opp_stats.pickle"
+    with fname.open("rb") as fp:
         df = pickle.load(fp)
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
-
-    adv_stats = get_advanced_stats_data()
-    return adv_stats
-
-
-# with open('pbp_data.pickle', 'wb') as handle:
-# pickle.dump(df, handle)
+    return get_advanced_stats_data()
 
 
 @pytest.fixture(scope="function")
 def shooting_stats_data(mocker) -> pd.DataFrame:
-    """
-    Fixture to load shooting stats data from a pickle file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/shooting_stats.pkl")
-    with open(fname, "rb") as fp:
+    """Fixture to load shooting stats data from a pickle file for testing."""
+    fname = FIXTURES_DIR / "shooting_stats.pkl"
+    with fname.open("rb") as fp:
         df = pickle.load(fp)
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
-
-    shooting_stats = get_shooting_stats_data()
-    return shooting_stats
+    return get_shooting_stats_data()
 
 
-# has to be pickle bc odds data can be returned in list of 1 or 2 objects
 @pytest.fixture(scope="function")
 def odds_data(mocker: MockerFixture) -> pd.DataFrame:
-    """
-    Fixture to load odds data from a pickle file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/scrape_odds.pkl")
-    with open(fname, "rb") as fp:
+    """Fixture to load odds data from a pickle file for testing."""
+    fname = FIXTURES_DIR / "scrape_odds.pkl"
+    with fname.open("rb") as fp:
         df = pickle.load(fp)
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
-
-    odds = get_odds_data()
-    return odds
+    return get_odds_data()
 
 
 @pytest.fixture(scope="function")
 def pbp_transformed_data(mocker) -> pd.DataFrame:
-    """
-    Fixture to load boxscores data from a csv file for PBP Transform testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/boxscores_data.csv")
-    boxscores_df = pd.read_csv(fname)
+    """Fixture to load boxscores data from a csv file for PBP Transform testing."""
+    boxscores_fname = FIXTURES_DIR / "boxscores_data.csv"
+    boxscores_df = pd.read_csv(boxscores_fname)
     boxscores_df["date"] = pd.to_datetime(boxscores_df["date"])
 
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/pbp_data.pickle")
-    with open(fname, "rb") as fp:
+    pbp_fname = FIXTURES_DIR / "pbp_data.pickle"
+    with pbp_fname.open("rb") as fp:
         df = pickle.load(fp)
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
-    pbp_transformed = get_pbp_data(df=boxscores_df)
-    return pbp_transformed
+    return get_pbp_data(df=boxscores_df)
 
 
 @pytest.fixture(scope="session")
 def logs_data():
-    """
-    Fixture to load dummy error logs for testing
-    """
-    df = pd.DataFrame({"errors": "Test... Failure"})
-    return df
+    """Fixture to load dummy error logs for testing"""
+    return pd.DataFrame({"errors": "Test... Failure"})
 
 
 @pytest.fixture()
 def schedule_data(mocker: MockerFixture) -> pd.DataFrame:
-    """
-    Fixture to load schedule data from an html file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/schedule.html")
-    with open(fname, "rb") as fp:
+    """Fixture to load schedule data from an html file for testing."""
+    fname = FIXTURES_DIR / "schedule.html"
+    with fname.open("rb") as fp:
         mock_content = fp.read()
 
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
-
-    # Note: the year + month dates here are dependent on the mock html file that's used
     schedule = get_schedule_data(year="2022", month_list=["february", "march"])
-
-    schedule = schedule.drop_duplicates(
-        subset=["away_team", "home_team", "proper_date"]
-    )
-    return schedule
+    return schedule.drop_duplicates(subset=["away_team", "home_team", "proper_date"])
 
 
 @pytest.fixture()
 def reddit_comments_data(mocker) -> pd.DataFrame:
-    """
-    Fixture to load reddit_comments data from a csv file for testing.
-    """
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/reddit_comments_data.csv")
-    with open(fname, "rb"):
-        reddit_comments_fixture = pd.read_csv(
-            fname, index_col=0
-        )  # literally fuck indexes
+    """Fixture to load reddit_comments data from a csv file for testing."""
+    fname = FIXTURES_DIR / "reddit_comments_data.csv"
+    with fname.open("rb"):
+        reddit_comments_fixture = pd.read_csv(fname, index_col=0)
 
-    # mock a whole bunch of praw OOP gahbage
+    # mock a whole bunch of praw OOP stuff
     mocker.patch("src.scrapers.praw.Reddit").return_value = 1
     mocker.patch("src.scrapers.praw.Reddit").return_value.submission = 1
     mocker.patch(
@@ -276,58 +227,41 @@ def reddit_comments_data(mocker) -> pd.DataFrame:
     ).return_value.submission.comments.list().return_value = 1
     mocker.patch("src.scrapers.pd.DataFrame").return_value = reddit_comments_fixture
 
-    reddit_comments_data = get_reddit_comments(urls=["fake", "test"])
-    return reddit_comments_data
+    return get_reddit_comments(urls=["fake", "test"])
 
 
 @pytest.fixture(scope="function")
 def add_sentiment_analysis_df() -> pd.DataFrame:
-    fname = os.path.join(os.path.dirname(__file__), "fixtures/reddit_comments_data.csv")
+    fname = FIXTURES_DIR / "reddit_comments_data.csv"
     df = pd.read_csv(fname)
-
-    comments = add_sentiment_analysis(df, "comment")
-    return comments
+    return add_sentiment_analysis(df, "comment")
 
 
-# postgres
 @pytest.fixture()
 def players_df() -> pd.DataFrame:
     """Small Players Fixture for Postgres Testing."""
-    fname = os.path.join(
-        os.path.dirname(__file__), "fixtures/postgres_players_fixture.csv"
-    )
-    df = pd.read_csv(fname)
-
-    return df
+    fname = FIXTURES_DIR / "postgres_players_fixture.csv"
+    return pd.read_csv(fname)
 
 
 @pytest.fixture(scope="function")
 def feature_flags_dataframe() -> pd.DataFrame:
-    """
-    Fixture to load player stats data from a csv file for testing.
-    """
-    df = pd.DataFrame(data={"flag": ["season", "playoffs"], "is_enabled": [1, 0]})
-    return df
+    """Fixture to load player stats data from a csv file for testing."""
+    return pd.DataFrame(data={"flag": ["season", "playoffs"], "is_enabled": [1, 0]})
 
 
 @pytest.fixture(scope="function")
 def schedule_mock_data() -> dict:
-    """
-    Fixture to load player stats data from a csv file for testing.
-    """
-    fname = os.path.join(
-        os.path.dirname(__file__), "fixtures/mock_schedule_fixed_date.json"
-    )
-    with open(fname, "r") as file:
-        mock_json_data = file.read()
-
-    data = json.loads(mock_json_data)
-    return data
+    """Fixture to load player stats data from a csv file for testing."""
+    fname = FIXTURES_DIR / "mock_schedule_fixed_date.json"
+    with fname.open("rb") as fp:
+        mock_content = fp.read()
+    return json.loads(mock_content)
 
 
 @pytest.fixture(scope="function")
 def odds_upsert_check_df() -> pd.DataFrame:
-    fake_data = pd.DataFrame(
+    return pd.DataFrame(
         data={
             "team": ["POR"],
             "spread": [-1.0],
@@ -337,7 +271,6 @@ def odds_upsert_check_df() -> pd.DataFrame:
             "datetime1": [datetime.now()],
         }
     )
-    return fake_data
 
 
 @pytest.fixture

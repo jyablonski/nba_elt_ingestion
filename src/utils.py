@@ -1,20 +1,17 @@
-from datetime import date, datetime
 import json
 import logging
 import os
 import re
+from datetime import date, datetime
 
-import awswrangler as wr
-from nltk.sentiment import SentimentIntensityAnalyzer
 import numpy as np
 import pandas as pd
 import requests
+from nltk.sentiment import SentimentIntensityAnalyzer
 
 
 def filter_spread(value: str) -> str:
-    """
-    Filter out 3-digit values from the `spread` column
-    in the Scrape Odds Function such as `-108` or `-112`
+    """Helper Function for filtering Odds Spread
 
     Parameters:
         value (str): The original value from the spread column.
@@ -39,8 +36,8 @@ def filter_spread(value: str) -> str:
 
 
 def get_season_type(todays_date: date | None = None) -> str:
-    """
-    Function to generate Season Type for a given Date.
+    """Function to generate Season Type for a given Date.
+
     **2025-03-16 NOTE** this has been deprecated as this logic
     belongs in the dbt project
 
@@ -67,9 +64,7 @@ def get_season_type(todays_date: date | None = None) -> str:
 
 
 def check_schedule(date: datetime.date) -> bool:
-    """
-    Small Function used in Boxscores + PBP Functions to check if
-    there are any games scheduled for a given date.
+    """Schedule Checker used in Boxscores + PBP
 
     Args:
         date (datetime.date): The Date to check for games on.
@@ -80,12 +75,11 @@ def check_schedule(date: datetime.date) -> bool:
     schedule_endpoint = f"https://api.jyablonski.dev/schedule?date={date}"
     schedule_data = requests.get(schedule_endpoint).json()
 
-    return True if len(schedule_data) > 0 else False
+    return len(schedule_data) > 0
 
 
 def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame:
-    """
-    Function to add Sentiment Analysis columns to a DataFrame via nltk Vader Lexicon.
+    """Function to add Sentiment Analysis columns to a DataFrame via nltk Vader Lexicon.
 
     Args:
         df (pd.DataFrame): The Pandas DataFrame
@@ -112,9 +106,7 @@ def add_sentiment_analysis(df: pd.DataFrame, sentiment_col: str) -> pd.DataFrame
 
 
 def get_leading_zeroes(value: int) -> str:
-    """
-    Function to add leading zeroes to a month (1 (January) -> 01).
-    Used in the the `write_to_s3` function.
+    """Adds leading zeroes to integers
 
     Args:
         value (int): The value integer (created from `datetime.now().month`)
@@ -125,13 +117,11 @@ def get_leading_zeroes(value: int) -> str:
     """
     if len(str(value)) > 1:
         return str(value)
-    else:
-        return f"0{value}"
+    return f"0{value}"
 
 
 def clean_player_names(name: str) -> str:
-    """
-    Function to remove suffixes from a player name.
+    """Function to remove suffixes from a player name.
 
     Args:
         name (str): The raw player name you wish to alter.
@@ -140,22 +130,20 @@ def clean_player_names(name: str) -> str:
         str: Cleaned Name w/ no suffix bs
     """
     try:
-        cleaned_name = (
+        return (
             name.replace(" Jr.", "")
             .replace(" Sr.", "")
             .replace(" III", "")  # III HAS TO GO FIRST, OVER II
             .replace(" II", "")  # or else Robert Williams III -> Robert WilliamsI
             .replace(" IV", "")
         )
-        return cleaned_name
     except Exception as e:
         logging.error(f"Error Occurred with Clean Player Names, {e}")
         raise
 
 
 def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> None:
-    """
-    Simple Wrapper Function to write a Pandas DataFrame to SQL
+    """Simple Wrapper Function to write a Pandas DataFrame to SQL
 
     Args:
         con (SQL Connection): The connection to the SQL DB.
@@ -185,15 +173,14 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
                 f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL"
             )
 
-        return None
+        return
     except Exception as error:
         logging.error(f"SQL Write Script Failed, {error}")
-        return None
+        return
 
 
 def query_logs(log_file: str = "logs/example.log") -> list[str]:
-    """
-    Small Function to read Logs CSV File and grab Errors
+    """Small Function to read Logs CSV File and grab Errors
 
     Args:
         log_file (str): Optional String of the Log File Name
@@ -213,9 +200,9 @@ def query_logs(log_file: str = "logs/example.log") -> list[str]:
 def write_to_slack(
     errors: list, webhook_url: str = os.environ.get("WEBHOOK_URL", default="default")
 ) -> int | None:
-    """ "
-    Function to write Errors out to Slack.  Requires a pre-configured `webhook_url`
-    to be setup.
+    """Function to write Errors out to Slack.
+
+    Requires a pre-configured `webhook_url` to be setup.
 
     Args:
         errors (list): The list of Failed Tasks + their associated errors
@@ -249,18 +236,15 @@ def write_to_slack(
                 "Exiting ..."
             )
             return response.status_code
-        else:
-            logging.info("No Error Logs, not writing to Slack.  Exiting out ...")
-            return None
+        logging.info("No Error Logs, not writing to Slack.  Exiting out ...")
+        return None
     except Exception as e:
         logging.error(f"Error Writing to Slack, {e}")
         raise
 
 
 def generate_schedule_pull_type(season_type: int, playoff_type: int) -> list[str]:
-    """
-    Small Utility Function to generate the months to pull for the schedule
-    based on the season type and playoff type.
+    """Generates Months to use for schedule scraper
 
     Args:
         season_type (int): The Season Type (0 = Regular Season, 1 = Playoffs)

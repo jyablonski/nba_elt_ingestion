@@ -1,5 +1,5 @@
-from tests.utils.db_assertions import assert_db_row_count_change
 from src.utils import write_to_sql
+from tests.utils.db_assertions import assert_db_row_count_change
 
 
 def test_stats_insert(postgres_conn, player_stats_data):

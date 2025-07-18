@@ -15,21 +15,20 @@ from src.scrapers import (
     get_opp_stats_data,
     get_pbp_data,
     get_player_stats_data,
-    get_reddit_data,
     get_reddit_comments,
+    get_reddit_data,
     get_schedule_data,
     get_shooting_stats_data,
     get_transactions_data,
 )
 from src.utils import generate_schedule_pull_type, query_logs, write_to_slack
 
-
 if __name__ == "__main__":
     logger = create_logger(log_file="logs/example.log")
     logging.getLogger("requests").setLevel(
         logging.WARNING
     )  # get rid of https debug stuff
-    logger.info("Starting Ingestion Script Version: 2.0.6")
+    logger.info("Starting Ingestion Script Version: 2.0.8")
 
     logger.info("Starting Web Scrape")
     engine = create_sql_engine(
@@ -202,4 +201,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logger.info("Finished Ingestion Script Version: 2.0.6")
+    logger.info("Finished Ingestion Script Version: 2.0.8")

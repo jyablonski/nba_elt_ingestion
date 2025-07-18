@@ -5,9 +5,9 @@ from sqlalchemy.engine import Connection, Engine
 
 
 def get_feature_flags(connection: Connection | Engine) -> pd.DataFrame:
-    """
-    Small Utility Function to load all Feature Flags from the
-    Database.
+    """Small Utility Function
+
+    Load all Feature Flags from the Database.
 
     Args:
         connection (Connection | Engine): Connection object to connect to
@@ -25,9 +25,9 @@ def get_feature_flags(connection: Connection | Engine) -> pd.DataFrame:
 
 
 class FeatureFlagManager:
-    """
-    Class to manage loading and checking feature flags, used in
-    combination w/ the `check_feature_flag_decorator`.
+    """Class to manage loading and checking feature flags
+
+    Used in combination w/ the `check_feature_flag_decorator`.
 
     This class is a singleton, meaning it should only be instantiated once
     and used throughout the application. It loads feature flags from the
@@ -43,11 +43,24 @@ class FeatureFlagManager:
 
     @classmethod
     def load(cls, engine):
+        """_summary_
+
+        Args:
+            engine (_type_): _description_
+        """
         df = get_feature_flags(connection=engine)
         cls._flags = df.set_index("flag")["is_enabled"].to_dict()
 
     @classmethod
     def get(cls, flag: str) -> int:
+        """_summary_
+
+        Args:
+            flag (str): _description_
+
+        Returns:
+            int: _description_
+        """
         if flag not in cls._flags:
             return None  # or raise here if you want
         return cls._flags[flag]

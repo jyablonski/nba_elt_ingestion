@@ -1,6 +1,6 @@
-from datetime import datetime
 import logging
 import os
+from datetime import datetime
 
 import click
 from jyablonski_common_modules.logging import create_logger
@@ -14,7 +14,15 @@ from src.scrapers import get_boxscores_data, get_pbp_data
 @click.command()
 @click.option("--run_date", required=True, help="Run date to backfill for")
 def run_backfill(run_date: str) -> None:
-    logger = create_logger(log_file="logs/example.log")
+    """Backfill Function
+
+    Args:
+        run_date (str): Run date to pull Boxscores + PBP data for
+
+    Returns:
+        None, but writes upserts data to Postgres
+    """
+    logger = create_logger(log_file="logs/example.log")  # noqa
     logging.getLogger("requests").setLevel(
         logging.WARNING
     )  # get rid of https debug stuff
@@ -74,7 +82,7 @@ def run_backfill(run_date: str) -> None:
         )
 
     print(f"Backfill for {run_date} complete")
-    return None
+    return
 
 
 if __name__ == "__main__":

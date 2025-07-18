@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta
 import hashlib
 import logging
 import os
+from datetime import datetime, timedelta
 
-from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
 import praw
 import requests
+from bs4 import BeautifulSoup
 
 from src.decorators import check_feature_flag_decorator, record_function_time_decorator
 from src.utils import (
@@ -22,8 +22,7 @@ from src.utils import (
 @check_feature_flag_decorator(flag_name="stats")
 @record_function_time_decorator
 def get_player_stats_data() -> pd.DataFrame:
-    """
-    Web Scrape function w/ BS4 that grabs aggregate season stats
+    """Web Scrape function w/ BS4 that grabs aggregate season stats
 
     Args:
         None
@@ -63,8 +62,7 @@ def get_player_stats_data() -> pd.DataFrame:
         return stats
     except Exception as error:
         logging.error(f"General Stats Extraction Function Failed, {error}")
-        df = pd.DataFrame()
-        return df
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="boxscores")
@@ -74,9 +72,11 @@ def get_boxscores_data(
     day: int = (datetime.now() - timedelta(1)).day,
     year: int = (datetime.now() - timedelta(1)).year,
 ) -> pd.DataFrame:
-    """
-    Function that grabs box scores from a given date in mmddyyyy
+    """Boxscore Scraper Function
+
+    Grabs box scores from a given date in mmddyyyy
     format - defaults to yesterday.  values can be ex. 1 or 01.
+
     Can't use `read_html` for this so this is raw web scraping baby.
 
     Args:
@@ -164,9 +164,7 @@ def get_boxscores_data(
                 "PlusMinus",
                 "GmSc",
             ]
-        ].apply(
-            pd.to_numeric
-        )
+        ].apply(pd.to_numeric)
         df["date"] = str(year) + "-" + str(month) + "-" + str(day)
         df["date"] = pd.to_datetime(df["date"])
         df["Location"] = df["Location"].apply(lambda x: "A" if x == "@" else "H")
@@ -191,7 +189,6 @@ def get_boxscores_data(
         )
         return df
     except IndexError:
-
         # if no boxscores available, check the schedule. this will log an error
         # if there are games played and the data isnt available yet, or log a
         # message that no games were found bc there were no games played on that date
@@ -212,16 +209,13 @@ def get_boxscores_data(
 
     except Exception as error:
         logging.error(f"Box Scores Function Failed, {error}")
-        df = pd.DataFrame()
-        return df
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="opp_stats")
 @record_function_time_decorator
 def get_opp_stats_data() -> pd.DataFrame:
-    """
-    Web Scrape function w/ pandas read_html that grabs all
-        regular season opponent team stats
+    """Team Opponent Stats Scraper Function
 
     Args:
         None
@@ -257,15 +251,13 @@ def get_opp_stats_data() -> pd.DataFrame:
         return df
     except Exception as error:
         logging.error(f"Opp Stats Web Scrape Function Failed, {error}")
-        df = pd.DataFrame()
-        return df
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="injuries")
 @record_function_time_decorator
 def get_injuries_data() -> pd.DataFrame:
-    """
-    Web Scrape function w/ pandas read_html that grabs all current injuries
+    """Web Scrape function w/ pandas read_html that grabs all current injuries
 
     Args:
         None
@@ -293,15 +285,13 @@ def get_injuries_data() -> pd.DataFrame:
         return df
     except Exception as error:
         logging.error(f"Injury Web Scrape Function Failed, {error}")
-        df = pd.DataFrame()
-        return df
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="transactions")
 @record_function_time_decorator
 def get_transactions_data() -> pd.DataFrame:
-    """
-    Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
+    """Web Scrape function w/ BS4 that retrieves NBA Trades, signings, waivers etc.
 
     Args:
         None
@@ -336,7 +326,9 @@ def get_transactions_data() -> pd.DataFrame:
         ).reset_index()  # filters out nulls and empty values
         transactions = transactions.explode("Transaction")
         transactions["Date"] = transactions["Date"].str.replace(
-            "\\?", "October 1, 2024", regex=True  # bad data 10-14-21
+            "\\?",
+            "October 1, 2024",
+            regex=True,  # bad data 10-14-21
         )
         transactions["Date"] = pd.to_datetime(transactions["Date"])
         transactions.columns = transactions.columns.str.lower()
@@ -350,15 +342,13 @@ def get_transactions_data() -> pd.DataFrame:
         return transactions
     except Exception as error:
         logging.error(f"Transaction Web Scrape Function Failed, {error}")
-        df = pd.DataFrame()
-        return df
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="adv_stats")
 @record_function_time_decorator
 def get_advanced_stats_data() -> pd.DataFrame:
-    """
-    Web Scrape function w/ pandas read_html that grabs all team advanced stats
+    """Web Scrape function w/ pandas read_html that grabs all team advanced stats
 
     Args:
         None
@@ -417,15 +407,13 @@ def get_advanced_stats_data() -> pd.DataFrame:
         return df
     except Exception as error:
         logging.error(f"Advanced Stats Web Scrape Function Failed, {error}")
-        df = pd.DataFrame()
-        return df
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="shooting_stats")
 @record_function_time_decorator
 def get_shooting_stats_data() -> pd.DataFrame:
-    """
-    Web Scrape function w/ pandas read_html that grabs all raw shooting stats
+    """Web Scrape function w/ pandas read_html that grabs all raw shooting stats
 
     Args:
         None
@@ -512,15 +500,13 @@ def get_shooting_stats_data() -> pd.DataFrame:
         return df
     except Exception as error:
         logging.error(f"Shooting Stats Web Scrape Function Failed, {error}")
-        df = pd.DataFrame()
-        return df
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="odds")
 @record_function_time_decorator
 def get_odds_data() -> pd.DataFrame:
-    """
-    Function to web scrape Gambling Odds from cover.com
+    """Function to web scrape Gambling Odds from cover.com
 
     Args:
         None
@@ -548,7 +534,11 @@ def get_odds_data() -> pd.DataFrame:
         )
         # filter out any records not from today
         odds = odds.query(
-            "datetime1 != 'FINAL' and datetime1 == datetime1 and datetime1.str.contains('Today')",
+            (
+                "datetime1 != 'FINAL' and "
+                "datetime1 == datetime1 and "
+                "datetime1.str.contains('Today')"
+            ),
             engine="python",
         ).copy()
         # PK is a pick em game, so we'll set the spread to -1.0
@@ -568,7 +558,8 @@ def get_odds_data() -> pd.DataFrame:
         # {2,3}: Quantifier specifying that the preceding character class [A-Z]
         #       should appear 2 to 3 times.
         # ): End of the capturing group.
-        # \b: Word boundary anchor, again ensuring that the match occurs at a word boundary.
+        # \b: Word boundary anchor, again ensuring that the match occurs at a word
+        #   boundary.
 
         pattern = r"\b([A-Z]{2,3})\b"
 
@@ -614,15 +605,15 @@ def get_odds_data() -> pd.DataFrame:
         return odds_final
     except Exception as e:
         logging.error(f"Odds Function Web Scrape Failed, {e}")
-        df = pd.DataFrame()
-        return df
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="reddit_posts")
 @record_function_time_decorator
 def get_reddit_data(sub: str = "nba") -> pd.DataFrame:
-    """
-    Web Scrape function w/ PRAW that grabs top ~27 top posts from a given subreddit.
+    """Web Scrape function w/ PRAW
+
+    Grabs top ~27 top posts from a given subreddit.
     Left sub as an argument in case I want to scrape multi subreddits in the future
     (r/nba, r/nbadiscussion, r/sportsbook etc)
 
@@ -679,16 +670,15 @@ def get_reddit_data(sub: str = "nba") -> pd.DataFrame:
         return posts
     except Exception as error:
         logging.error(f"Reddit Scrape Function Failed, {error}")
-        data = pd.DataFrame()
-        return data
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="reddit_comments")
 @record_function_time_decorator
 def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
-    """
-    Web Scrape function w/ PRAW that iteratively extracts comments from provided
-    reddit post urls.
+    """Web Scrape function w/ PRAW
+
+    Iteratively extracts comments from provided reddit post urls.
 
     Args:
         urls (Series): The (reddit) urls to extract comments from
@@ -763,20 +753,20 @@ def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
         return df
     except Exception as e:
         logging.error(f"Reddit Comment Extraction Failed for url {i}, {e}")
-        df = pd.DataFrame()
-        return df
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="pbp")
 @record_function_time_decorator
 def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Web Scrape function w/ pandas read_html that uses aliases via boxscores function
-    to scrape the pbp data iteratively for each game played the previous day.
-    It assumes there is a location column in the df being passed in.
+    """Web Scrape function w/ pandas read_html
+
+    Uses aliases via boxscores function to scrape the pbp data iteratively for each game
+    played the previous day. It assumes there is a location column in the df being
+    passed in.
 
     Args:
-        df (DataFrame) - The Boxscores DataFrame
+        df (DataFrame): The Boxscores DataFrame
 
     Returns:
         All PBP Data for the games in the input df
@@ -946,19 +936,16 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
                 return pbp_list
             except Exception as error:
                 logging.error(f"PBP Transformation Function Logic Failed, {error}")
-                df = pd.DataFrame()
-                return df
+                return pd.DataFrame()
         else:
             df = pd.DataFrame()
             logging.error(
-                "PBP Transformation Function Failed, no data available "
-                f"for {game_date}"
+                f"PBP Transformation Function Failed, no data available for {game_date}"
             )
             return df
     except Exception as error:
         logging.error(f"PBP Data Transformation Function Failed, {error}")
-        data = pd.DataFrame()
-        return data
+        return pd.DataFrame()
 
 
 @check_feature_flag_decorator(flag_name="schedule")
@@ -968,15 +955,16 @@ def get_schedule_data(
     month_list: list[str] = None,
     include_past_games: bool = False,
 ) -> pd.DataFrame:
-    """
-    Web Scrape Function to scrape Schedule data by iterating through a list of months
+    """Web Scrape Function to scrape Schedule data by iterating through a list of months
 
     Args:
         year (str): The season year to scrape.
 
-        month_list (list[str], optional): List of full month names to scrape. Defaults to season months.
+        month_list (list[str], optional): List of full month names to scrape.
+            Defaults to season months.
 
-        include_past_games (bool, optional): If True, includes games before today. Defaults to False.
+        include_past_games (bool, optional): If True, includes games before today.
+            Defaults to False.
 
     Returns:
         DataFrame of Schedule Data to be stored.
@@ -1028,7 +1016,7 @@ def get_schedule_data(
             completed_months.append(month)
 
             logging.info(
-                f"Schedule scrape completed for {month}, {len(month_df)} rows retrieved."
+                f"Schedule scrape completed for {month}, {len(month_df)} rows retrieved"
             )
 
         except IndexError:

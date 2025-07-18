@@ -1,5 +1,5 @@
 import logging
-import os
+from pathlib import Path
 
 from jyablonski_common_modules.sql import write_to_sql_upsert
 
@@ -8,10 +8,8 @@ from tests.utils.db_assertions import assert_db_row_count_change
 
 
 def test_get_boxscores_data_no_games_played(mocker, caplog):
-    fname = os.path.join(
-        os.path.dirname(__file__), "../fixtures/boxscores_no_data.html"
-    )
-    with open(fname, "rb") as fp:
+    fname = Path(__file__).parent / "../fixtures/boxscores_no_data.html"
+    with fname.open("rb") as fp:
         mock_content = fp.read()
 
     mock_get = mocker.patch("src.scrapers.requests.get")
@@ -27,17 +25,15 @@ def test_get_boxscores_data_no_games_played(mocker, caplog):
     boxscores = get_boxscores_data(day=2, month=1, year=2024)
 
     assert (
-        "Box Scores Function Warning, no games played on 2024-01-02 so no data available"
-        in caplog.text
+        "Box Scores Function Warning, no games played on 2024-01-02 so no data "
+        "available" in caplog.text
     )
     assert len(boxscores) == 0
 
 
 def test_get_boxscores_data_no_data_available(mocker, schedule_mock_data, caplog):
-    fname = os.path.join(
-        os.path.dirname(__file__), "../fixtures/boxscores_no_data.html"
-    )
-    with open(fname, "rb") as fp:
+    fname = Path(__file__).parent / "../fixtures/boxscores_no_data.html"
+    with fname.open("rb") as fp:
         mock_content = fp.read()
 
     mock_get = mocker.patch("src.scrapers.requests.get")
