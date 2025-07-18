@@ -60,10 +60,8 @@ omit = ["src/app.py", "app.py"]
 [tool.coverage.report]
 exclude_also = ["if __name__ == .__main__.:"]
 
-[tool.ruff]
-
 [tool.ruff.lint]
-# Enable all `pydocstyle` rules, limiting to those that adhere to the
+# Enable all `pydocstyle` rules
 select = ["D"]
 
 # i copied these off reddit
