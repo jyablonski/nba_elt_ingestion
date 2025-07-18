@@ -1,7 +1,6 @@
 import pytest
 from pytest_mock import MockerFixture
 
-
 from src.utils import check_schedule
 
 

@@ -1,7 +1,8 @@
-from functools import wraps
 import logging
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from functools import wraps
+from typing import Any
 
 import pandas as pd
 
@@ -9,9 +10,7 @@ from src.feature_flags import FeatureFlagManager
 
 
 def record_function_time_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
-    """
-    Decorator function used to record the execution time of any
-    function it's applied to.
+    """Decorator function used to record the execution time of any function
 
     Args:
         func (Callable): Function to track the execution time on.
@@ -33,8 +32,9 @@ def record_function_time_decorator(func: Callable[..., Any]) -> Callable[..., An
 
 
 def check_feature_flag_decorator(*, flag_name: str) -> Callable[..., pd.DataFrame]:
-    """
-    A decorator that checks the status of a feature flag before executing
+    """Decorator used in most Scraper Functions
+
+    Checks the status of a feature flag before executing
     the decorated function.
 
     - If the feature flag is enabled, the function executes normally.

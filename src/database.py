@@ -4,8 +4,7 @@ import pandas as pd
 
 
 def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> None:
-    """
-    Simple Wrapper Function to write a Pandas DataFrame to SQL
+    """Simple Wrapper Function to write a Pandas DataFrame to SQL
 
     Args:
         con (SQL Connection): The connection to the SQL DB.
@@ -35,7 +34,7 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
                 f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL"
             )
 
-        return None
+        return
     except Exception as error:
         logging.error(f"SQL Write Script Failed, {error}")
-        return None
+        return

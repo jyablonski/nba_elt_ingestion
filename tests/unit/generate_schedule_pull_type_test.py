@@ -1,4 +1,5 @@
 import pytest
+
 from src.utils import (
     generate_schedule_pull_type,
 )

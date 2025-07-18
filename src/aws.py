@@ -1,6 +1,6 @@
-from datetime import datetime
 import logging
 import os
+from datetime import datetime
 
 import awswrangler as wr
 import pandas as pd
@@ -14,8 +14,7 @@ def write_to_s3(
     date: datetime.date = datetime.now().date(),
     bucket: str = os.environ.get("S3_BUCKET"),
 ) -> None:
-    """
-    S3 Function using awswrangler to write file.  Only supports parquet right now.
+    """S3 Function using awswrangler to write file.  Only supports parquet right now.
 
     Args:
         file_name (str): The base name of the file (boxscores, opp_stats)

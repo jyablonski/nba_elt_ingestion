@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from collections.abc import Callable
 
 import pandas as pd
 
@@ -6,15 +6,14 @@ import pandas as pd
 def assert_db_row_count_change(
     conn,
     table: str,
-    expected_before: Optional[int],
+    expected_before: int | None,
     expected_after: int,
     *,
-    schema: Optional[str] = None,
+    schema: str | None = None,
     writer: Callable[..., None],
     writer_kwargs: dict,
 ):
-    """
-    Generic helper for asserting a row count change in a table.
+    """Generic helper for asserting a row count change in a table.
 
     Args:
         conn: SQLAlchemy connection or engine.

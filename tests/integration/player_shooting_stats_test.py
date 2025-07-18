@@ -1,5 +1,6 @@
-from tests.utils.db_assertions import assert_db_row_count_change
 from jyablonski_common_modules.sql import write_to_sql_upsert
+
+from tests.utils.db_assertions import assert_db_row_count_change
 
 
 def test_shooting_stats_upsert(postgres_conn, shooting_stats_data):

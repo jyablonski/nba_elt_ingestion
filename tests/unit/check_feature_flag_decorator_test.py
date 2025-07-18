@@ -1,6 +1,7 @@
+from unittest.mock import patch
+
 import pandas as pd
 import pytest
-from unittest.mock import patch
 
 from src.decorators import check_feature_flag_decorator
 

@@ -15,14 +15,13 @@ from src.scrapers import (
     get_opp_stats_data,
     get_pbp_data,
     get_player_stats_data,
-    get_reddit_data,
     get_reddit_comments,
+    get_reddit_data,
     get_schedule_data,
     get_shooting_stats_data,
     get_transactions_data,
 )
 from src.utils import generate_schedule_pull_type, query_logs, write_to_slack
-
 
 if __name__ == "__main__":
     logger = create_logger(log_file="logs/example.log")
