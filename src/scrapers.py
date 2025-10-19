@@ -1,7 +1,9 @@
 import hashlib
 import logging
 import os
+import urllib.request
 from datetime import datetime, timedelta
+from urllib.error import HTTPError, URLError
 
 import numpy as np
 import pandas as pd
@@ -300,10 +302,22 @@ def get_transactions_data() -> pd.DataFrame:
     """
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}_transactions.html"
-        html = requests.get(url).content
+
+        # Use urllib like pandas does
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+
         soup = BeautifulSoup(html, "html.parser")
-        # theres a bunch of garbage in the first 50 rows - no matter what
-        trs = soup.findAll("li")[70:]
+
+        # Find the ul with class="page_index"
+        page_index = soup.find("ul", {"class": "page_index"})
+
+        if not page_index:
+            raise ValueError("Could not find transactions list")
+
+        trs = page_index.find_all("li")
+
         rows = []
         mylist = []
         for tr in trs:
@@ -339,6 +353,9 @@ def get_transactions_data() -> pd.DataFrame:
             f"retrieving {len(transactions)} rows"
         )
         return transactions
+    except (URLError, HTTPError, ValueError) as error:
+        logging.error(f"Transaction Web Scrape Function Failed, {error}")
+        return pd.DataFrame()
     except Exception as error:
         logging.error(f"Transaction Web Scrape Function Failed, {error}")
         return pd.DataFrame()
@@ -982,29 +999,29 @@ def get_schedule_data(
     for month in month_list:
         try:
             url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}_games-{month}.html"
-            html = requests.get(url).content
-            soup = BeautifulSoup(html, "html.parser")
-            rows = soup.find_all("tr")
 
-            if not rows:
+            # Use pd.read_html to get the table
+            tables = pd.read_html(url)
+
+            if not tables or len(tables) == 0:
                 raise IndexError
 
-            headers = [th.getText() for th in rows[0].find_all("th")][1:]
-            headers[5] = "boxScoreLink"
-            headers[6] = "isOT"
+            month_df = tables[0]
 
-            data = [
-                (row.find("th").getText(), [td.getText() for td in row.find_all("td")])
-                for row in rows[1:]
-                if row.find_all("td")
-            ]
-
-            if not data:
+            if month_df.empty:
                 raise IndexError
 
-            date_info, game_info = zip(*data)
-            month_df = pd.DataFrame(game_info, columns=headers)
-            month_df["date"] = date_info
+            # Select and rename columns
+            month_df = month_df[
+                ["Date", "Start (ET)", "Visitor/Neutral", "Home/Neutral"]
+            ].rename(
+                columns={
+                    "Date": "date",
+                    "Start (ET)": "start_time",
+                    "Visitor/Neutral": "away_team",
+                    "Home/Neutral": "home_team",
+                }
+            )
 
             schedule_df = pd.concat([schedule_df, month_df], ignore_index=True)
             completed_months.append(month)
@@ -1013,22 +1030,13 @@ def get_schedule_data(
                 f"Schedule scrape completed for {month}, {len(month_df)} rows retrieved"
             )
 
-        except IndexError:
+        except (IndexError, ValueError):
             logging.info(f"{month} has no data, skipping.")
 
     if schedule_df.empty:
         return pd.DataFrame()
 
     # Format and clean columns
-    schedule_df = schedule_df[
-        ["Start (ET)", "Visitor/Neutral", "Home/Neutral", "date"]
-    ].rename(
-        columns={
-            "Start (ET)": "start_time",
-            "Visitor/Neutral": "away_team",
-            "Home/Neutral": "home_team",
-        }
-    )
     schedule_df["proper_date"] = pd.to_datetime(
         schedule_df["date"], format="%a, %b %d, %Y"
     ).dt.date

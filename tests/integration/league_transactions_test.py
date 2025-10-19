@@ -9,7 +9,7 @@ def test_transactions_upsert(postgres_conn, transactions_data):
         table="bbref_league_transactions",
         schema="nba_source",
         expected_before=1,
-        expected_after=1313,
+        expected_after=663,
         writer=write_to_sql_upsert,
         writer_kwargs={
             "conn": postgres_conn,
