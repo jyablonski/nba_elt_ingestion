@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 from src.decorators import check_feature_flag_decorator, record_function_time_decorator
 from src.utils import (
+    SEASON_YEAR,
     add_sentiment_analysis,
     check_schedule,
     clean_player_names,
@@ -33,8 +34,7 @@ def get_player_stats_data() -> pd.DataFrame:
     # stats = stats.rename(columns={"fg%": "fg_pct", "3p%": "3p_pct",
     # "2p%": "2p_pct", "efg%": "efg_pct", "ft%": "ft_pct"})
     try:
-        year_stats = 2025
-        url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_per_game.html"
+        url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}_per_game.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
         headers = [th.getText() for th in soup.findAll("tr", limit=2)[0].findAll("th")]
@@ -226,10 +226,9 @@ def get_opp_stats_data() -> pd.DataFrame:
     year = (datetime.now() - timedelta(1)).year
     month = (datetime.now() - timedelta(1)).month
     day = (datetime.now() - timedelta(1)).day
-    year_stats = 2025
 
     try:
-        url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
+        url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}.html"
         df = pd.read_html(url)[5]
         df = df[["Team", "FG%", "3P%", "3P", "PTS"]]
         df = df.rename(
@@ -300,7 +299,7 @@ def get_transactions_data() -> pd.DataFrame:
         Pandas DataFrame of all season transactions, trades, player waives etc.
     """
     try:
-        url = "https://www.basketball-reference.com/leagues/NBA_2025_transactions.html"
+        url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}_transactions.html"
         html = requests.get(url).content
         soup = BeautifulSoup(html, "html.parser")
         # theres a bunch of garbage in the first 50 rows - no matter what
@@ -356,9 +355,8 @@ def get_advanced_stats_data() -> pd.DataFrame:
     Returns:
         DataFrame of all current Team Advanced Stats
     """
-    year_stats = 2025
     try:
-        url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}.html"
+        url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}.html"
         df = pd.read_html(url)
         df = pd.DataFrame(df[10])
         df.drop(columns=df.columns[0], axis=1, inplace=True)
@@ -421,9 +419,8 @@ def get_shooting_stats_data() -> pd.DataFrame:
     Returns:
         DataFrame of raw shooting stats
     """
-    year_stats = 2025
     try:
-        url = f"https://www.basketball-reference.com/leagues/NBA_{year_stats}_shooting.html"
+        url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}_shooting.html"
         df = pd.read_html(url)[0]
         df.columns = df.columns.to_flat_index()
         df = df.rename(
@@ -951,15 +948,12 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
 @check_feature_flag_decorator(flag_name="schedule")
 @record_function_time_decorator
 def get_schedule_data(
-    year: str,
     month_list: list[str] = None,
     include_past_games: bool = False,
 ) -> pd.DataFrame:
     """Web Scrape Function to scrape Schedule data by iterating through a list of months
 
     Args:
-        year (str): The season year to scrape.
-
         month_list (list[str], optional): List of full month names to scrape.
             Defaults to season months.
 
@@ -987,7 +981,7 @@ def get_schedule_data(
 
     for month in month_list:
         try:
-            url = f"https://www.basketball-reference.com/leagues/NBA_{year}_games-{month}.html"
+            url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}_games-{month}.html"
             html = requests.get(url).content
             soup = BeautifulSoup(html, "html.parser")
             rows = soup.find_all("tr")

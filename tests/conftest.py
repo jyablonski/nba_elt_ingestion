@@ -207,8 +207,10 @@ def schedule_data(mocker: MockerFixture) -> pd.DataFrame:
     with fname.open("rb") as fp:
         mock_content = fp.read()
 
+    # fixture was built w/ data from 2022
+    mocker.patch("src.scrapers.SEASON_YEAR", 2022)
     mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
-    schedule = get_schedule_data(year="2022", month_list=["february", "march"])
+    schedule = get_schedule_data(month_list=["february", "march"])
     return schedule.drop_duplicates(subset=["away_team", "home_team", "proper_date"])
 
 

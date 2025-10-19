@@ -58,8 +58,7 @@ if __name__ == "__main__":
     reddit_data = get_reddit_data(sub="nba")
     opp_stats = get_opp_stats_data()
 
-    # TODO: use environment variable for the year
-    schedule = get_schedule_data(year="2025", month_list=schedule_months_to_pull)
+    schedule = get_schedule_data(month_list=schedule_months_to_pull)
     shooting_stats = get_shooting_stats_data()
     reddit_comment_data = get_reddit_comments(urls=reddit_data["reddit_url"])
     pbp_data = get_pbp_data(df=boxscores)

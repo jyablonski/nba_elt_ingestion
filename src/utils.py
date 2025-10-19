@@ -9,6 +9,10 @@ import pandas as pd
 import requests
 from nltk.sentiment import SentimentIntensityAnalyzer
 
+# TODO: replace w/ env var at some point. requires adding it to the ECS task in
+# terraform
+SEASON_YEAR = 2026
+
 
 def filter_spread(value: str) -> str:
     """Helper Function for filtering Odds Spread
