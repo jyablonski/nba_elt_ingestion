@@ -50,6 +50,7 @@ if __name__ == "__main__":
 
     # STEP 1: Extract Raw Data
     stats = get_player_stats_data()
+    # get_boxscores_data(run_date=datetime(2025, 6, 22))
     boxscores = get_boxscores_data()
     injury_data = get_injuries_data()
     transactions = get_transactions_data()

@@ -98,7 +98,11 @@ def player_stats_data(mocker: MockerFixture) -> pd.DataFrame:
     with fname.open("rb") as fp:
         mock_content = fp.read()
 
-    mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
+    mock_response = mocker.MagicMock()
+    # The context manager returns itself, and read() is called on that
+    mock_response.__enter__.return_value.read.return_value = mock_content
+
+    mocker.patch("src.scrapers.urllib.request.urlopen", return_value=mock_response)
     return get_player_stats_data()
 
 
@@ -109,7 +113,12 @@ def boxscores_data(mocker: MockerFixture) -> pd.DataFrame:
     with fname.open("rb") as fp:
         mock_content = fp.read()
 
-    mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
+    mock_response = mocker.MagicMock()
+    mock_response.__enter__.return_value.read.return_value = mock_content
+
+    # old requests mock
+    # mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
+    mocker.patch("src.scrapers.urllib.request.urlopen", return_value=mock_response)
     return get_boxscores_data()
 
 
@@ -178,11 +187,15 @@ def shooting_stats_data(mocker) -> pd.DataFrame:
 @pytest.fixture(scope="function")
 def odds_data(mocker: MockerFixture) -> pd.DataFrame:
     """Fixture to load odds data from a pickle file for testing."""
-    fname = FIXTURES_DIR / "scrape_odds.pkl"
+    fname = FIXTURES_DIR / "odds_data.pkl"
     with fname.open("rb") as fp:
-        df = pickle.load(fp)
+        df_list = pickle.load(fp)  # Should be a list of dataframes
 
-    mocker.patch("src.scrapers.pd.read_html").return_value = df
+    # Ensure it's a list (for backwards compatibility if needed)
+    if not isinstance(df_list, list):
+        df_list = [df_list]
+
+    mocker.patch("src.scrapers.pd.read_html", return_value=df_list)
     return get_odds_data()
 
 

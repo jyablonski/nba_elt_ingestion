@@ -8,7 +8,6 @@ from urllib.error import HTTPError, URLError
 import numpy as np
 import pandas as pd
 import praw
-import requests
 from bs4 import BeautifulSoup
 
 from src.decorators import check_feature_flag_decorator, record_function_time_decorator
@@ -37,7 +36,12 @@ def get_player_stats_data() -> pd.DataFrame:
     # "2p%": "2p_pct", "efg%": "efg_pct", "ft%": "ft_pct"})
     try:
         url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}_per_game.html"
-        html = requests.get(url).content
+
+        # Use urllib like pandas does to avoid blocks
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+
         soup = BeautifulSoup(html, "html.parser")
         headers = [th.getText() for th in soup.findAll("tr", limit=2)[0].findAll("th")]
         headers = headers[1:]
@@ -70,132 +74,126 @@ def get_player_stats_data() -> pd.DataFrame:
 @check_feature_flag_decorator(flag_name="boxscores")
 @record_function_time_decorator
 def get_boxscores_data(
-    month: int = (datetime.now() - timedelta(1)).month,
-    day: int = (datetime.now() - timedelta(1)).day,
-    year: int = (datetime.now() - timedelta(1)).year,
+    run_date: datetime | None = None,
 ) -> pd.DataFrame:
     """Boxscore Scraper Function
 
-    Grabs box scores from a given date in mmddyyyy
-    format - defaults to yesterday.  values can be ex. 1 or 01.
-
-    Can't use `read_html` for this so this is raw web scraping baby.
+    Grabs box scores from a given date - defaults to yesterday.
 
     Args:
-        feature_flags_df (pd.DataFrame): Feature Flags DataFrame to
-            check whether to run this function or not
-
-        month (int): month value of the game played (0 - 12)
-
-        day (int): day value of the game played (1 - 31)
-
-        year (int): year value of the game played (2021)
+        run_date (datetime, optional): Date to get box scores for.
+            Defaults to yesterday.
 
     Returns:
-        DataFrame of Player Aggregate Season stats
-    """
-    day = get_leading_zeroes(value=day)
-    month = get_leading_zeroes(value=month)
+        DataFrame of Player box score stats
 
-    url = f"https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={month}&day={day}&year={year}&type=all"
-    date = f"{year}-{month}-{day}"
+    Usage:
+        `df = get_boxscores_data(run_date=datetime(2025, 6, 22))`
+    """
+    # Default to yesterday if no date provided
+    if run_date is None:
+        run_date = datetime.now() - timedelta(1)
+
+    # Format date components
+    day_str = get_leading_zeroes(value=run_date.day)
+    month_str = get_leading_zeroes(value=run_date.month)
+    year = run_date.year
+    date = f"{year}-{month_str}-{day_str}"
+
+    url = f"https://www.basketball-reference.com/friv/dailyleaders.fcgi?month={month_str}&day={day_str}&year={year}&type=all"
 
     try:
-        html = requests.get(url).content
-        soup = BeautifulSoup(html, "html.parser")
-        headers = [th.getText() for th in soup.findAll("tr", limit=2)[0].findAll("th")]
-        headers = headers[1:]
-        headers[1] = "Team"
-        headers[2] = "Location"
-        headers[3] = "Opponent"
-        headers[4] = "Outcome"
-        headers[6] = "FGM"
-        headers[8] = "FGPercent"
-        headers[9] = "threePFGMade"
-        headers[10] = "threePAttempted"
-        headers[11] = "threePointPercent"
-        headers[14] = "FTPercent"
-        headers[15] = "OREB"
-        headers[16] = "DREB"
-        headers[24] = "PlusMinus"
+        # html = requests.get(url).content
+        # use urllib instead of requests to avoid cloudflare block
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
 
-        rows = soup.findAll("tr")[1:]
-        player_stats = [
-            [td.getText() for td in rows[i].findAll("td")] for i in range(len(rows))
+        soup = BeautifulSoup(html, "html.parser")
+
+        # Get headers and rename them (use find_all and get_text)
+        headers = [
+            th.get_text() for th in soup.find_all("tr", limit=2)[0].find_all("th")
         ]
+        headers = headers[1:]
+
+        # Create header mapping for cleaner renaming
+        header_renames = {
+            1: "Team",
+            2: "Location",
+            3: "Opponent",
+            4: "Outcome",
+            6: "FGM",
+            8: "FGPercent",
+            9: "threePFGMade",
+            10: "threePAttempted",
+            11: "threePointPercent",
+            14: "FTPercent",
+            15: "OREB",
+            16: "DREB",
+            24: "PlusMinus",
+        }
+        for idx, name in header_renames.items():
+            headers[idx] = name
+
+        rows = soup.find_all("tr")[1:]
+        player_stats = [[td.get_text() for td in row.find_all("td")] for row in rows]
 
         df = pd.DataFrame(player_stats, columns=headers)
 
-        df[
-            [
-                "FGM",
-                "FGA",
-                "FGPercent",
-                "threePFGMade",
-                "threePAttempted",
-                "threePointPercent",
-                "OREB",
-                "DREB",
-                "TRB",
-                "AST",
-                "STL",
-                "BLK",
-                "TOV",
-                "PF",
-                "PTS",
-                "PlusMinus",
-                "GmSc",
-            ]
-        ] = df[
-            [
-                "FGM",
-                "FGA",
-                "FGPercent",
-                "threePFGMade",
-                "threePAttempted",
-                "threePointPercent",
-                "OREB",
-                "DREB",
-                "TRB",
-                "AST",
-                "STL",
-                "BLK",
-                "TOV",
-                "PF",
-                "PTS",
-                "PlusMinus",
-                "GmSc",
-            ]
-        ].apply(pd.to_numeric)
-        df["date"] = str(year) + "-" + str(month) + "-" + str(day)
-        df["date"] = pd.to_datetime(df["date"])
+        # Convert numeric columns
+        numeric_cols = [
+            "FGM",
+            "FGA",
+            "FGPercent",
+            "threePFGMade",
+            "threePAttempted",
+            "threePointPercent",
+            "OREB",
+            "DREB",
+            "TRB",
+            "AST",
+            "STL",
+            "BLK",
+            "TOV",
+            "PF",
+            "PTS",
+            "PlusMinus",
+            "GmSc",
+        ]
+        df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric)
+
+        # Set date
+        df["date"] = pd.to_datetime(date)
+
+        # Location mapping
         df["Location"] = df["Location"].apply(lambda x: "A" if x == "@" else "H")
-        df["Team"] = df["Team"].str.replace("PHO", "PHX")
-        df["Team"] = df["Team"].str.replace("CHO", "CHA")
-        df["Team"] = df["Team"].str.replace("BRK", "BKN")
-        df["Opponent"] = df["Opponent"].str.replace("PHO", "PHX")
-        df["Opponent"] = df["Opponent"].str.replace("CHO", "CHA")
-        df["Opponent"] = df["Opponent"].str.replace("BRK", "BKN")
+
+        # Team name replacements
+        team_replacements = {"PHO": "PHX", "CHO": "CHA", "BRK": "BKN"}
+        for col in ["Team", "Opponent"]:
+            df[col] = df[col].replace(team_replacements)
+
+        # Filter and clean player names
         df = df.query("Player == Player").reset_index(drop=True)
         df["Player"] = (
             df["Player"]
-            .str.normalize("NFKD")  # this is removing all accented characters
+            .str.normalize("NFKD")
             .str.encode("ascii", errors="ignore")
             .str.decode("utf-8")
         )
+
         df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
+
         logging.info(
             "Box Score Transformation Function Successful, "
             f"retrieving {len(df)} rows for {date}"
         )
         return df
-    except IndexError:
-        # if no boxscores available, check the schedule. this will log an error
-        # if there are games played and the data isnt available yet, or log a
-        # message that no games were found bc there were no games played on that date
-        is_games_played = check_schedule(date=date)
 
+    except IndexError:
+        is_games_played = check_schedule(date=date)
         if is_games_played:
             logging.error(
                 "Box Scores Function Failed, Box Scores aren't available yet "
@@ -206,7 +204,6 @@ def get_boxscores_data(
                 f"Box Scores Function Warning, no games played on {date} so "
                 "no data available"
             )
-
         return pd.DataFrame()
 
     except Exception as error:
@@ -531,52 +528,44 @@ def get_odds_data() -> pd.DataFrame:
     try:
         url = "https://www.covers.com/sport/basketball/nba/odds"
         df = pd.read_html(url)
-        odds = df[0]
 
-        # pull from the first available betting site
-        # NOTE: 2025-04-20 dratkings stops showing up for some reason
-        odds["spread"] = df[3].iloc[:, 2]  # 3rd column in df[3]
-        # Select columns by index: First column (index 0),
-        # 3rd column (index 2), and 'spread'
-        odds = odds.iloc[:, [0, 2, -1]]
-        # Rename the selected columns
-        odds = odds.rename(
-            columns={
-                odds.columns[0]: "datetime1",  # Rename first column
-                odds.columns[1]: "moneyline",  # Rename second column
-            }
-        )
-        # filter out any records not from today
-        odds = odds.query(
-            (
-                "datetime1 != 'FINAL' and "
-                "datetime1 == datetime1 and "
-                "datetime1.str.contains('Today')"
-            ),
-            engine="python",
-        ).copy()
-        # PK is a pick em game, so we'll set the spread to -1.0
-        odds["spread"] = odds["spread"].str.replace("PK", "-1.0")
+        # df[0] has datetime and moneyline, df[1] has spread data
+        odds = df[0].iloc[:, [0, 2]].copy()  # datetime and moneyline
+        odds.columns = ["datetime1", "moneyline"]
+        odds["spread"] = df[1].iloc[:, 2]  # spread from df[1]
+
+        # Normalize all whitespace first (handles \xa0 and other issues)
+        odds["datetime1"] = odds["datetime1"].str.replace(r"\s+", " ", regex=True)
+        odds["spread"] = odds["spread"].str.replace(r"\s+", " ", regex=True)
+        odds["moneyline"] = odds["moneyline"].str.replace(r"\s+", " ", regex=True)
+
+        # Filter for today's games only
+        odds = odds[
+            (odds["datetime1"].notna())
+            & (odds["datetime1"] != "FINAL")
+            & (odds["datetime1"].str.contains("Today", na=False))
+        ].copy()
+
         if len(odds) == 0:
             logging.info("No Odds Records available for today's games")
             return pd.DataFrame()
 
+        # Clean datetime - remove "Today, "
+        odds["datetime1"] = odds["datetime1"].str.replace(r"Today,\s*", "", regex=True)
+
+        # Handle PK (pick 'em) games
+        odds["spread"] = odds["spread"].str.replace("PK", "-1.0", regex=False)
+
+        # Apply your filter_spread function
         odds["spread"] = odds["spread"].apply(filter_spread)
         odds["spread"] = odds["spread"].apply(lambda x: " ".join(x.split()))
-        odds["datetime1"] = odds["datetime1"].str.replace("Today, ", "")
+
         odds_final = odds[["datetime1", "spread", "moneyline"]].copy()
 
-        # \b: Word boundary anchor, ensures that the match occurs at a word boundary.
-        # (: Start of a capturing group.
-        # [A-Z]: Character class matching any uppercase letter from 'A' to 'Z'.
-        # {2,3}: Quantifier specifying that the preceding character class [A-Z]
-        #       should appear 2 to 3 times.
-        # ): End of the capturing group.
-        # \b: Word boundary anchor, again ensuring that the match occurs at a word
-        #   boundary.
-
+        # Extract teams from datetime1
+        # \b: Word boundary anchor
+        # [A-Z]{2,3}: Match 2-3 uppercase letters (team abbreviations)
         pattern = r"\b([A-Z]{2,3})\b"
-
         odds_final["team"] = (
             odds_final["datetime1"]
             .str.extractall(pattern)
@@ -584,39 +573,49 @@ def get_odds_data() -> pd.DataFrame:
             .apply(lambda x: " ".join(x.dropna()), axis=1)
         )
 
-        # turning the space separated elements in a list, then exploding that list
-        odds_final["team"] = odds_final["team"].str.split(" ", n=1, expand=False)
-        odds_final["spread"] = odds_final["spread"].str.split(" ", n=1, expand=False)
-        odds_final["moneyline"] = odds_final["moneyline"].str.split(
-            " ", n=1, expand=False
+        # Extract time BEFORE exploding to avoid contamination
+        odds_final["time"] = odds_final["datetime1"].str.split().str[0]
+
+        # Convert to lists for exploding
+        odds_final["team"] = odds_final["team"].str.split()
+        odds_final["spread"] = odds_final["spread"].str.split()
+        odds_final["moneyline"] = odds_final["moneyline"].str.split()
+
+        # Explode all columns at once
+        odds_final = odds_final.explode(["team", "spread", "moneyline"]).reset_index(
+            drop=True
         )
-        odds_final = odds_final.explode(["team", "spread", "moneyline"]).reset_index()
-        odds_final = odds_final.drop("index", axis=1)
-        odds_final["date"] = datetime.now().date()
-        odds_final["spread"] = odds_final[
-            "spread"
-        ].str.strip()  # strip trailing and leading spaces
+
+        # Clean up strings
+        odds_final["spread"] = odds_final["spread"].str.strip()
         odds_final["moneyline"] = odds_final["moneyline"].str.strip()
-        odds_final["time"] = odds_final["datetime1"].str.split().str[1]
+        odds_final["date"] = datetime.now().date()
+
+        # Create proper datetime using pre-extracted time
         odds_final["datetime1"] = pd.to_datetime(
-            (datetime.now().date().strftime("%Y-%m-%d") + " " + odds_final["time"]),
+            datetime.now().date().strftime("%Y-%m-%d") + " " + odds_final["time"],
             format="%Y-%m-%d %H:%M",
         )
 
+        # Final transformations
         odds_final["total"] = 200
         odds_final["team"] = odds_final["team"].str.replace("BK", "BKN")
         odds_final["moneyline"] = odds_final["moneyline"].str.replace(
-            "\\+", "", regex=True
+            r"\+", "", regex=True
         )
         odds_final["moneyline"] = odds_final["moneyline"].astype("int")
+
+        # Select final columns (drop time as it's now in datetime1)
         odds_final = odds_final[
             ["team", "spread", "total", "moneyline", "date", "datetime1"]
         ]
+
         logging.info(
             f"Odds Scrape Successful, returning {len(odds_final)} records "
             f"from {len(odds_final) // 2} games Today"
         )
         return odds_final
+
     except Exception as e:
         logging.error(f"Odds Function Web Scrape Failed, {e}")
         return pd.DataFrame()
