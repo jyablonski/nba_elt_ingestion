@@ -58,11 +58,11 @@ bump-major:
 
 .PHONY: start-postgres
 start-postgres:
-	@docker compose -f docker/docker-compose-postgres.yml up -d
+	@docker compose -f docker/docker-compose-test.yml up -d postgres
 
 .PHONY: stop-postgres
 stop-postgres:
-	@docker compose -f docker/docker-compose-postgres.yml down
+	@docker compose -f docker/docker-compose-test.yml down
 
 .PHONY: ci-test
 ci-test:
