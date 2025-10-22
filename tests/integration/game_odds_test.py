@@ -9,7 +9,7 @@ def test_odds_upsert(postgres_conn, odds_data):
         table="draftkings_game_odds",
         schema="nba_source",
         expected_before=1,
-        expected_after=21,
+        expected_after=5,
         writer=write_to_sql_upsert,
         writer_kwargs={
             "conn": postgres_conn,

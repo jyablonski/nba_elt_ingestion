@@ -28,7 +28,7 @@ if __name__ == "__main__":
     logging.getLogger("requests").setLevel(
         logging.WARNING
     )  # get rid of https debug stuff
-    logger.info("Starting Ingestion Script Version: 2.0.8")
+    logger.info("Starting Ingestion Script Version: 2.0.9")
 
     logger.info("Starting Web Scrape")
     engine = create_sql_engine(
@@ -50,6 +50,7 @@ if __name__ == "__main__":
 
     # STEP 1: Extract Raw Data
     stats = get_player_stats_data()
+    # get_boxscores_data(run_date=datetime(2025, 6, 22))
     boxscores = get_boxscores_data()
     injury_data = get_injuries_data()
     transactions = get_transactions_data()
@@ -58,8 +59,7 @@ if __name__ == "__main__":
     reddit_data = get_reddit_data(sub="nba")
     opp_stats = get_opp_stats_data()
 
-    # TODO: use environment variable for the year
-    schedule = get_schedule_data(year="2025", month_list=schedule_months_to_pull)
+    schedule = get_schedule_data(month_list=schedule_months_to_pull)
     shooting_stats = get_shooting_stats_data()
     reddit_comment_data = get_reddit_comments(urls=reddit_data["reddit_url"])
     pbp_data = get_pbp_data(df=boxscores)
@@ -201,4 +201,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logger.info("Finished Ingestion Script Version: 2.0.8")
+    logger.info("Finished Ingestion Script Version: 2.0.9")
