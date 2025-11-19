@@ -69,7 +69,7 @@ def get_postgres_host() -> str:
 def postgres_engine():
     """Fixture to create a SQLAlchemy engine connected to Postgres."""
     return create_sql_engine(
-        schema="nba_source",
+        schema="bronze",
         user="postgres",
         password="postgres",
         host=get_postgres_host(),

@@ -6,7 +6,7 @@ def test_adv_stats_insert(postgres_conn, advanced_stats_data):
     assert_db_row_count_change(
         conn=postgres_conn,
         table="bbref_team_adv_stats_snapshot",
-        schema="nba_source",
+        schema="bronze",
         expected_before=None,  # optional for replace
         expected_after=30,
         writer=write_to_sql,

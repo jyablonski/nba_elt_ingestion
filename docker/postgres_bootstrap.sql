@@ -1,7 +1,7 @@
-CREATE SCHEMA nba_source;
+CREATE SCHEMA bronze;
 CREATE SCHEMA gold;
 
-SET search_path TO nba_source;
+SET search_path TO bronze;
 
 
 DROP TABLE IF EXISTS bronze.bbref_player_boxscores;
