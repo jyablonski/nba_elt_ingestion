@@ -18,7 +18,7 @@ def get_feature_flags(connection: Connection | Engine) -> pd.DataFrame:
         pd.DataFrame: DataFrame containing all feature flags
 
     """
-    flags = pd.read_sql_query(sql="select * from marts.feature_flags;", con=connection)
+    flags = pd.read_sql_query(sql="select * from gold.feature_flags;", con=connection)
 
     logging.info(f"Retrieving {len(flags)} Feature Flags")
     return flags
