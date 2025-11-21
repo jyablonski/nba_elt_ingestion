@@ -46,7 +46,7 @@ def run_backfill(run_date: str) -> None:
         port=os.environ.get("RDS_PORT", default=5432),
     )
     FeatureFlagManager.load(engine=engine)
-    source_schema = "nba_source"
+    source_schema = "bronze"
 
     boxscores = get_boxscores_data(
         year=year,

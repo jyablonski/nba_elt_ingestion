@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # load feature flags from db which implicitly get used in all of the
     # `get_*_data functions` to check if they need to run or not
     FeatureFlagManager.load(engine=engine)
-    source_schema = "nba_source"
+    source_schema = "bronze"
     schedule_months_to_pull = generate_schedule_pull_type(
         season_type=FeatureFlagManager.get("season"),
         playoff_type=FeatureFlagManager.get("playoffs"),

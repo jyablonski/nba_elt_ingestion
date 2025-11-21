@@ -7,14 +7,14 @@ def test_odds_upsert(postgres_conn, odds_data):
     assert_db_row_count_change(
         conn=postgres_conn,
         table="draftkings_game_odds",
-        schema="nba_source",
+        schema="bronze",
         expected_before=1,
         expected_after=5,
         writer=write_to_sql_upsert,
         writer_kwargs={
             "conn": postgres_conn,
             "table": "draftkings_game_odds",
-            "schema": "nba_source",
+            "schema": "bronze",
             "df": odds_data,
             "primary_keys": ["team", "date"],
         },
