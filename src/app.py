@@ -56,7 +56,7 @@ if __name__ == "__main__":
     injury_data = get_injuries_data()
     transactions = get_transactions_data()
     player_adv_stats = get_player_adv_stats_data()
-    adv_stats = get_team_adv_stats_data()
+    team_adv_stats = get_team_adv_stats_data()
     odds = get_odds_data()
     reddit_data = get_reddit_data(sub="nba")
     opp_stats = get_opp_stats_data()
@@ -173,7 +173,7 @@ if __name__ == "__main__":
         write_to_sql(
             con=connection,
             table_name="bbref_team_adv_stats_snapshot",
-            df=adv_stats,
+            df=team_adv_stats,
             table_type="append",
         )
 
@@ -196,7 +196,7 @@ if __name__ == "__main__":
     write_to_s3(file_name="boxscores", df=boxscores)
     write_to_s3(file_name="injury_data", df=injury_data)
     write_to_s3(file_name="transactions", df=transactions)
-    write_to_s3(file_name="adv_stats", df=adv_stats)
+    write_to_s3(file_name="adv_stats", df=team_adv_stats)
     write_to_s3(file_name="odds", df=odds)
     write_to_s3(file_name="reddit_data", df=reddit_data)
     write_to_s3(file_name="reddit_comment_data", df=reddit_comment_data)
