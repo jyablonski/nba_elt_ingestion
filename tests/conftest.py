@@ -17,16 +17,17 @@ from jyablonski_common_modules.sql import create_sql_engine
 from src.feature_flags import FeatureFlagManager
 from src.scrapers import (
     add_sentiment_analysis,
-    get_advanced_stats_data,
     get_boxscores_data,
     get_injuries_data,
     get_odds_data,
     get_opp_stats_data,
     get_pbp_data,
+    get_player_adv_stats_data,
     get_player_stats_data,
     get_reddit_comments,
     get_schedule_data,
     get_shooting_stats_data,
+    get_team_adv_stats_data,
     get_transactions_data,
 )
 
@@ -123,6 +124,17 @@ def boxscores_data(mocker: MockerFixture) -> pd.DataFrame:
 
 
 @pytest.fixture(scope="function")
+def player_adv_stats_data(mocker: MockerFixture) -> pd.DataFrame:
+    """Fixture to load team opponent stats data from a pickle file for testing."""
+    fname = FIXTURES_DIR / "player_adv_stats.pickle"
+    with fname.open("rb") as fp:
+        df = pickle.load(fp)
+
+    mocker.patch("src.scrapers.pd.read_html").return_value = df
+    return get_player_adv_stats_data()
+
+
+@pytest.fixture(scope="function")
 def opp_stats_data(mocker: MockerFixture) -> pd.DataFrame:
     """Fixture to load team opponent stats data from a pickle file for testing."""
     fname = FIXTURES_DIR / "opp_stats.pickle"
@@ -170,7 +182,7 @@ def advanced_stats_data(mocker) -> pd.DataFrame:
         df = pickle.load(fp)
 
     mocker.patch("src.scrapers.pd.read_html").return_value = df
-    return get_advanced_stats_data()
+    return get_team_adv_stats_data()
 
 
 @pytest.fixture(scope="function")

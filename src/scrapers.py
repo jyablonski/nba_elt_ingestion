@@ -286,6 +286,39 @@ def get_injuries_data() -> pd.DataFrame:
         return pd.DataFrame()
 
 
+@check_feature_flag_decorator(flag_name="player_adv_stats")
+@record_function_time_decorator
+def get_player_adv_stats_data() -> pd.DataFrame:
+    """Web Scrape function w/ pandas read_html that grabs all player adv stats
+
+    Args:
+        None
+
+    Returns:
+        Pandas DataFrame of all player adv stats
+    """
+    try:
+        url = f"https://www.basketball-reference.com/leagues/NBA_{SEASON_YEAR}_advanced.html"
+        df = pd.read_html(url)[0]
+        df = df.rename(columns={"Update": "Date"})
+        df.columns = df.columns.str.lower()
+        df["player"] = (
+            df["player"]
+            .str.normalize("NFKD")  # this is removing all accented characters
+            .str.encode("ascii", errors="ignore")
+            .str.decode("utf-8")
+        )
+        df["player"] = df["player"].apply(clean_player_names)
+        df = df.drop_duplicates()
+        logging.info(
+            f"Player Advanced Stats Function Successful, retrieving {len(df)} rows"
+        )
+        return df
+    except Exception as error:
+        logging.error(f"Player Advanced Stats Function Failed, {error}")
+        return pd.DataFrame()
+
+
 @check_feature_flag_decorator(flag_name="transactions")
 @record_function_time_decorator
 def get_transactions_data() -> pd.DataFrame:
@@ -360,7 +393,7 @@ def get_transactions_data() -> pd.DataFrame:
 
 @check_feature_flag_decorator(flag_name="adv_stats")
 @record_function_time_decorator
-def get_advanced_stats_data() -> pd.DataFrame:
+def get_team_adv_stats_data() -> pd.DataFrame:
     """Web Scrape function w/ pandas read_html that grabs all team advanced stats
 
     Args:
@@ -413,12 +446,12 @@ def get_advanced_stats_data() -> pd.DataFrame:
         df["scrape_date"] = datetime.now().date()
         df.columns = df.columns.str.lower()
         logging.info(
-            "Advanced Stats Transformation Function Successful, "
+            "Team Advanced Stats Transformation Function Successful, "
             "retrieving updated data for 30 Teams"
         )
         return df
     except Exception as error:
-        logging.error(f"Advanced Stats Web Scrape Function Failed, {error}")
+        logging.error(f"Team Advanced Stats Web Scrape Function Failed, {error}")
         return pd.DataFrame()
 
 

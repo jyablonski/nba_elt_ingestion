@@ -367,7 +367,8 @@ VALUES ('season', 1),
        ('odds', 1),
        ('schedule', 1),
        ('shooting_stats', 1),
-       ('fake', 0);
+       ('fake', 0),
+       ('player_adv_stats', 1);
 
 CREATE TABLE bronze.play_in_details(
     id serial primary key,
@@ -380,3 +381,52 @@ CREATE TABLE bronze.play_in_details(
 
 INSERT INTO bronze.play_in_details(name, start_date, end_date)
 VALUES ('Play-In', '2025-04-15', '2025-04-18');
+
+CREATE TABLE if not exists bronze.bbref_player_adv_stats (
+	rk float8 NULL,
+	player text NULL,
+	age float8 NULL,
+	team text NULL,
+	pos text NULL,
+	g float8 NULL,
+	gs float8 NULL,
+	mp float8 NULL,
+	per float8 NULL,
+	"ts%" float8 NULL,
+	"3par" float8 NULL,
+	ftr float8 NULL,
+	"orb%" float8 NULL,
+	"drb%" float8 NULL,
+	"trb%" float8 NULL,
+	"ast%" float8 NULL,
+	"stl%" float8 NULL,
+	"blk%" float8 NULL,
+	"tov%" float8 NULL,
+	"usg%" float8 NULL,
+	ows float8 NULL,
+	dws float8 NULL,
+	ws float8 NULL,
+	"ws/48" float8 NULL,
+	obpm float8 NULL,
+	dbpm float8 NULL,
+	bpm float8 NULL,
+	vorp float8 NULL,
+	awards float8 null,
+    created_at timestamp default current_timestamp,
+    modified_at timestamp default current_timestamp,
+    CONSTRAINT unique_constraint_for_player_adv_stats UNIQUE (player, team)
+);
+
+INSERT INTO bronze.bbref_player_adv_stats (rk,player,age,team,pos,g,gs,mp,per,"ts%","3par",ftr,"orb%","drb%","trb%","ast%","stl%","blk%","tov%","usg%",ows,dws,ws,"ws/48",obpm,dbpm,bpm,vorp,awards,created_at,modified_at)
+
+VALUES
+	 (NULL,'League Average',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0.583,0.418,0.286,5.3,14.7,10.0,16.3,1.7,1.9,12.7,19.9,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:37:49.165096'),
+	 (1.0,'Tyrese Maxey',25.0,'PHI','PG',15.0,15.0,610.0,24.8,0.618,0.413,0.35,0.9,12.2,6.5,33.0,1.9,2.1,9.4,30.7,2.1,0.6,2.8,0.218,6.9,0.8,7.7,1.5,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
+	 (2.0,'Franz Wagner',24.0,'ORL','SF',17.0,17.0,601.0,19.8,0.595,0.29,0.459,5.3,14.6,10.1,17.9,1.4,1.0,8.7,25.8,1.4,0.7,2.2,0.175,2.8,0.1,2.8,0.7,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
+	 (3.0,'Trey Murphy',25.0,'NOP','SF',17.0,17.0,600.0,18.0,0.618,0.544,0.27,4.3,16.9,10.1,13.7,2.4,0.7,11.8,21.9,1.0,0.2,1.3,0.101,2.6,-1.1,1.5,0.5,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
+	 (4.0,'Cooper Flagg',19.0,'DAL','PG',17.0,17.0,571.0,13.3,0.534,0.28,0.241,3.7,15.8,9.8,15.2,1.8,1.7,12.3,21.4,-0.2,0.9,0.7,0.06,-2.4,0.7,-1.7,0.0,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
+	 (5.0,'Shai Gilgeous-Alexander',27.0,'OKC','PG',17.0,17.0,565.0,32.6,0.661,0.276,0.463,1.6,14.1,8.2,34.8,2.1,2.7,7.0,33.6,3.1,1.3,4.3,0.369,9.6,3.3,12.9,2.1,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
+	 (6.0,'Devin Booker',29.0,'PHO','SG',16.0,16.0,565.0,19.9,0.599,0.292,0.396,3.4,9.8,6.6,32.2,1.3,0.7,15.4,31.3,1.3,0.5,1.7,0.146,2.8,-1.7,1.0,0.4,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
+	 (7.0,'VJ Edgecombe',20.0,'PHI','SG',15.0,15.0,560.0,11.7,0.503,0.38,0.176,6.1,11.9,8.9,16.1,1.6,1.1,11.1,19.6,0.2,0.5,0.7,0.057,-1.8,-0.5,-2.3,0.0,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
+	 (8.0,'Miles Bridges',27.0,'CHO','PF',16.0,16.0,559.0,17.7,0.567,0.495,0.282,3.6,18.0,10.8,16.6,1.0,1.4,6.9,24.8,1.1,0.2,1.3,0.116,2.6,-1.6,1.0,0.4,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
+	 (9.0,'Nikola Jokic',30.0,'DEN','C',16.0,16.0,559.0,37.0,0.728,0.277,0.389,11.8,28.4,20.7,51.0,2.2,2.1,14.4,29.6,3.7,1.1,4.8,0.412,12.7,5.4,18.1,2.9,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064');

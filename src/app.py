@@ -8,17 +8,18 @@ from src.aws import write_to_s3
 from src.database import write_to_sql
 from src.feature_flags import FeatureFlagManager
 from src.scrapers import (
-    get_advanced_stats_data,
     get_boxscores_data,
     get_injuries_data,
     get_odds_data,
     get_opp_stats_data,
     get_pbp_data,
+    get_player_adv_stats_data,
     get_player_stats_data,
     get_reddit_comments,
     get_reddit_data,
     get_schedule_data,
     get_shooting_stats_data,
+    get_team_adv_stats_data,
     get_transactions_data,
 )
 from src.utils import generate_schedule_pull_type, query_logs, write_to_slack
@@ -28,7 +29,7 @@ if __name__ == "__main__":
     logging.getLogger("requests").setLevel(
         logging.WARNING
     )  # get rid of https debug stuff
-    logger.info("Starting Ingestion Script Version: 2.0.9")
+    logger.info("Starting Ingestion Script")
 
     logger.info("Starting Web Scrape")
     engine = create_sql_engine(
@@ -54,7 +55,8 @@ if __name__ == "__main__":
     boxscores = get_boxscores_data()
     injury_data = get_injuries_data()
     transactions = get_transactions_data()
-    adv_stats = get_advanced_stats_data()
+    player_adv_stats = get_player_adv_stats_data()
+    adv_stats = get_team_adv_stats_data()
     odds = get_odds_data()
     reddit_data = get_reddit_data(sub="nba")
     opp_stats = get_opp_stats_data()
@@ -108,6 +110,14 @@ if __name__ == "__main__":
             schema=source_schema,
             df=shooting_stats,
             primary_keys=["player"],
+            update_timestamp_field="modified_at",
+        )
+        write_to_sql_upsert(
+            conn=connection,
+            table="bbref_player_adv_stats",
+            schema=source_schema,
+            df=player_adv_stats,
+            primary_keys=["player", "team"],
             update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
@@ -191,6 +201,7 @@ if __name__ == "__main__":
     write_to_s3(file_name="reddit_data", df=reddit_data)
     write_to_s3(file_name="reddit_comment_data", df=reddit_comment_data)
     write_to_s3(file_name="pbp_data", df=pbp_data)
+    write_to_s3(file_name="player_adv_stats", df=player_adv_stats)
     write_to_s3(file_name="opp_stats", df=opp_stats)
     write_to_s3(file_name="schedule", df=schedule)
     write_to_s3(file_name="shooting_stats", df=shooting_stats)
@@ -201,4 +212,4 @@ if __name__ == "__main__":
     logs = query_logs()
     write_to_slack(errors=logs)
 
-    logger.info("Finished Ingestion Script Version: 2.0.9")
+    logger.info("Finished Ingestion Script")
