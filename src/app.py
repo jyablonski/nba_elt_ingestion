@@ -196,7 +196,7 @@ if __name__ == "__main__":
     write_to_s3(file_name="boxscores", df=boxscores)
     write_to_s3(file_name="injury_data", df=injury_data)
     write_to_s3(file_name="transactions", df=transactions)
-    write_to_s3(file_name="adv_stats", df=team_adv_stats)
+    write_to_s3(file_name="team_adv_stats", df=team_adv_stats)
     write_to_s3(file_name="odds", df=odds)
     write_to_s3(file_name="reddit_data", df=reddit_data)
     write_to_s3(file_name="reddit_comment_data", df=reddit_comment_data)
