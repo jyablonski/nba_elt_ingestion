@@ -411,7 +411,7 @@ CREATE TABLE if not exists bronze.bbref_player_adv_stats (
 	dbpm float8 NULL,
 	bpm float8 NULL,
 	vorp float8 NULL,
-	awards float8 null,
+	awards text NULL,
     created_at timestamp default current_timestamp,
     modified_at timestamp default current_timestamp,
     CONSTRAINT unique_constraint_for_player_adv_stats UNIQUE (player, team)
