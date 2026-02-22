@@ -3,7 +3,9 @@ import logging
 import pandas as pd
 
 
-def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> None:
+def write_to_sql(
+    con, table_name: str, df: pd.DataFrame, table_type: str, schema: str = "bronze"
+) -> None:
     """Simple Wrapper Function to write a Pandas DataFrame to SQL
 
     Args:
@@ -15,6 +17,8 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
 
         table_type (str): Whether the table should replace or append to an
             existing SQL Table under that name
+
+        schema (str): Schema to write to
 
     Returns:
         Writes the Pandas DataFrame to a Table in the Schema we connected to.
@@ -29,9 +33,10 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
                 name=table_name,
                 index=False,
                 if_exists=table_type,
+                schema=schema,
             )
             logging.info(
-                f"Writing {len(df)} {table_name} rows to aws_{table_name}_source to SQL"
+                f"Writing {len(df)} {table_name} rows to {schema}.{table_name} to SQL"
             )
 
         return

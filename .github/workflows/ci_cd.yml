@@ -10,7 +10,7 @@ on:
 
 env:
   PYTHON_VERSION: "3.12"
-  UV_VERSION: "0.7.19"
+  UV_VERSION: "0.10.4"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   IAM_ROLE: ${{ secrets.IAM_ROLE_ECR }}
   AWS_REGION: "us-east-1"
