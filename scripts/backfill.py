@@ -10,7 +10,8 @@ from src.feature_flags import FeatureFlagManager
 from src.scrapers import get_boxscores_data, get_pbp_data
 
 
-# example usage: `python -m scripts.backfill --run_date 2025-01-01`
+# example usage:
+# `uv run --env-file .env python -m scripts.backfill --run_date 2026-02-22`
 @click.command()
 @click.option("--run_date", required=True, help="Run date to backfill for")
 def run_backfill(run_date: str) -> None:
@@ -31,9 +32,6 @@ def run_backfill(run_date: str) -> None:
     # parse the run_date string into a datetime object
     try:
         parsed_date = datetime.strptime(run_date, "%Y-%m-%d")
-        year = parsed_date.year
-        month = parsed_date.month
-        day = parsed_date.day
     except ValueError:
         raise click.BadParameter("run_date must be in format YYYY-MM-DD")
 
@@ -49,9 +47,7 @@ def run_backfill(run_date: str) -> None:
     source_schema = "bronze"
 
     boxscores = get_boxscores_data(
-        year=year,
-        month=month,
-        day=day,
+        run_date=parsed_date,
     )
 
     pbp_data = get_pbp_data(df=boxscores)
@@ -60,14 +56,15 @@ def run_backfill(run_date: str) -> None:
     with engine.begin() as connection:
         write_to_sql_upsert(
             conn=connection,
-            table="aws_boxscores_source",
+            table="bbref_player_boxscores",
             schema=source_schema,
             df=boxscores,
             primary_keys=["player", "date"],
+            update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
             conn=connection,
-            table="aws_pbp_data_source",
+            table="bbref_player_pbp",
             schema=source_schema,
             df=pbp_data,
             primary_keys=[
@@ -79,6 +76,7 @@ def run_backfill(run_date: str) -> None:
                 "descriptionplayvisitor",
                 "descriptionplayhome",
             ],
+            update_timestamp_field="modified_at",
         )
 
     print(f"Backfill for {run_date} complete")
