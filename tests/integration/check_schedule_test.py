@@ -37,6 +37,10 @@ from src.utils import check_schedule
     ],
 )
 def test_check_schedule(mocker: MockerFixture, date, mock_input, expected):
-    mocker.patch("src.utils.requests.get").return_value.json.return_value = mock_input
+    mock_get = mocker.patch("src.utils.requests.get")
+    mock_get.return_value.json.return_value = mock_input
     is_games_played = check_schedule(date=date)
+    mock_get.assert_called_once_with(
+        f"https://api.jyablonski.dev/v1/league/schedule?date={date}"
+    )
     assert is_games_played == expected
