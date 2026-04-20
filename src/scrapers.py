@@ -1062,6 +1062,11 @@ def get_schedule_data(
                 f"Schedule scrape completed for {month}, {len(month_df)} rows retrieved"
             )
 
+        except HTTPError as error:
+            if error.code == 404:
+                logging.info(f"{month} schedule page not found, skipping.")
+                continue
+            raise
         except (IndexError, ValueError):
             logging.info(f"{month} has no data, skipping.")
 
