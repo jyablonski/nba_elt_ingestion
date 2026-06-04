@@ -822,8 +822,8 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
         game_date = df["date"][0]
     else:
         df = pd.DataFrame()
-        logging.warning(
-            "PBP Transformation Function Failed, "
+        logging.info(
+            "PBP Transformation Function Skipped, "
             f"no data available for {datetime.now().date()}"
         )
         return df
@@ -985,8 +985,8 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
                 return pd.DataFrame()
         else:
             df = pd.DataFrame()
-            logging.error(
-                f"PBP Transformation Function Failed, no data available for {game_date}"
+            logging.info(
+                f"PBP Transformation Function Skipped, no data available for {game_date}"
             )
             return df
     except Exception as error:
