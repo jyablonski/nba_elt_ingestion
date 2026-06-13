@@ -122,6 +122,7 @@ if __name__ == "__main__":
             primary_keys=["player", "team"],
             update_timestamp_field="modified_at",
         )
+        # only keep contract rows where season salary has changed
         player_contracts_to_upsert = filter_unchanged_rows(
             conn=connection,
             schema=source_schema,
