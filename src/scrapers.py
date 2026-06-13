@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import hashlib
 import logging
 import os
+import re
 import urllib.request
 from datetime import datetime, timedelta
+from io import StringIO
+from typing import TYPE_CHECKING
 from urllib.error import HTTPError, URLError
 
 import numpy as np
 import pandas as pd
 import praw
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from src.decorators import check_feature_flag_decorator, record_function_time_decorator
 from src.utils import (
@@ -19,6 +24,9 @@ from src.utils import (
     filter_spread,
     get_leading_zeroes,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 @check_feature_flag_decorator(flag_name="stats")
@@ -49,7 +57,7 @@ def get_player_stats_data() -> pd.DataFrame:
         player_stats = [
             [td.getText() for td in rows[i].findAll("td")] for i in range(len(rows))
         ]
-        stats = pd.DataFrame(player_stats, columns=headers)
+        stats = pd.DataFrame(player_stats, columns=pd.Index(headers))
         stats["PTS"] = pd.to_numeric(stats["PTS"])
         stats = stats.query("Player == Player").reset_index()
         stats["Player"] = (
@@ -139,7 +147,7 @@ def get_boxscores_data(
         rows = soup.find_all("tr")[1:]
         player_stats = [[td.get_text() for td in row.find_all("td")] for row in rows]
 
-        df = pd.DataFrame(player_stats, columns=headers)
+        df = pd.DataFrame(player_stats, columns=pd.Index(headers))
 
         # Convert numeric columns
         numeric_cols = [
@@ -193,7 +201,7 @@ def get_boxscores_data(
         return df
 
     except IndexError:
-        is_games_played = check_schedule(date=date)
+        is_games_played = check_schedule(game_date=date)
         if is_games_played:
             logging.error(
                 "Box Scores Function Failed, Box Scores aren't available yet "
@@ -343,7 +351,7 @@ def get_transactions_data() -> pd.DataFrame:
         # Find the ul with class="page_index"
         page_index = soup.find("ul", {"class": "page_index"})
 
-        if not page_index:
+        if not isinstance(page_index, Tag):
             raise ValueError("Could not find transactions list")
 
         trs = page_index.find_all("li")
@@ -547,6 +555,41 @@ def get_shooting_stats_data() -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _find_covers_sportsbook_column_index(
+    html: str,
+    sportsbook: str = "DraftKings",
+    *,
+    table_index: int = 1,
+) -> int:
+    """Return the Covers odds-table column index for a sportsbook header."""
+    soup = BeautifulSoup(html, "html5lib")
+    tables = soup.find_all("table")
+    if table_index >= len(tables):
+        raise ValueError(f"Covers odds table {table_index} not found")
+
+    for col_idx, header in enumerate(tables[table_index].find_all("th")):
+        img = header.find("img")
+        if img and img.get("alt") == sportsbook:
+            return col_idx
+
+    raise ValueError(f"{sportsbook} column not found on Covers page")
+
+
+def _select_sportsbook_column(table: pd.DataFrame, col_index: int) -> pd.Series:
+    """Return a sportsbook odds column as strings."""
+    if col_index >= table.shape[1]:
+        raise ValueError(
+            f"Column index {col_index} out of range for table with "
+            f"{table.shape[1]} columns"
+        )
+
+    column = table.iloc[:, col_index]
+    if not column.notna().any():
+        raise ValueError(f"No data in sportsbook column {col_index}")
+
+    return column.astype(str)
+
+
 @check_feature_flag_decorator(flag_name="odds")
 @record_function_time_decorator
 def get_odds_data() -> pd.DataFrame:
@@ -560,15 +603,24 @@ def get_odds_data() -> pd.DataFrame:
     """
     try:
         url = "https://www.covers.com/sport/basketball/nba/odds"
-        df = pd.read_html(url)
+        with urllib.request.urlopen(url) as response:
+            html = response.read().decode("utf-8")
 
-        # df[0] has datetime and moneyline, df[1] has spread data
-        odds = df[0].iloc[:, [0, 2]].copy()  # datetime and moneyline
-        odds.columns = ["datetime1", "moneyline"]
-        odds["spread"] = df[1].iloc[:, 2]  # spread from df[1]
+        draftkings_col = _find_covers_sportsbook_column_index(html)
+        df = pd.read_html(StringIO(html))
+
+        odds = df[0].iloc[:, [0]].copy()
+        odds.columns = ["datetime1"]
+        odds["moneyline"] = _select_sportsbook_column(df[0], draftkings_col)
+        odds["spread"] = _select_sportsbook_column(df[1], draftkings_col)
+        odds["total"] = _select_sportsbook_column(df[2], draftkings_col).str.extract(
+            r"o\s+([\d.]+)", flags=re.I
+        )[0]
 
         # Normalize all whitespace first (handles \xa0 and other issues)
-        odds["datetime1"] = odds["datetime1"].str.replace(r"\s+", " ", regex=True)
+        odds["datetime1"] = (
+            odds["datetime1"].astype(str).str.replace(r"\s+", " ", regex=True)
+        )
         odds["spread"] = odds["spread"].str.replace(r"\s+", " ", regex=True)
         odds["moneyline"] = odds["moneyline"].str.replace(r"\s+", " ", regex=True)
 
@@ -576,6 +628,7 @@ def get_odds_data() -> pd.DataFrame:
         odds = odds[
             (odds["datetime1"].notna())
             & (odds["datetime1"] != "FINAL")
+            & (odds["datetime1"] != "nan")
             & (odds["datetime1"].str.contains("Today", na=False))
         ].copy()
 
@@ -593,7 +646,7 @@ def get_odds_data() -> pd.DataFrame:
         odds["spread"] = odds["spread"].apply(filter_spread)
         odds["spread"] = odds["spread"].apply(lambda x: " ".join(x.split()))
 
-        odds_final = odds[["datetime1", "spread", "moneyline"]].copy()
+        odds_final = odds[["datetime1", "spread", "moneyline", "total"]].copy()
 
         # Extract teams from datetime1
         # \b: Word boundary anchor
@@ -631,7 +684,6 @@ def get_odds_data() -> pd.DataFrame:
         )
 
         # Final transformations
-        odds_final["total"] = 200
         odds_final["team"] = odds_final["team"].str.replace("BK", "BKN")
         odds_final["moneyline"] = odds_final["moneyline"].str.replace(
             r"\+", "", regex=True
@@ -695,17 +747,19 @@ def get_reddit_data(sub: str = "nba") -> pd.DataFrame:
             )
         posts = pd.DataFrame(
             posts,
-            columns=[
-                "title",
-                "score",
-                "id",
-                "url",
-                "reddit_url",
-                "num_comments",
-                "body",
-                "scrape_date",
-                "scrape_time",
-            ],
+            columns=pd.Index(
+                [
+                    "title",
+                    "score",
+                    "id",
+                    "url",
+                    "reddit_url",
+                    "num_comments",
+                    "body",
+                    "scrape_date",
+                    "scrape_time",
+                ]
+            ),
         )
         posts.columns = posts.columns.str.lower()
 
@@ -721,7 +775,7 @@ def get_reddit_data(sub: str = "nba") -> pd.DataFrame:
 
 @check_feature_flag_decorator(flag_name="reddit_comments")
 @record_function_time_decorator
-def get_reddit_comments(urls: pd.Series) -> pd.DataFrame:
+def get_reddit_comments(urls: pd.Series | Sequence[str]) -> pd.DataFrame:
     """Web Scrape function w/ PRAW
 
     Iteratively extracts comments from provided reddit post urls.
@@ -854,7 +908,7 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
                 }
             )
         else:
-            yesterday_hometeams = []
+            yesterday_hometeams = pd.DataFrame(columns=pd.Index(["team"]))
 
         if len(yesterday_hometeams) > 0:
             try:
@@ -930,7 +984,7 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
                         "3rd OT",
                         "4th OT",
                     ]
-                    df["Quarter"] = np.select(conditions, values, default=None)
+                    df["Quarter"] = np.select(conditions, values, default=None)  # ty: ignore[no-matching-overload]
                     df["Quarter"] = df["Quarter"].ffill()
                     df = df.query(
                         'Time != "Time" & '
@@ -986,7 +1040,8 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
         else:
             df = pd.DataFrame()
             logging.info(
-                f"PBP Transformation Function Skipped, no data available for {game_date}"
+                "PBP Transformation Function Skipped, "
+                f"no data available for {game_date}"
             )
             return df
     except Exception as error:
@@ -997,7 +1052,7 @@ def get_pbp_data(df: pd.DataFrame) -> pd.DataFrame:
 @check_feature_flag_decorator(flag_name="schedule")
 @record_function_time_decorator
 def get_schedule_data(
-    month_list: list[str] = None,
+    month_list: list[str] | None = None,
     include_past_games: bool = False,
 ) -> pd.DataFrame:
     """Web Scrape Function to scrape Schedule data by iterating through a list of months
@@ -1067,7 +1122,7 @@ def get_schedule_data(
                 logging.info(f"{month} schedule page not found, skipping.")
                 continue
             raise
-        except (IndexError, ValueError):
+        except IndexError, ValueError:
             logging.info(f"{month} has no data, skipping.")
 
     if schedule_df.empty:
@@ -1083,3 +1138,46 @@ def get_schedule_data(
         schedule_df = schedule_df[schedule_df["proper_date"] >= current_date]
 
     return schedule_df
+
+
+@check_feature_flag_decorator(flag_name="player_contracts")
+@record_function_time_decorator
+def get_player_contracts_data() -> pd.DataFrame:
+    """Web Scrape function w/ pandas read_html that grabs player contract salaries.
+
+    Returns:
+        Pandas DataFrame of player contract salaries for the current season only.
+    """
+    try:
+        url = "https://www.basketball-reference.com/contracts/players.html"
+        df = pd.read_html(url)[0]
+        df.columns = [col[1] if col[0] == "Salary" else col[1] for col in df.columns]
+        df = df.query('Player != "Player" and Rk != "Rk"').copy()
+
+        current_season = f"{SEASON_YEAR - 1}-{str(SEASON_YEAR)[-2:]}"
+        if current_season not in df.columns:
+            raise ValueError(
+                f"Current season column {current_season} not found on contracts page"
+            )
+
+        df = df[["Player", current_season]].dropna(subset=[current_season])
+        df = df[df[current_season].str.startswith("$", na=False)]
+        df = df.rename(columns={"Player": "player", current_season: "season_salary"})
+        df["season_salary"] = (
+            df["season_salary"].str.replace(r"[\$,]", "", regex=True).astype("int64")
+        )
+        df["season"] = current_season
+        df["player"] = (
+            df["player"]
+            .str.normalize("NFKD")
+            .str.encode("ascii", errors="ignore")
+            .str.decode("utf-8")
+        )
+        df["player"] = df["player"].apply(clean_player_names)
+        df = df.drop_duplicates(subset=["player"])
+        df = df[["player", "season", "season_salary"]]
+        logging.info(f"Player Contracts Function Successful, retrieving {len(df)} rows")
+        return df
+    except Exception as error:
+        logging.error(f"Player Contracts Function Failed, {error}")
+        return pd.DataFrame()

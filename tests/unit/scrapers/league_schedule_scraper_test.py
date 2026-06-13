@@ -1,3 +1,4 @@
+from email.message import Message
 from urllib.error import HTTPError
 
 import pandas as pd
@@ -31,7 +32,7 @@ def test_league_schedule_skips_missing_month_page(mocker):
         url="https://www.basketball-reference.com/leagues/NBA_2026_games-june.html",
         code=404,
         msg="Not Found",
-        hdrs=None,
+        hdrs=Message(),
         fp=None,
     )
     mocker.patch(

@@ -368,7 +368,8 @@ VALUES ('season', 1),
        ('schedule', 1),
        ('shooting_stats', 1),
        ('fake', 0),
-       ('player_adv_stats', 1);
+       ('player_adv_stats', 1),
+       ('player_contracts', 1);
 
 CREATE TABLE bronze.play_in_details(
     id serial primary key,
@@ -430,3 +431,17 @@ VALUES
 	 (7.0,'VJ Edgecombe',20.0,'PHI','SG',15.0,15.0,560.0,11.7,0.503,0.38,0.176,6.1,11.9,8.9,16.1,1.6,1.1,11.1,19.6,0.2,0.5,0.7,0.057,-1.8,-0.5,-2.3,0.0,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
 	 (8.0,'Miles Bridges',27.0,'CHO','PF',16.0,16.0,559.0,17.7,0.567,0.495,0.282,3.6,18.0,10.8,16.6,1.0,1.4,6.9,24.8,1.1,0.2,1.3,0.116,2.6,-1.6,1.0,0.4,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064'),
 	 (9.0,'Nikola Jokic',30.0,'DEN','C',16.0,16.0,559.0,37.0,0.728,0.277,0.389,11.8,28.4,20.7,51.0,2.2,2.1,14.4,29.6,3.7,1.1,4.8,0.412,12.7,5.4,18.1,2.9,NULL,'2025-11-23 16:37:49.165096','2025-11-23 16:38:02.863064');
+
+DROP TABLE IF EXISTS bronze.bbref_player_contracts;
+CREATE TABLE IF NOT EXISTS bronze.bbref_player_contracts
+(
+    player text COLLATE pg_catalog."default",
+    season text COLLATE pg_catalog."default",
+    season_salary bigint,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    modified_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_constraint_for_upsert_bbref_player_contracts UNIQUE (player, season)
+);
+
+INSERT INTO bronze.bbref_player_contracts (player, season, season_salary)
+VALUES ('Test Player', '2099-00', 1000000);

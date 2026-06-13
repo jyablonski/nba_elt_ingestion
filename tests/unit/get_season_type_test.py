@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from src.utils import get_season_type
 
@@ -11,3 +11,14 @@ def test_get_season_type():
     assert regular_season == "Regular Season"
     assert play_in == "Play-In"
     assert playoffs == "Playoffs"
+
+
+def test_get_season_type_defaults_to_today(mocker):
+    class FakeDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls(2025, 4, 8, 12, 0, 0)
+
+    mocker.patch("src.utils.datetime", FakeDatetime)
+
+    assert get_season_type() == "Regular Season"

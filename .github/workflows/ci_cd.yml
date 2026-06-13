@@ -9,8 +9,10 @@ on:
       - master
 
 env:
-  PYTHON_VERSION: "3.12"
+  PYTHON_VERSION: "3.14"
   UV_VERSION: "0.10.4"
+  RUFF_VERSION: "0.15.17"
+  TY_VERSION: "0.0.49"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   IAM_ROLE: ${{ secrets.IAM_ROLE_ECR }}
   AWS_REGION: "us-east-1"
@@ -20,7 +22,37 @@ permissions:
   id-token: write
   contents: read # This is required for actions/checkout
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+    name: Quality
+
+    steps:
+      - name: Checkout the Repo
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --group local
+
+      - name: Ruff check
+        run: uv run ruff check .
+
+      - name: Ruff format
+        run: uv run ruff format --check .
+
+      - name: Run ty
+        run: uv run ty check --output-format github --extra-search-path src src tests
+
   ci_pipeline:
     runs-on: ubuntu-latest
     name: Test Pipeline
@@ -35,6 +67,9 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
+        run: uv sync --locked --dev
+
+      - name: Download NLTK lexicon
         run: uv run python -m nltk.downloader vader_lexicon
 
       - name: Create and populate .coveralls.yml file
@@ -48,7 +83,7 @@ jobs:
         shell: bash
 
       - name: Run Tests
-        run: make ci-test
+        run: make test
 
       - name: Coveralls
         run: uv run coveralls

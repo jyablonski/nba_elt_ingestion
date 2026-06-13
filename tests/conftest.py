@@ -7,12 +7,14 @@ import pickle
 import socket
 from collections.abc import Generator
 from datetime import datetime
+from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
 from jyablonski_common_modules.sql import create_sql_engine
+from testcontainers.postgres import PostgresContainer
 
 from src.feature_flags import FeatureFlagManager
 from src.scrapers import (
@@ -23,6 +25,7 @@ from src.scrapers import (
     get_opp_stats_data,
     get_pbp_data,
     get_player_adv_stats_data,
+    get_player_contracts_data,
     get_player_stats_data,
     get_reddit_comments,
     get_schedule_data,
@@ -38,12 +41,28 @@ if TYPE_CHECKING:
     from sqlalchemy.engine.base import Connection
 
 
-def guard(*args, **kwargs):
-    raise Exception("you're using the internet hoe")
+_ALLOWED_HOSTS = {"localhost", "127.0.0.1", "::1"}
+_OriginalSocket = socket.socket
 
 
+class _GuardedSocket(_OriginalSocket):
+    """Allow local Docker/Postgres traffic while blocking outbound internet."""
+
+    def connect(self, address):
+        if self.family == socket.AF_UNIX:
+            return super().connect(address)
+
+        host = address[0] if isinstance(address, tuple) else address
+        if host in _ALLOWED_HOSTS:
+            return super().connect(address)
+
+        raise Exception("you're using the internet hoe")
+
+
+REPO_ROOT = Path(__file__).parent.parent
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
-socket.socket = guard
+BOOTSTRAP_SQL = REPO_ROOT / "docker" / "postgres_bootstrap.sql"
+socket.socket = _GuardedSocket  # ty: ignore[invalid-assignment]
 
 # pytest tests/scrape_test.py::test_player_stats - use this
 # to test 1 at a time yeet
@@ -62,26 +81,40 @@ def aws_credentials():
     os.environ["USER_EMAIL"] = "jyablonski9@gmail.com"
 
 
-def get_postgres_host() -> str:
-    return "postgres" if os.environ.get("ENV_TYPE") == "docker_dev" else "localhost"
+@pytest.fixture(scope="session")
+def postgres_container():
+    """Start an ephemeral Postgres container for the test session."""
+    container = (
+        PostgresContainer("postgres:16-alpine")
+        .with_env("POSTGRES_USER", "postgres")
+        .with_env("POSTGRES_PASSWORD", "postgres")
+        .with_env("POSTGRES_DB", "postgres")
+        .with_volume_mapping(
+            str(BOOTSTRAP_SQL),
+            "/docker-entrypoint-initdb.d/postgres_bootstrap.sql",
+            "ro",
+        )
+    )
+    with container as postgres:
+        yield postgres
 
 
 @pytest.fixture(scope="session")
-def postgres_engine():
+def postgres_engine(postgres_container):
     """Fixture to create a SQLAlchemy engine connected to Postgres."""
     return create_sql_engine(
         schema="bronze",
-        user="postgres",
-        password="postgres",
-        host=get_postgres_host(),
-        database="postgres",
-        port=5432,
+        user=postgres_container.username,
+        password=postgres_container.password,
+        host=postgres_container.get_container_host_ip(),
+        database=postgres_container.dbname,
+        port=int(postgres_container.get_exposed_port(5432)),
     )
 
 
 @pytest.fixture(scope="session")
-def postgres_conn(postgres_engine) -> Generator[Connection, None, None]:
-    """Fixture to connect to Docker Postgres Container."""
+def postgres_conn(postgres_engine) -> Generator[Connection]:
+    """Fixture to connect to the Postgres test container."""
     with postgres_engine.begin() as conn:
         yield conn
 
@@ -121,6 +154,17 @@ def boxscores_data(mocker: MockerFixture) -> pd.DataFrame:
     # mocker.patch("src.scrapers.requests.get").return_value.content = mock_content
     mocker.patch("src.scrapers.urllib.request.urlopen", return_value=mock_response)
     return get_boxscores_data()
+
+
+@pytest.fixture(scope="function")
+def player_contracts_data(mocker: MockerFixture) -> pd.DataFrame:
+    """Fixture to load player contracts data from a pickle file for testing."""
+    fname = FIXTURES_DIR / "player_contracts_raw.pickle"
+    with fname.open("rb") as fp:
+        df = pickle.load(fp)
+
+    mocker.patch("src.scrapers.pd.read_html").return_value = [df]
+    return get_player_contracts_data()
 
 
 @pytest.fixture(scope="function")
@@ -207,6 +251,12 @@ def odds_data(mocker: MockerFixture) -> pd.DataFrame:
     if not isinstance(df_list, list):
         df_list = [df_list]
 
+    mock_response = mocker.MagicMock()
+    mock_response.read.return_value = b"<html></html>"
+    mock_response.__enter__ = lambda self: self
+    mock_response.__exit__ = lambda self, *args: None
+    mocker.patch("src.scrapers.urllib.request.urlopen", return_value=mock_response)
+    mocker.patch("src.scrapers._find_covers_sportsbook_column_index", return_value=2)
     mocker.patch("src.scrapers.pd.read_html", return_value=df_list)
     return get_odds_data()
 
@@ -240,7 +290,7 @@ def schedule_data(mocker: MockerFixture) -> pd.DataFrame:
         mock_content = fp.read()
 
     # Parse the HTML file to create a mock DataFrame that pd.read_html would return
-    mock_df = pd.read_html(mock_content)[0]
+    mock_df = pd.read_html(StringIO(mock_content.decode("utf-8")))[0]
 
     # fixture was built w/ data from 2022
     mocker.patch("src.scrapers.SEASON_YEAR", 2022)

@@ -41,7 +41,7 @@ def run_backfill(run_date: str) -> None:
         host=os.environ.get("IP", default="default"),
         database=os.environ.get("RDS_DB", default="default"),
         schema=os.environ.get("RDS_SCHEMA", default="default"),
-        port=os.environ.get("RDS_PORT", default=5432),
+        port=int(os.environ.get("RDS_PORT", 5432)),
     )
     FeatureFlagManager.load(engine=engine)
     source_schema = "bronze"

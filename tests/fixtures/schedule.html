@@ -19,23 +19,23 @@
 	element.async = true;
 	element.type = 'text/javascript';
 	element.src = url;
-	
+
 	firstScript.parentNode.insertBefore(element, firstScript);
-	
+
 	function makeStub() {
 	    var TCF_LOCATOR_NAME = '__tcfapiLocator';
 	    var queue = [];
 	    var win = window;
 	    var cmpFrame;
-	    
+
 	    function addFrame() {
 		var doc = win.document;
 		var otherCMP = !!(win.frames[TCF_LOCATOR_NAME]);
-		
+
 		if (!otherCMP) {
 		    if (doc.body) {
 			var iframe = doc.createElement('iframe');
-			
+
 			iframe.style.cssText = 'display:none';
 			iframe.name = TCF_LOCATOR_NAME;
 			doc.body.appendChild(iframe);
@@ -45,11 +45,11 @@
 		}
 		return !otherCMP;
 	    }
-	    
+
 	    function tcfAPIHandler() {
 		var gdprApplies;
 		var args = arguments;
-		
+
 		if (!args.length) {
 		    return queue;
 		} else if (args[0] === 'setGdprApplies') {
@@ -69,7 +69,7 @@
 			cmpLoaded: false,
 			cmpStatus: 'stub'
 		    };
-		    
+
 		    if (typeof args[2] === 'function') {
 			args[2](retr);
 		    }
@@ -77,11 +77,11 @@
 		    queue.push(args);
 		}
 	    }
-	    
+
 	    function postMessageEventHandler(event) {
 		var msgIsString = typeof event.data === 'string';
 		var json = {};
-		
+
 		try {
 		    if (msgIsString) {
 			json = JSON.parse(event.data);
@@ -89,9 +89,9 @@
 			json = event.data;
 		    }
 		} catch (ignore) {}
-		
+
 		var payload = json.__tcfapiCall;
-		
+
 		if (payload) {
 		    window.__tcfapi(
 			payload.command,
@@ -113,7 +113,7 @@
 		    );
 		}
 	    }
-	    
+
 	    while (win) {
 		try {
 		    if (win.frames[TCF_LOCATOR_NAME]) {
@@ -121,7 +121,7 @@
 			break;
 		    }
 		} catch (ignore) {}
-		
+
 		if (win === window.top) {
 		    break;
 		}
@@ -133,9 +133,9 @@
 		win.addEventListener('message', postMessageEventHandler, false);
 	    }
 	};
-	
+
 	makeStub();
-	
+
 	var uspStubFunction = function() {
 	    var arg = arguments;
 	    if (typeof window.__uspapi !== uspStubFunction) {
@@ -146,7 +146,7 @@
 		}, 500);
 	    }
 	};
-	
+
 	var checkIfUspIsReady = function() {
 	    uspTries++;
 	    if (window.__uspapi === uspStubFunction && uspTries < uspTriesLimit) {
@@ -155,7 +155,7 @@
 		clearInterval(uspInterval);
 	    }
 	};
-	
+
 	if (typeof window.__uspapi === 'undefined') {
 	    window.__uspapi = uspStubFunction;
 	    var uspInterval = setInterval(checkIfUspIsReady, 6000);
@@ -167,8 +167,8 @@
 
     <title>2021-22 NBA Schedule and Results | Basketball-Reference.com</title>
 
-    
-    
+
+
     <meta name="Description" content="League schedule for the 2021-22 NBA season">
     <link rel="canonical" href="https://www.basketball-reference.com/leagues/NBA_2022_games.html" />
 
@@ -219,7 +219,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
     <meta name="theme-color" content="#4d4438" />
     <meta name="msapplication-navbutton-color" content="#4d4438" />
     <meta name="apple-mobile-web-app-status-bar-style" content="#4d4438" />
-    
+
 
 
 
@@ -280,7 +280,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
     else {
          freestar.config.enabled_slots.push('div-gpt-ad-160x600-1');
          freestar.config.enabled_slots.push('div-gpt-ad-160x600-2');
-    } 
+    }
 
 </script>
 <script data-cfasync="false" type="text/javascript">
@@ -295,7 +295,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
 !function(a,b){
     if (sr_detect_ie || sr_detect_edge || Modernizr.adfree) {
         return;
-    }  
+    }
     var c=b.getElementsByTagName("script")[0],
     d=b.createElement("script"),
     e="https://a.pub.network/basketball-reference";
@@ -314,7 +314,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
 </head>
 <body class="bbr">
 <div id="wrap">
-  
+
   <div id="header" role="banner">
   <ul id="subnav" class="notranslate">
 	<li><a href="https://www.sports-reference.com/"><svg height="15px" width="20px"><use xlink:href="#ic-sr-pennant"></use></svg> Sports Reference</a></li>
@@ -324,9 +324,9 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
 	<li><a href="https://www.hockey-reference.com/">Hockey</a></li>
 
 
-	
-	
-	
+
+
+
 	<li><a href="https://fbref.com/es/">Fútbol</a></li>
 
 	<li><a href="https://www.sports-reference.com/blog/">Blog</a></li>
@@ -350,7 +350,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
 <li id="header_leagues" class="current"><a href="/leagues/">Seasons</a></li>
 <li id="header_leaders" ><a href="/leaders/">Leaders</a></li>
 <li id="header_scores" ><a href="/boxscores/">Scores</a></li>
-<li id="header_wnba" class=""><a href="/wnba/">WNBA</a></li>	
+<li id="header_wnba" class=""><a href="/wnba/">WNBA</a></li>
 <li id="header_draft" class=""><a href="/draft/">Draft</a></li>
 <li id="header_stathead" class=""><a target='_blank' rel='noopener' href="https://stathead.com/basketball/">Stathead</a></li>
 <li id="header_newsletter" class=""><a target='_blank' rel='noopener' href="https://www.basketball-reference.com/email/">Newsletter</a></li>
@@ -437,48 +437,48 @@ sr_menus_setupMainNav_button_inline();
 
 <div id="info" class="seasons">
 	<div id="meta">
-        
+
 
 
 	<div class="media-item logo loader">
 		<img class="teamlogo" itemscope="image" 			src="https://d2p3bygnnzw9w3.cloudfront.net/req/202203311/tlogo/bbr/NBA-2022.png"
 			alt="2022  Logo">
-		
+
 			<p><a href="http://www.sportslogos.net/">via Sports Logos.net</a></p>
 			<p><a href="https://www.sports-reference.com/blog/2016/06/redesign-team-and-league-logos-courtesy-sportslogos-net/">About logos</a></p>
-		 
+
 	</div>
 
 
 
 		<div>
 			<h1 itemprop="name">
-				
+
 				<span>2021-22</span> <span>NBA</span> <span class="header_end">Schedule and Results</span>
-				
+
 			</h1>
 			<div class="prevnext">
-  
+
   <a href="/leagues/NBA_2021_games.html" class="button2 prev">2020-21 Schedule and Results</a>
-  
-  
-  
-  
+
+
+
+
 </div>
 
-			
-			
-			
+
+
+
 			<p><strong>PPG Leader</strong>: <a href="/players/e/embiijo01.html">Joel Embiid</a> (30.4)</p><p><strong>RPG Leader</strong>: <a href="/players/g/goberru01.html">Rudy Gobert</a> (14.7)</p><p><strong>APG Leader</strong>: <a href="/players/p/paulch01.html">Chris Paul</a> (10.8)</p><p><strong>WS Leader</strong>: <a href="/players/j/jokicni01.html">Nikola Jokić</a> (15.4)</p>
-			
-			
+
+
 			<button id="meta_more_button" class="opener" data-type="hide_after" data-class="open" data-id="info">More league info</button>
 <script>
 // see sr.menus.js:sr_menus_checkInfoCookie to explain
 function sr_menus_checkInfoCookie_inline(browserType) {
     var el_info = document.getElementById('info');
     var el_button = document.getElementById('meta_more_button');
-    var bling_len = 0;    
+    var bling_len = 0;
     if (!el_button || !el_info || !el_info.classList) { console.log('no meta_button'); return; }
     var el = el_button;
     var siblingsHidden = 0;
@@ -495,7 +495,7 @@ var sr_menus_checkInfoCookie_run_inline = true;
 
 		</div>
 	</div>
-	
+
 <div class="adblock ad300">
 
 <!-- div#fs_fs_300_atf  -->
@@ -621,58 +621,58 @@ var sr_menus_checkInfoCookie_run_inline = true;
 
 			</div>		</li>
 	</ul>
-	    
-    
-        
-        
-        
-    
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-                
-                
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </div><!-- div#inner_nav -->
 <div id="content" role="main">
-    
 
 
-          
-      
-      
-      
-      
+
+
+
+
+
+
 
 <!-- fs_general_header -->
 <div class="adblock">
@@ -693,9 +693,9 @@ var sr_menus_checkInfoCookie_run_inline = true;
 </div>
 
 
-      
-         
-            
+
+
+
 <div class="filter">
 
 <div class="">
@@ -714,13 +714,13 @@ var sr_menus_checkInfoCookie_run_inline = true;
 	<a href="/leagues/NBA_2022_games-april.html">April</a>
 </div></div>
 
-            
-            
-            
-         
-      
-         
-            
+
+
+
+
+
+
+
 <div id="all_schedule" class="table_wrapper">
 
 <div class="section_heading assoc_schedule" id="schedule_sh">
@@ -728,16 +728,16 @@ var sr_menus_checkInfoCookie_run_inline = true;
       <ul>
       </ul>
     </div>
-    		
+
 </div>
 <div class="table_container" id="div_schedule">
-    
+
     <table class="suppress_glossary sortable stats_table" id="schedule" data-cols-to-freeze=",1">
     <caption>March Schedule Table</caption>
-    
+
 
    <colgroup><col><col><col><col><col><col><col><col><col><col></colgroup>
-   <thead>      
+   <thead>
       <tr>
          <th aria-label="Date" data-stat="date_game" scope="col" class=" poptip sort_default_asc center" >Date</th>
          <th aria-label="Start (ET)" data-stat="game_start_time" scope="col" class=" poptip center" >Start (ET)</th>
@@ -990,11 +990,11 @@ var sr_menus_checkInfoCookie_run_inline = true;
 
 </div>
 
-            
-            
-            
-         
-      
+
+
+
+
+
 
 <!-- global.nonempty_tables_num: 2, table_count: 2 -->
    <!-- no Local/Partials/NoteBottom.tt2 -->
@@ -1003,7 +1003,7 @@ var sr_menus_checkInfoCookie_run_inline = true;
 <div class="section_content" id="bottom_nav_container">
 
   <p><a href="/leagues/NBA_2022.html"><u>2021-22 NBA Season</u></a></p>
-  
+
         <ul class="">
           <li><a href="NBA_2022_standings.html">Standings</a></li>
         </ul>
@@ -1036,7 +1036,7 @@ var sr_menus_checkInfoCookie_run_inline = true;
           <li><a href="/leagues/NBA_2022_preseason_odds.html">Preseason Odds</a></li>
         </ul></div></div>
 
-   
+
 
 </div><!-- div#content -->
 
@@ -1053,20 +1053,20 @@ var sr_menus_checkInfoCookie_run_inline = true;
 
 	<div id="footer_general">
 		<div id="site_menu" role="navigation" aria-label="complete site index">
-			
-			
+
+
 <div class="section_heading assoc_site_menu" id="site_menu_sh">
   <span class="section_anchor" id="site_menu_link" data-label="Full Site Menu"></span><h2>Full Site Menu</h2>    <div class="section_heading_text">
       <ul><li><a data-scroll href="#header">Return to Top</a></li>
       </ul>
     </div>
-    		
+
 </div>
-			
+
 				<ul>
   <li>
     <a href="/players/">Players</a>
-    <div><strong>In the News</strong>: 
+    <div><strong>In the News</strong>:
       <!-- Begin:In the News -->
 <a title="LeBron James" href="/players/j/jamesle01.html">L. James</a>,
 <a title="Kevin Durant" href="/players/d/duranke01.html">K. Durant</a>,
@@ -1078,7 +1078,7 @@ var sr_menus_checkInfoCookie_run_inline = true;
       <a href="/players/">...</a>
     </div>
 
-	<div><strong>All-Time Greats</strong>: 
+	<div><strong>All-Time Greats</strong>:
       <!-- Begin:All-Time Greats -->
 <a title="Elvin Hayes" href="/players/h/hayesel01.html">E. Hayes</a>,
 <a title="John Stockton" href="/players/s/stockjo01.html">J. Stockton</a>,
@@ -1090,7 +1090,7 @@ var sr_menus_checkInfoCookie_run_inline = true;
       <a href="/players/">...</a>
     </div>
 
-    <div><strong>Active Greats</strong>: 
+    <div><strong>Active Greats</strong>:
       <!-- Begin:Active Greats -->
 <a title="LeBron James" href="/players/j/jamesle01.html">L. James</a>,
 <a title="Giannis Antetokounmpo" href="/players/a/antetgi01.html">G. Antetokounmpo</a>,
@@ -1156,7 +1156,7 @@ var sr_menus_checkInfoCookie_run_inline = true;
       <a href="/teams/SAS/2022.html">San Antonio</a>,
       <a href="/teams/DAL/2022.html">Dallas</a>,
       <a href="/teams/MEM/2022.html">Memphis</a>,
-      <a href="/teams/HOU/2022.html">Houston</a>,      
+      <a href="/teams/HOU/2022.html">Houston</a>,
       <a href="/teams/NOP/2022.html">New Orleans</a>
     </div>
 <!-- End:Teams -->
@@ -1180,10 +1180,10 @@ var sr_menus_checkInfoCookie_run_inline = true;
   <li>
     <a href="/leaders/">Leaders</a>
     <div>
-      <a href="/leaders/pts_season.html">Season Points</a>, 
-      <a href="/leaders/trb_career.html">Career Rebounds</a>, 
-      <a href="/leaders/ast_active.html">Active Assists</a>, 
-      <a href="/leaders/stl_yearly.html">Yearly Steals</a>, 
+      <a href="/leaders/pts_season.html">Season Points</a>,
+      <a href="/leaders/trb_career.html">Career Rebounds</a>,
+      <a href="/leaders/ast_active.html">Active Assists</a>,
+      <a href="/leaders/stl_yearly.html">Yearly Steals</a>,
       <a href="/leaders/blk_progress.html">Progressive Blocks</a>
       ...
     </div>
@@ -1220,15 +1220,15 @@ var sr_menus_checkInfoCookie_run_inline = true;
 
   <li>
     <a target='_blank' rel='noopener' href="https://stathead.com/basketball/">Stathead</a>
-    <div><strong>Player Finders</strong>: 
-      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/psl_finder.cgi">Season Finder</a>, 
-      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pgl_finder.cgi">Game Finder</a>, 
+    <div><strong>Player Finders</strong>:
+      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/psl_finder.cgi">Season Finder</a>,
+      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pgl_finder.cgi">Game Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pstreak.cgi">Streak Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pspan_finder.cgi">Player Span Finder</a>
     </div>
-    <div><strong>Team Finders</strong>: 
-      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tsl_finder.cgi">Season Finder</a>, 
-      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tgl_finder.cgi">Game Finder</a>, 
+    <div><strong>Team Finders</strong>:
+      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tsl_finder.cgi">Season Finder</a>,
+      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tgl_finder.cgi">Game Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tstreak.cgi">Team Streak Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tscore.cgi">Team Score Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/rivals.cgi">Team Rivalry Finder</a>
@@ -1238,7 +1238,7 @@ var sr_menus_checkInfoCookie_run_inline = true;
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/wnba_pgl_finder.cgi">Game</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/wnba_pcm_finder.cgi">Player Comparison</a>
     </div>
-    <div><strong>Other Finders</strong>: 
+    <div><strong>Other Finders</strong>:
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/draft_finder.cgi">Draft Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/h2h_finder.cgi">Head2Head Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pcm_finder.cgi">Player Comparison Finder</a>
@@ -1248,10 +1248,10 @@ var sr_menus_checkInfoCookie_run_inline = true;
   <li>
     <a href="/coaches/">Coaches</a>
     <div>
-      <a href="/coaches/gueriri01c.html">Richie Guerin</a>, 
+      <a href="/coaches/gueriri01c.html">Richie Guerin</a>,
       <a href="/coaches/tomjaru01c.html">Rudy Tomjanovich</a>,
-      <a href="/coaches/obrieji99c.html">Jim O'Brien</a>, 
-      <a href="/coaches/fratemi99c.html">Mike Fratello</a>, 
+      <a href="/coaches/obrieji99c.html">Jim O'Brien</a>,
+      <a href="/coaches/fratemi99c.html">Mike Fratello</a>,
       <a href="/coaches/gentral99c.html">Alvin Gentry</a>
     </div>
   </li>
@@ -1259,11 +1259,11 @@ var sr_menus_checkInfoCookie_run_inline = true;
   <li>
     <a href="/awards/">Awards</a>
     <div>
-      <a href="/awards/mvp.html">NBA MVP</a>, 
-      <a href="/awards/all_league.html">All-NBA</a>, 
-      <a href="/awards/dpoy.html">Defensive Player of the Year</a>, 
-      <a href="/awards/roy.html">Rookie of the Year</a>, 
-      <a href="/awards/all_rookie.html">All-Rookie</a>, 
+      <a href="/awards/mvp.html">NBA MVP</a>,
+      <a href="/awards/all_league.html">All-NBA</a>,
+      <a href="/awards/dpoy.html">Defensive Player of the Year</a>,
+      <a href="/awards/roy.html">Rookie of the Year</a>,
+      <a href="/awards/all_rookie.html">All-Rookie</a>,
       <a href="/awards/hof.html">Hall of Fame</a>
       ...
     </div>
@@ -1284,10 +1284,10 @@ var sr_menus_checkInfoCookie_run_inline = true;
     <a href="/playoffs/">Playoffs</a>
     <div>
       <a href="/playoffs/NBA_2021.html">2021 NBA Playoffs</a>,
-      <a href="/playoffs/NBA_2020.html">2020 NBA Playoffs</a>, 
-      <a href="/playoffs/NBA_2019.html">2019 NBA Playoffs</a>, 
-      <a href="/playoffs/NBA_2018.html">2018 NBA Playoffs</a>, 
-      <a href="/playoffs/NBA_2017.html">2017 NBA Playoffs</a>, 
+      <a href="/playoffs/NBA_2020.html">2020 NBA Playoffs</a>,
+      <a href="/playoffs/NBA_2019.html">2019 NBA Playoffs</a>,
+      <a href="/playoffs/NBA_2018.html">2018 NBA Playoffs</a>,
+      <a href="/playoffs/NBA_2017.html">2017 NBA Playoffs</a>,
       <a href="/playoffs/">Playoffs Series History</a>
       ...
     </div>
@@ -1296,9 +1296,9 @@ var sr_menus_checkInfoCookie_run_inline = true;
   <li>
     <a href="/allstar/">All-Star Games</a>
     <div>
-      <a href="/allstar/NBA_2021.html">2021 All-Star Game</a>, 
-      <a href="/allstar/NBA_2020.html">2020 All-Star Game</a>, 
-      <a href="/allstar/NBA_2019.html">2019 All-Star Game</a>, 
+      <a href="/allstar/NBA_2021.html">2021 All-Star Game</a>,
+      <a href="/allstar/NBA_2020.html">2020 All-Star Game</a>,
+      <a href="/allstar/NBA_2019.html">2019 All-Star Game</a>,
       <a href="/allstar/NBA_2018.html">2018 All-Star Game</a>
       ...
     </div>
@@ -1308,11 +1308,11 @@ var sr_menus_checkInfoCookie_run_inline = true;
     <a href="/draft/">NBA Draft</a>
     <div>
       <a href="/draft/NBA_2021.html">2021 Draft</a>,
-      <a href="/draft/NBA_2020.html">2020 Draft</a>, 
-      <a href="/draft/NBA_2019.html">2019 Draft</a>, 
-      <a href="/draft/NBA_2018.html">2018 Draft</a>, 
-      <a href="/draft/NBA_2017.html">2017 Draft</a>, 
-      <a href="/draft/NBA_2016.html">2016 Draft</a>, 
+      <a href="/draft/NBA_2020.html">2020 Draft</a>,
+      <a href="/draft/NBA_2019.html">2019 Draft</a>,
+      <a href="/draft/NBA_2018.html">2018 Draft</a>,
+      <a href="/draft/NBA_2017.html">2017 Draft</a>,
+      <a href="/draft/NBA_2016.html">2016 Draft</a>,
       ...
     </div>
   </li>
@@ -1414,13 +1414,13 @@ var sr_menus_checkInfoCookie_run_inline = true;
 
 
 
-			
+
 		</div><!-- div#site_menu -->
 		<div>
 			<div id="social" class="icon_group noload">
-	
+
 <div class="section_heading assoc_" id="_sh">
-  <span class="section_anchor" id="_link" data-label="We're Social...for Statheads" data-no-inpage="1"></span><h2>We're Social...for Statheads</h2>		
+  <span class="section_anchor" id="_link" data-label="We're Social...for Statheads" data-no-inpage="1"></span><h2>We're Social...for Statheads</h2>
 </div>
 	<a href="tel://888-512-8907" data-tip="Call us on Telephone" data-label="Telephone" aria-label="Telephone" class="poptip"><svg class="icon phone"><use xlink:href="#ic-phone"></use></svg></a>
 	<a href="//www.sports-reference.com/blog/" data-tip="The Sports Reference Blog" data-label="Our Blog" aria-label="Our Blog" class="poptip"><svg class="icon wordpress"><use xlink:href="#ic-wordpress"></use></svg></a>
@@ -1449,9 +1449,9 @@ var sr_menus_checkInfoCookie_run_inline = true;
 </div><!-- div#social -->
 
 			<div id="tips_tricks">
-   
+
 <div class="section_heading assoc_tips" id="tips_sh">
-  <span class="section_anchor" id="tips_link" data-label="FAQs, Tip &amp; Tricks" data-no-inpage="1"></span><h2>FAQs, Tip &amp; Tricks</h2>		
+  <span class="section_anchor" id="tips_link" data-label="FAQs, Tip &amp; Tricks" data-no-inpage="1"></span><h2>FAQs, Tip &amp; Tricks</h2>
 </div>
    <ul>
 <!-- no Local/FooterTipsTricks.tt2 -->
@@ -1466,16 +1466,16 @@ var sr_menus_checkInfoCookie_run_inline = true;
 				<p>All logos are the trademark &amp; property of their owners and not Sports Reference LLC.  We present them here for purely educational purposes.
 				<a href="https://www.sports-reference.com/blog/2016/06/redesign-team-and-league-logos-courtesy-sportslogos-net/">Our reasoning for presenting offensive logos.</a></p>
 				<p>
-					
+
 					Logos were compiled by the amazing <a href="http://sportslogos.net/">SportsLogos.net.</a>
 				</p>
-				
+
 <div class="notice">
 <p>Data Provided By
 	<a href="https://www.sportradar.com/" rel="nofollow"><img alt="SportRadar" border=0 width=275 src="https://d2p3bygnnzw9w3.cloudfront.net/req/202203311/images/klecko/sportradar.png"  style="background-color:#666; padding:.5em; border-radius:.25em"></a>
 	the official stats partner of the NBA.</p>
-	
-	
+
+
 </div>
 
      <p>Copyright &copy; 2000-2022 <a href="//www.sports-reference.com/">Sports Reference LLC</a>. All rights reserved.</p>
@@ -1493,9 +1493,9 @@ var sr_menus_checkInfoCookie_run_inline = true;
 	<li><a href="https://www.hockey-reference.com/">Hockey</a></li>
 
 
-	
-	
-	
+
+
+
 	<li><a href="https://fbref.com/de/">Fußball</a></li>
 
 	<li><a href="https://www.sports-reference.com/blog/">Blog</a></li>
@@ -1522,7 +1522,7 @@ var sr_menus_checkInfoCookie_run_inline = true;
 </div><!-- div#wrap -->
 <!-- yes sticky url:  https://www.basketball-reference.com/leagues/NBA_2022_games.html -->
 <div id="fs-select-footer"></div>
-      
+
 
 
 
@@ -1568,5 +1568,3 @@ var sr_menus_checkInfoCookie_run_inline = true;
 </body>
 <!-- SR -->
 </html>
-
-

@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from datetime import date, datetime
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -67,16 +68,18 @@ def get_season_type(todays_date: date | None = None) -> str:
     return season_type
 
 
-def check_schedule(date: datetime.date) -> bool:
+def check_schedule(game_date: date | str) -> bool:
     """Schedule Checker used in Boxscores + PBP
 
     Args:
-        date (datetime.date): The Date to check for games on.
+        game_date (date): The Date to check for games on.
 
     Returns:
         Boolean: True if there are games scheduled, False if not.
     """
-    schedule_endpoint = f"https://api.jyablonski.dev/v1/league/schedule?date={date}"
+    schedule_endpoint = (
+        f"https://api.jyablonski.dev/v1/league/schedule?date={game_date}"
+    )
     schedule_data = requests.get(schedule_endpoint).json()
 
     return len(schedule_data) > 0
@@ -146,7 +149,12 @@ def clean_player_names(name: str) -> str:
         raise
 
 
-def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> None:
+def write_to_sql(
+    con,
+    table_name: str,
+    df: pd.DataFrame,
+    table_type: Literal["fail", "replace", "append"],
+) -> None:
     """Simple Wrapper Function to write a Pandas DataFrame to SQL
 
     Args:
@@ -183,7 +191,7 @@ def write_to_sql(con, table_name: str, df: pd.DataFrame, table_type: str) -> Non
         return
 
 
-def query_logs(log_file: str = "logs/example.log") -> list[str]:
+def query_logs(log_file: str | os.PathLike[str] = "logs/example.log") -> list[str]:
     """Small Function to read Logs CSV File and grab Errors
 
     Args:
@@ -192,7 +200,7 @@ def query_logs(log_file: str = "logs/example.log") -> list[str]:
     Returns:
         list of Error Messages to be passed into Slack Function
     """
-    logs = pd.read_csv(log_file, sep=r"\\t", engine="python", header=None)
+    logs = pd.read_csv(str(log_file), sep=r"\\t", engine="python", header=None)
     logs = logs.rename(columns={0: "errors"})
     logs = logs.query("errors.str.contains('Failed')", engine="python")
     logs = logs["errors"].to_list()
@@ -202,7 +210,8 @@ def query_logs(log_file: str = "logs/example.log") -> list[str]:
 
 
 def write_to_slack(
-    errors: list, webhook_url: str = os.environ.get("WEBHOOK_URL", default="default")
+    errors: list[str] | dict[str, str],
+    webhook_url: str | None = None,
 ) -> int | None:
     """Function to write Errors out to Slack.
 
@@ -218,9 +227,15 @@ def write_to_slack(
         None, but writes the Errors to Slack if there are any
     """
     try:
+        if webhook_url is None:
+            webhook_url = os.environ.get("WEBHOOK_URL", "default")
+
         date = datetime.now().date()
         num_errors = len(errors)
-        str_dump = "\n".join(errors)
+        if isinstance(errors, dict):
+            str_dump = "\n".join(f"{key}: {value}" for key, value in errors.items())
+        else:
+            str_dump = "\n".join(errors)
 
         if num_errors > 0:
             response = requests.post(

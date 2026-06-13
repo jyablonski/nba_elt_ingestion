@@ -30,32 +30,20 @@ The `season` and `playoffs` flags are also read directly in `src/app.py` to buil
 
 ## Tests
 
-Use the Docker-backed flow when possible:
+Run the test suite with:
 
 ```bash
 make test
 ```
 
-This runs `docker/docker-compose-test.yml`, starts a real `postgres:16-alpine` container, bootstraps it with `docker/postgres_bootstrap.sql`, then runs pytest inside the `ingestion_script_test_runner` container.
+This uses [Testcontainers](https://testcontainers.com/) to start an ephemeral `postgres:16-alpine` container, bootstrap it with `docker/postgres_bootstrap.sql`, and run pytest locally.
 
-For local pytest against a Docker Postgres container:
-
-```bash
-make ci-test
-```
-
-`make ci-test` starts the Postgres service, runs:
-
-```bash
-uv run --frozen pytest -vv --cov-report term --cov-report xml:coverage.xml --cov=src --color=yes
-```
-
-and then stops the container.
+Docker must be available on the machine running tests (including CI).
 
 `tests/conftest.py` is important:
 
-- it blocks real internet sockets, so tests should use fixtures/mocks instead of live network calls;
-- it creates a SQLAlchemy engine pointed at Docker Postgres;
+- it blocks real internet sockets (localhost and the Docker socket are still allowed for Testcontainers/Postgres), so tests should use fixtures/mocks instead of live network calls;
+- it starts Postgres via Testcontainers and creates a SQLAlchemy engine pointed at that container;
 - the session-scoped `load_feature_flags` fixture calls `FeatureFlagManager.load(engine=postgres_conn)`;
 - scraper fixtures patch HTTP calls and feed data from `tests/fixtures`.
 

@@ -10,3 +10,4 @@ logs/
 odds-local.csv
 src/*.csv
 .codex
+coverage.xml

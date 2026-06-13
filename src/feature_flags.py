@@ -1,7 +1,12 @@
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 import pandas as pd
-from sqlalchemy.engine import Connection, Engine
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Connection, Engine
 
 
 def get_feature_flags(connection: Connection | Engine) -> pd.DataFrame:
@@ -52,7 +57,7 @@ class FeatureFlagManager:
         cls._flags = df.set_index("flag")["is_enabled"].to_dict()
 
     @classmethod
-    def get(cls, flag: str) -> int:
+    def get(cls, flag: str) -> int | None:
         """_summary_
 
         Args:
