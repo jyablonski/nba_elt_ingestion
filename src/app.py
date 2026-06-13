@@ -5,7 +5,7 @@ from jyablonski_common_modules.logging import create_logger
 from jyablonski_common_modules.sql import create_sql_engine, write_to_sql_upsert
 
 from src.aws import write_to_s3
-from src.database import write_to_sql
+from src.database import filter_unchanged_rows, write_to_sql
 from src.feature_flags import FeatureFlagManager
 from src.scrapers import (
     get_boxscores_data,
@@ -14,6 +14,7 @@ from src.scrapers import (
     get_opp_stats_data,
     get_pbp_data,
     get_player_adv_stats_data,
+    get_player_contracts_data,
     get_player_stats_data,
     get_reddit_comments,
     get_reddit_data,
@@ -38,15 +39,15 @@ if __name__ == "__main__":
         host=os.environ.get("IP", default="default"),
         database=os.environ.get("RDS_DB", default="default"),
         schema=os.environ.get("RDS_SCHEMA", default="default"),
-        port=os.environ.get("RDS_PORT", default=5432),
+        port=int(os.environ.get("RDS_PORT", 5432)),
     )
     # load feature flags from db which implicitly get used in all of the
     # `get_*_data functions` to check if they need to run or not
     FeatureFlagManager.load(engine=engine)
     source_schema = "bronze"
     schedule_months_to_pull = generate_schedule_pull_type(
-        season_type=FeatureFlagManager.get("season"),
-        playoff_type=FeatureFlagManager.get("playoffs"),
+        season_type=FeatureFlagManager.get("season") or 0,
+        playoff_type=FeatureFlagManager.get("playoffs") or 0,
     )
 
     # STEP 1: Extract Raw Data
@@ -56,6 +57,7 @@ if __name__ == "__main__":
     injury_data = get_injuries_data()
     transactions = get_transactions_data()
     player_adv_stats = get_player_adv_stats_data()
+    player_contracts = get_player_contracts_data()
     team_adv_stats = get_team_adv_stats_data()
     odds = get_odds_data()
     reddit_data = get_reddit_data(sub="nba")
@@ -118,6 +120,22 @@ if __name__ == "__main__":
             schema=source_schema,
             df=player_adv_stats,
             primary_keys=["player", "team"],
+            update_timestamp_field="modified_at",
+        )
+        player_contracts_to_upsert = filter_unchanged_rows(
+            conn=connection,
+            schema=source_schema,
+            table="bbref_player_contracts",
+            df=player_contracts,
+            primary_keys=["player", "season"],
+            compare_columns=["season_salary"],
+        )
+        write_to_sql_upsert(
+            conn=connection,
+            table="bbref_player_contracts",
+            schema=source_schema,
+            df=player_contracts_to_upsert,
+            primary_keys=["player", "season"],
             update_timestamp_field="modified_at",
         )
         write_to_sql_upsert(
@@ -202,6 +220,7 @@ if __name__ == "__main__":
     write_to_s3(file_name="reddit_comment_data", df=reddit_comment_data)
     write_to_s3(file_name="pbp_data", df=pbp_data)
     write_to_s3(file_name="player_adv_stats", df=player_adv_stats)
+    write_to_s3(file_name="player_contracts", df=player_contracts)
     write_to_s3(file_name="opp_stats", df=opp_stats)
     write_to_s3(file_name="schedule", df=schedule)
     write_to_s3(file_name="shooting_stats", df=shooting_stats)

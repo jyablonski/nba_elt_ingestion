@@ -1,3 +1,5 @@
+import pytest
+
 from src.utils import write_to_slack
 
 
@@ -16,3 +18,10 @@ def test_write_to_slack_no_errors():
     response = write_to_slack(errors)
 
     assert response is None
+
+
+def test_write_to_slack_handles_request_error(mocker):
+    mocker.patch("src.utils.requests.post", side_effect=Exception("slack unavailable"))
+
+    with pytest.raises(Exception, match="slack unavailable"):
+        write_to_slack(["boxscores failed"])

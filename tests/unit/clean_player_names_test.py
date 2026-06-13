@@ -18,3 +18,12 @@ def test_clean_player_names_2(test_input, expected_output):
     clean_name = clean_player_names(test_input)
 
     assert clean_name == expected_output
+
+
+def test_clean_player_names_raises_on_invalid_input():
+    class BadName(str):
+        def replace(self, *args, **kwargs):
+            raise AttributeError("invalid name")
+
+    with pytest.raises(AttributeError, match="invalid name"):
+        clean_player_names(BadName("Bad Name Jr."))

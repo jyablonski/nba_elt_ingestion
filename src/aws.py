@@ -1,18 +1,23 @@
+from __future__ import annotations
+
 import logging
 import os
-from datetime import datetime
+from datetime import date, datetime
+from typing import TYPE_CHECKING
 
 import awswrangler as wr
-import pandas as pd
 
 from src.utils import get_leading_zeroes
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 def write_to_s3(
     file_name: str,
     df: pd.DataFrame,
-    date: datetime.date = datetime.now().date(),
-    bucket: str = os.environ.get("S3_BUCKET"),
+    date: date | None = None,
+    bucket: str | None = None,
 ) -> None:
     """S3 Function using awswrangler to write file.  Only supports parquet right now.
 
@@ -30,6 +35,11 @@ def write_to_s3(
         Writes the Pandas DataFrame to an S3 File.
 
     """
+    if date is None:
+        date = datetime.now().date()
+    if bucket is None:
+        bucket = os.environ.get("S3_BUCKET", "")
+
     year_partition = date.year
     month_partition = get_leading_zeroes(value=date.month)
     file_name_jn = f"{file_name}-{date}"

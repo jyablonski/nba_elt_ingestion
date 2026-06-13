@@ -19,23 +19,23 @@
 	element.async = true;
 	element.type = 'text/javascript';
 	element.src = url;
-	
+
 	firstScript.parentNode.insertBefore(element, firstScript);
-	
+
 	function makeStub() {
 	    var TCF_LOCATOR_NAME = '__tcfapiLocator';
 	    var queue = [];
 	    var win = window;
 	    var cmpFrame;
-	    
+
 	    function addFrame() {
 		var doc = win.document;
 		var otherCMP = !!(win.frames[TCF_LOCATOR_NAME]);
-		
+
 		if (!otherCMP) {
 		    if (doc.body) {
 			var iframe = doc.createElement('iframe');
-			
+
 			iframe.style.cssText = 'display:none';
 			iframe.name = TCF_LOCATOR_NAME;
 			doc.body.appendChild(iframe);
@@ -45,11 +45,11 @@
 		}
 		return !otherCMP;
 	    }
-	    
+
 	    function tcfAPIHandler() {
 		var gdprApplies;
 		var args = arguments;
-		
+
 		if (!args.length) {
 		    return queue;
 		} else if (args[0] === 'setGdprApplies') {
@@ -69,7 +69,7 @@
 			cmpLoaded: false,
 			cmpStatus: 'stub'
 		    };
-		    
+
 		    if (typeof args[2] === 'function') {
 			args[2](retr);
 		    }
@@ -77,11 +77,11 @@
 		    queue.push(args);
 		}
 	    }
-	    
+
 	    function postMessageEventHandler(event) {
 		var msgIsString = typeof event.data === 'string';
 		var json = {};
-		
+
 		try {
 		    if (msgIsString) {
 			json = JSON.parse(event.data);
@@ -89,9 +89,9 @@
 			json = event.data;
 		    }
 		} catch (ignore) {}
-		
+
 		var payload = json.__tcfapiCall;
-		
+
 		if (payload) {
 		    window.__tcfapi(
 			payload.command,
@@ -113,7 +113,7 @@
 		    );
 		}
 	    }
-	    
+
 	    while (win) {
 		try {
 		    if (win.frames[TCF_LOCATOR_NAME]) {
@@ -121,7 +121,7 @@
 			break;
 		    }
 		} catch (ignore) {}
-		
+
 		if (win === window.top) {
 		    break;
 		}
@@ -133,9 +133,9 @@
 		win.addEventListener('message', postMessageEventHandler, false);
 	    }
 	};
-	
+
 	makeStub();
-	
+
 	var uspStubFunction = function() {
 	    var arg = arguments;
 	    if (typeof window.__uspapi !== uspStubFunction) {
@@ -146,7 +146,7 @@
 		}, 500);
 	    }
 	};
-	
+
 	var checkIfUspIsReady = function() {
 	    uspTries++;
 	    if (window.__uspapi === uspStubFunction && uspTries < uspTriesLimit) {
@@ -155,7 +155,7 @@
 		clearInterval(uspInterval);
 	    }
 	};
-	
+
 	if (typeof window.__uspapi === 'undefined') {
 	    window.__uspapi = uspStubFunction;
 	    var uspInterval = setInterval(checkIfUspIsReady, 6000);
@@ -167,8 +167,8 @@
 
     <title>NBA Daily Stats Leaders for January 10, 2022 | Basketball-Reference.com</title>
 
-    
-    
+
+
     <meta name="Description" content="Daily statistical leaders in the NBA">
     <link rel="canonical" href="https://www.basketball-reference.com/friv/dailyleaders.fcgi" />
 
@@ -218,7 +218,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
     <meta name="theme-color" content="#4d4438" />
     <meta name="msapplication-navbutton-color" content="#4d4438" />
     <meta name="apple-mobile-web-app-status-bar-style" content="#4d4438" />
-    
+
 
     <!-- HeaderSeoSocial -->
     <meta name="keywords" content="January 10, 2022, daily leaders">
@@ -277,7 +277,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
     else {
          freestar.config.enabled_slots.push('div-gpt-ad-160x600-1');
          freestar.config.enabled_slots.push('div-gpt-ad-160x600-2');
-    } 
+    }
 
 </script>
 <script data-cfasync="false" type="text/javascript">
@@ -292,7 +292,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
 !function(a,b){
     if (sr_detect_ie || sr_detect_edge || Modernizr.adfree) {
         return;
-    }  
+    }
     var c=b.getElementsByTagName("script")[0],
     d=b.createElement("script"),
     e="https://a.pub.network/basketball-reference";
@@ -311,7 +311,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
 </head>
 <body class="bbr">
 <div id="wrap">
-  
+
   <div id="header" role="banner">
   <ul id="subnav" class="notranslate">
 	<li><a href="https://www.sports-reference.com/"><svg height="15px" width="20px"><use xlink:href="#ic-sr-pennant"></use></svg> Sports Reference</a></li>
@@ -321,9 +321,9 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
 	<li><a href="https://www.hockey-reference.com/">Hockey</a></li>
 
 
-	
-	
-	
+
+
+
 	<li><a href="https://fbref.com/pt/">Futebol</a></li>
 
 	<li><a href="https://www.sports-reference.com/blog/">Blog</a></li>
@@ -347,7 +347,7 @@ loadJS( _sr_modern_url, function() { vjs_ready(sr_fire_js); });
 <li id="header_leagues" ><a href="/leagues/">Seasons</a></li>
 <li id="header_leaders" ><a href="/leaders/">Leaders</a></li>
 <li id="header_scores" ><a href="/boxscores/">Scores</a></li>
-<li id="header_wnba" class=""><a href="/wnba/">WNBA</a></li>	
+<li id="header_wnba" class=""><a href="/wnba/">WNBA</a></li>
 <li id="header_draft" class=""><a href="/draft/">Draft</a></li>
 <li id="header_stathead" class=""><a target='_blank' rel='noopener' href="https://stathead.com/basketball/">Stathead</a></li>
 <li id="header_newsletter" class=""><a target='_blank' rel='noopener' href="https://stathead.com/newsletter.cgi?site_sub=bbr">Newsletter</a></li>
@@ -437,23 +437,23 @@ sr_menus_setupMainNav_button_inline();
 
 <div id="content" role="main" class="index">
 	<h1>NBA Daily Stats Leaders for January 10, 2022</h1>
-        
 
 
-          
-      
-      
-      
-      
-      
-         
+
+
+
+
+
+
+
+
             <div class="prevnext">
-  
+
   <a href="/friv/dailyleaders.fcgi?month=1&day=9&year=2022&type=all" class="button2 prev">Jan 9, 2022</a>
   <span class="button2 current">Jan 10, 2022</span>
-  
-  
-  
+
+
+
 </div>
 <form action='dailyleaders.fcgi' method='get' class='srbasic'>
 <div class='fieldset linear group'>
@@ -595,13 +595,13 @@ sr_menus_setupMainNav_button_inline();
 </div>
 </form>
 
-            
-            
-            
-         
-      
-         
-            
+
+
+
+
+
+
+
 <div id="all_stats" class="table_wrapper">
 
 <div class="section_heading assoc_stats" id="stats_sh">
@@ -609,15 +609,15 @@ sr_menus_setupMainNav_button_inline();
       <ul><li><a href='/friv/dailyleaders.fcgi?month=1&day=10&year=2022&type=rookie'>Show All Rookies</a></li>
       </ul>
     </div>
-    		
+
 </div>
 <div class="table_container" id="div_stats">
-    
+
     <table class="sortable stats_table" id="stats" data-cols-to-freeze=",2">
     <caption>145 Players Table</caption>
-    
+
    <colgroup><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col><col></colgroup>
-   <thead>      
+   <thead>
       <tr>
          <th aria-label="Rank" data-stat="ranker" scope="col" class="ranker poptip sort_default_asc show_partial_when_sorting right" data-tip="Rank" >Rk</th>
          <th aria-label="Player" data-stat="player" scope="col" class=" poptip sort_default_asc left" >Player</th>
@@ -668,7 +668,7 @@ sr_menus_setupMainNav_button_inline();
 <tr ><th scope="row" class="right " data-stat="ranker" csk="18" >18</th><td class="left " data-append-csv="josepco01" data-stat="player" csk="Joseph,Cory" ><a href="/players/j/josepco01.html">Cory Joseph</a></td><td class="left " data-stat="team_id" ><a href="/teams/DET/2022.html">DET</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/UTA/2022.html">UTA</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100DET.html">W</a></td><td class="right " data-stat="mp" csk="1520" >25:20</td><td class="right " data-stat="fg" >5</td><td class="right " data-stat="fga" >8</td><td class="right " data-stat="fg_pct" >.625</td><td class="right " data-stat="fg3" >4</td><td class="right " data-stat="fg3a" >4</td><td class="right " data-stat="fg3_pct" >1.000</td><td class="right " data-stat="ft" >2</td><td class="right " data-stat="fta" >2</td><td class="right " data-stat="ft_pct" >1.000</td><td class="right iz" data-stat="orb" >0</td><td class="right " data-stat="drb" >1</td><td class="right " data-stat="trb" >1</td><td class="right " data-stat="ast" >4</td><td class="right " data-stat="stl" >2</td><td class="right iz" data-stat="blk" >0</td><td class="right iz" data-stat="tov" >0</td><td class="right " data-stat="pf" >2</td><td class="right " data-stat="pts" >16</td><td class="right " data-stat="plus_minus" >+5</td><td class="right " data-stat="game_score" >16.7</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="19" >19</th><td class="left " data-append-csv="sabondo01" data-stat="player" csk="Sabonis,Domantas" ><a href="/players/s/sabondo01.html">Domantas Sabonis</a></td><td class="left " data-stat="team_id" ><a href="/teams/IND/2022.html">IND</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/BOS/2022.html">BOS</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100BOS.html">L</a></td><td class="right " data-stat="mp" csk="2672" >44:32</td><td class="right " data-stat="fg" >3</td><td class="right " data-stat="fga" >12</td><td class="right " data-stat="fg_pct" >.250</td><td class="right iz" data-stat="fg3" >0</td><td class="right iz" data-stat="fg3a" >0</td><td class="right iz" data-stat="fg3_pct" ></td><td class="right " data-stat="ft" >5</td><td class="right " data-stat="fta" >6</td><td class="right " data-stat="ft_pct" >.833</td><td class="right " data-stat="orb" >8</td><td class="right " data-stat="drb" >15</td><td class="right " data-stat="trb" >23</td><td class="right " data-stat="ast" >10</td><td class="right " data-stat="stl" >1</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >4</td><td class="right " data-stat="pf" >2</td><td class="right " data-stat="pts" >11</td><td class="right " data-stat="plus_minus" >+6</td><td class="right " data-stat="game_score" >16.7</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="20" >20</th><td class="left " data-append-csv="nworajo01" data-stat="player" csk="Nwora,Jordan" ><a href="/players/n/nworajo01.html">Jordan Nwora</a></td><td class="left " data-stat="team_id" ><a href="/teams/MIL/2022.html">MIL</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/CHO/2022.html">CHO</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100CHO.html">L</a></td><td class="right " data-stat="mp" csk="1733" >28:53</td><td class="right " data-stat="fg" >7</td><td class="right " data-stat="fga" >10</td><td class="right " data-stat="fg_pct" >.700</td><td class="right " data-stat="fg3" >4</td><td class="right " data-stat="fg3a" >7</td><td class="right " data-stat="fg3_pct" >.571</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right " data-stat="orb" >1</td><td class="right " data-stat="drb" >2</td><td class="right " data-stat="trb" >3</td><td class="right " data-stat="ast" >1</td><td class="right " data-stat="stl" >2</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >1</td><td class="right " data-stat="pf" >1</td><td class="right " data-stat="pts" >18</td><td class="right " data-stat="plus_minus" >+20</td><td class="right " data-stat="game_score" >16.4</td></tr>
-      
+
       <tr class="thead">
          <th aria-label="Rank" data-stat="ranker" class="ranker sort_default_asc show_partial_when_sorting right" data-tip="Rank" >Rk</th>
          <th aria-label="Player" data-stat="player" class=" sort_default_asc left" >Player</th>
@@ -718,7 +718,7 @@ sr_menus_setupMainNav_button_inline();
 <tr ><th scope="row" class="right " data-stat="ranker" csk="38" >38</th><td class="left " data-append-csv="bridgmi02" data-stat="player" csk="Bridges,Miles" ><a href="/players/b/bridgmi02.html">Miles Bridges</a></td><td class="left " data-stat="team_id" ><a href="/teams/CHO/2022.html">CHO</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/MIL/2022.html">MIL</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100CHO.html">W</a></td><td class="right " data-stat="mp" csk="2465" >41:05</td><td class="right " data-stat="fg" >7</td><td class="right " data-stat="fga" >19</td><td class="right " data-stat="fg_pct" >.368</td><td class="right iz" data-stat="fg3" >0</td><td class="right " data-stat="fg3a" >3</td><td class="right iz" data-stat="fg3_pct" >.000</td><td class="right " data-stat="ft" >3</td><td class="right " data-stat="fta" >4</td><td class="right " data-stat="ft_pct" >.750</td><td class="right " data-stat="orb" >2</td><td class="right " data-stat="drb" >9</td><td class="right " data-stat="trb" >11</td><td class="right " data-stat="ast" >2</td><td class="right " data-stat="stl" >1</td><td class="right " data-stat="blk" >1</td><td class="right iz" data-stat="tov" >0</td><td class="right " data-stat="pf" >3</td><td class="right " data-stat="pts" >17</td><td class="right " data-stat="plus_minus" >+15</td><td class="right " data-stat="game_score" >12.1</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="39" >39</th><td class="left " data-append-csv="diallha01" data-stat="player" csk="Diallo,Hamidou" ><a href="/players/d/diallha01.html">Hamidou Diallo</a></td><td class="left " data-stat="team_id" ><a href="/teams/DET/2022.html">DET</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/UTA/2022.html">UTA</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100DET.html">W</a></td><td class="right " data-stat="mp" csk="1433" >23:53</td><td class="right " data-stat="fg" >4</td><td class="right " data-stat="fga" >7</td><td class="right " data-stat="fg_pct" >.571</td><td class="right " data-stat="fg3" >1</td><td class="right " data-stat="fg3a" >1</td><td class="right " data-stat="fg3_pct" >1.000</td><td class="right " data-stat="ft" >1</td><td class="right " data-stat="fta" >2</td><td class="right " data-stat="ft_pct" >.500</td><td class="right iz" data-stat="orb" >0</td><td class="right " data-stat="drb" >8</td><td class="right " data-stat="trb" >8</td><td class="right " data-stat="ast" >4</td><td class="right " data-stat="stl" >2</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >1</td><td class="right " data-stat="pf" >1</td><td class="right " data-stat="pts" >10</td><td class="right " data-stat="plus_minus" >+9</td><td class="right " data-stat="game_score" >12.1</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="40" >40</th><td class="left " data-append-csv="pascher01" data-stat="player" csk="Paschall,Eric" ><a href="/players/p/pascher01.html">Eric Paschall</a></td><td class="left " data-stat="team_id" ><a href="/teams/UTA/2022.html">UTA</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/DET/2022.html">DET</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100DET.html">L</a></td><td class="right " data-stat="mp" csk="1067" >17:47</td><td class="right " data-stat="fg" >4</td><td class="right " data-stat="fga" >6</td><td class="right " data-stat="fg_pct" >.667</td><td class="right iz" data-stat="fg3" >0</td><td class="right " data-stat="fg3a" >1</td><td class="right iz" data-stat="fg3_pct" >.000</td><td class="right " data-stat="ft" >5</td><td class="right " data-stat="fta" >6</td><td class="right " data-stat="ft_pct" >.833</td><td class="right " data-stat="orb" >2</td><td class="right " data-stat="drb" >1</td><td class="right " data-stat="trb" >3</td><td class="right " data-stat="ast" >2</td><td class="right iz" data-stat="stl" >0</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >1</td><td class="right " data-stat="pf" >1</td><td class="right " data-stat="pts" >13</td><td class="right " data-stat="plus_minus" >+6</td><td class="right " data-stat="game_score" >11.7</td></tr>
-      
+
       <tr class="thead">
          <th aria-label="Rank" data-stat="ranker" class="ranker sort_default_asc show_partial_when_sorting right" data-tip="Rank" >Rk</th>
          <th aria-label="Player" data-stat="player" class=" sort_default_asc left" >Player</th>
@@ -768,7 +768,7 @@ sr_menus_setupMainNav_button_inline();
 <tr ><th scope="row" class="right " data-stat="ranker" csk="58" >58</th><td class="left " data-append-csv="nurkiju01" data-stat="player" csk="Nurkić,Jusuf" ><a href="/players/n/nurkiju01.html">Jusuf Nurkić</a></td><td class="left " data-stat="team_id" ><a href="/teams/POR/2022.html">POR</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/BRK/2022.html">BRK</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100POR.html">W</a></td><td class="right " data-stat="mp" csk="1972" >32:52</td><td class="right " data-stat="fg" >4</td><td class="right " data-stat="fga" >13</td><td class="right " data-stat="fg_pct" >.308</td><td class="right iz" data-stat="fg3" >0</td><td class="right " data-stat="fg3a" >2</td><td class="right iz" data-stat="fg3_pct" >.000</td><td class="right " data-stat="ft" >6</td><td class="right " data-stat="fta" >8</td><td class="right " data-stat="ft_pct" >.750</td><td class="right " data-stat="orb" >2</td><td class="right " data-stat="drb" >6</td><td class="right " data-stat="trb" >8</td><td class="right " data-stat="ast" >3</td><td class="right " data-stat="stl" >1</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >2</td><td class="right " data-stat="pf" >3</td><td class="right " data-stat="pts" >14</td><td class="right " data-stat="plus_minus" >+5</td><td class="right " data-stat="game_score" >8.8</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="59" >59</th><td class="left " data-append-csv="stevela01" data-stat="player" csk="Stevens,Lamar" ><a href="/players/s/stevela01.html">Lamar Stevens</a></td><td class="left " data-stat="team_id" ><a href="/teams/CLE/2022.html">CLE</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/SAC/2022.html">SAC</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100SAC.html">W</a></td><td class="right " data-stat="mp" csk="1210" >20:10</td><td class="right " data-stat="fg" >4</td><td class="right " data-stat="fga" >5</td><td class="right " data-stat="fg_pct" >.800</td><td class="right " data-stat="fg3" >1</td><td class="right " data-stat="fg3a" >1</td><td class="right " data-stat="fg3_pct" >1.000</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right " data-stat="orb" >2</td><td class="right " data-stat="drb" >1</td><td class="right " data-stat="trb" >3</td><td class="right " data-stat="ast" >2</td><td class="right " data-stat="stl" >1</td><td class="right " data-stat="blk" >1</td><td class="right " data-stat="tov" >2</td><td class="right " data-stat="pf" >3</td><td class="right " data-stat="pts" >9</td><td class="right " data-stat="plus_minus" >-1</td><td class="right " data-stat="game_score" >8.7</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="60" >60</th><td class="left " data-append-csv="martico01" data-stat="player" csk="Martin,Cody" ><a href="/players/m/martico01.html">Cody Martin</a></td><td class="left " data-stat="team_id" ><a href="/teams/CHO/2022.html">CHO</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/MIL/2022.html">MIL</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100CHO.html">W</a></td><td class="right " data-stat="mp" csk="1689" >28:09</td><td class="right " data-stat="fg" >3</td><td class="right " data-stat="fga" >5</td><td class="right " data-stat="fg_pct" >.600</td><td class="right " data-stat="fg3" >2</td><td class="right " data-stat="fg3a" >3</td><td class="right " data-stat="fg3_pct" >.667</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right iz" data-stat="orb" >0</td><td class="right " data-stat="drb" >3</td><td class="right " data-stat="trb" >3</td><td class="right " data-stat="ast" >2</td><td class="right " data-stat="stl" >3</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >2</td><td class="right " data-stat="pf" >1</td><td class="right " data-stat="pts" >8</td><td class="right " data-stat="plus_minus" >+8</td><td class="right " data-stat="game_score" >8.6</td></tr>
-      
+
       <tr class="thead">
          <th aria-label="Rank" data-stat="ranker" class="ranker sort_default_asc show_partial_when_sorting right" data-tip="Rank" >Rk</th>
          <th aria-label="Player" data-stat="player" class=" sort_default_asc left" >Player</th>
@@ -818,7 +818,7 @@ sr_menus_setupMainNav_button_inline();
 <tr ><th scope="row" class="right " data-stat="ranker" csk="78" >78</th><td class="left " data-append-csv="hoodro01" data-stat="player" csk="Hood,Rodney" ><a href="/players/h/hoodro01.html">Rodney Hood</a></td><td class="left " data-stat="team_id" ><a href="/teams/MIL/2022.html">MIL</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/CHO/2022.html">CHO</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100CHO.html">L</a></td><td class="right " data-stat="mp" csk="795" >13:15</td><td class="right " data-stat="fg" >2</td><td class="right " data-stat="fga" >3</td><td class="right " data-stat="fg_pct" >.667</td><td class="right " data-stat="fg3" >2</td><td class="right " data-stat="fg3a" >3</td><td class="right " data-stat="fg3_pct" >.667</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right iz" data-stat="orb" >0</td><td class="right " data-stat="drb" >2</td><td class="right " data-stat="trb" >2</td><td class="right " data-stat="ast" >1</td><td class="right iz" data-stat="stl" >0</td><td class="right iz" data-stat="blk" >0</td><td class="right iz" data-stat="tov" >0</td><td class="right iz" data-stat="pf" >0</td><td class="right " data-stat="pts" >6</td><td class="right " data-stat="plus_minus" >+12</td><td class="right " data-stat="game_score" >6.0</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="79" >79</th><td class="left " data-append-csv="wieskjo01" data-stat="player" csk="Wieskamp,Joe" ><a href="/players/w/wieskjo01.html">Joe Wieskamp</a></td><td class="left " data-stat="team_id" ><a href="/teams/SAS/2022.html">SAS</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/NYK/2022.html">NYK</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100NYK.html">L</a></td><td class="right " data-stat="mp" csk="696" >11:36</td><td class="right " data-stat="fg" >2</td><td class="right " data-stat="fga" >2</td><td class="right " data-stat="fg_pct" >1.000</td><td class="right " data-stat="fg3" >2</td><td class="right " data-stat="fg3a" >2</td><td class="right " data-stat="fg3_pct" >1.000</td><td class="right " data-stat="ft" >1</td><td class="right " data-stat="fta" >2</td><td class="right " data-stat="ft_pct" >.500</td><td class="right iz" data-stat="orb" >0</td><td class="right " data-stat="drb" >1</td><td class="right " data-stat="trb" >1</td><td class="right iz" data-stat="ast" >0</td><td class="right iz" data-stat="stl" >0</td><td class="right iz" data-stat="blk" >0</td><td class="right iz" data-stat="tov" >0</td><td class="right " data-stat="pf" >1</td><td class="right " data-stat="pts" >7</td><td class="right " data-stat="plus_minus" >+8</td><td class="right " data-stat="game_score" >5.9</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="80" >80</th><td class="left " data-append-csv="smithde03" data-stat="player" csk="Smith,Dennis" ><a href="/players/s/smithde03.html">Dennis Smith</a></td><td class="left " data-stat="team_id" ><a href="/teams/POR/2022.html">POR</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/BRK/2022.html">BRK</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100POR.html">W</a></td><td class="right " data-stat="mp" csk="788" >13:08</td><td class="right " data-stat="fg" >3</td><td class="right " data-stat="fga" >6</td><td class="right " data-stat="fg_pct" >.500</td><td class="right iz" data-stat="fg3" >0</td><td class="right iz" data-stat="fg3a" >0</td><td class="right iz" data-stat="fg3_pct" ></td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right " data-stat="orb" >1</td><td class="right iz" data-stat="drb" >0</td><td class="right " data-stat="trb" >1</td><td class="right " data-stat="ast" >3</td><td class="right " data-stat="stl" >1</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >1</td><td class="right iz" data-stat="pf" >0</td><td class="right " data-stat="pts" >6</td><td class="right " data-stat="plus_minus" >-8</td><td class="right " data-stat="game_score" >5.8</td></tr>
-      
+
       <tr class="thead">
          <th aria-label="Rank" data-stat="ranker" class="ranker sort_default_asc show_partial_when_sorting right" data-tip="Rank" >Rk</th>
          <th aria-label="Player" data-stat="player" class=" sort_default_asc left" >Player</th>
@@ -868,7 +868,7 @@ sr_menus_setupMainNav_button_inline();
 <tr ><th scope="row" class="right " data-stat="ranker" csk="98" >98</th><td class="left " data-append-csv="millspa02" data-stat="player" csk="Mills,Patty" ><a href="/players/m/millspa02.html">Patty Mills</a></td><td class="left " data-stat="team_id" ><a href="/teams/BRK/2022.html">BRK</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/POR/2022.html">POR</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100POR.html">L</a></td><td class="right " data-stat="mp" csk="1887" >31:27</td><td class="right " data-stat="fg" >1</td><td class="right " data-stat="fga" >5</td><td class="right " data-stat="fg_pct" >.200</td><td class="right " data-stat="fg3" >1</td><td class="right " data-stat="fg3a" >3</td><td class="right " data-stat="fg3_pct" >.333</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right iz" data-stat="orb" >0</td><td class="right iz" data-stat="drb" >0</td><td class="right iz" data-stat="trb" >0</td><td class="right " data-stat="ast" >5</td><td class="right iz" data-stat="stl" >0</td><td class="right " data-stat="blk" >1</td><td class="right iz" data-stat="tov" >0</td><td class="right " data-stat="pf" >1</td><td class="right " data-stat="pts" >3</td><td class="right " data-stat="plus_minus" >+2</td><td class="right " data-stat="game_score" >3.7</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="99" >99</th><td class="left " data-append-csv="turnemy01" data-stat="player" csk="Turner,Myles" ><a href="/players/t/turnemy01.html">Myles Turner</a></td><td class="left " data-stat="team_id" ><a href="/teams/IND/2022.html">IND</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/BOS/2022.html">BOS</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100BOS.html">L</a></td><td class="right " data-stat="mp" csk="1358" >22:38</td><td class="right " data-stat="fg" >2</td><td class="right " data-stat="fga" >7</td><td class="right " data-stat="fg_pct" >.286</td><td class="right iz" data-stat="fg3" >0</td><td class="right " data-stat="fg3a" >4</td><td class="right iz" data-stat="fg3_pct" >.000</td><td class="right " data-stat="ft" >2</td><td class="right " data-stat="fta" >2</td><td class="right " data-stat="ft_pct" >1.000</td><td class="right " data-stat="orb" >1</td><td class="right " data-stat="drb" >2</td><td class="right " data-stat="trb" >3</td><td class="right iz" data-stat="ast" >0</td><td class="right " data-stat="stl" >2</td><td class="right " data-stat="blk" >3</td><td class="right " data-stat="tov" >2</td><td class="right " data-stat="pf" >4</td><td class="right " data-stat="pts" >6</td><td class="right " data-stat="plus_minus" >-12</td><td class="right " data-stat="game_score" >3.7</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="100" >100</th><td class="left " data-append-csv="bembrde01" data-stat="player" csk="Bembry,DeAndre'" ><a href="/players/b/bembrde01.html">DeAndre' Bembry</a></td><td class="left " data-stat="team_id" ><a href="/teams/BRK/2022.html">BRK</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/POR/2022.html">POR</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100POR.html">L</a></td><td class="right " data-stat="mp" csk="1057" >17:37</td><td class="right " data-stat="fg" >2</td><td class="right " data-stat="fga" >5</td><td class="right " data-stat="fg_pct" >.400</td><td class="right iz" data-stat="fg3" >0</td><td class="right iz" data-stat="fg3a" >0</td><td class="right iz" data-stat="fg3_pct" ></td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right " data-stat="orb" >1</td><td class="right " data-stat="drb" >1</td><td class="right " data-stat="trb" >2</td><td class="right " data-stat="ast" >1</td><td class="right " data-stat="stl" >2</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >1</td><td class="right " data-stat="pf" >1</td><td class="right " data-stat="pts" >4</td><td class="right " data-stat="plus_minus" >-5</td><td class="right " data-stat="game_score" >3.6</td></tr>
-      
+
       <tr class="thead">
          <th aria-label="Rank" data-stat="ranker" class="ranker sort_default_asc show_partial_when_sorting right" data-tip="Rank" >Rk</th>
          <th aria-label="Player" data-stat="player" class=" sort_default_asc left" >Player</th>
@@ -918,7 +918,7 @@ sr_menus_setupMainNav_button_inline();
 <tr ><th scope="row" class="right " data-stat="ranker" csk="118" >118</th><td class="left " data-append-csv="willigr01" data-stat="player" csk="Williams,Grant" ><a href="/players/w/willigr01.html">Grant Williams</a></td><td class="left " data-stat="team_id" ><a href="/teams/BOS/2022.html">BOS</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/IND/2022.html">IND</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100BOS.html">W</a></td><td class="right " data-stat="mp" csk="1583" >26:23</td><td class="right " data-stat="fg" >1</td><td class="right " data-stat="fga" >6</td><td class="right " data-stat="fg_pct" >.167</td><td class="right " data-stat="fg3" >1</td><td class="right " data-stat="fg3a" >4</td><td class="right " data-stat="fg3_pct" >.250</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right iz" data-stat="orb" >0</td><td class="right " data-stat="drb" >1</td><td class="right " data-stat="trb" >1</td><td class="right " data-stat="ast" >1</td><td class="right " data-stat="stl" >2</td><td class="right iz" data-stat="blk" >0</td><td class="right iz" data-stat="tov" >0</td><td class="right " data-stat="pf" >1</td><td class="right " data-stat="pts" >3</td><td class="right " data-stat="plus_minus" >-4</td><td class="right " data-stat="game_score" >1.8</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="119" >119</th><td class="left " data-append-csv="bassech01" data-stat="player" csk="Bassey,Charles" ><a href="/players/b/bassech01.html">Charles Bassey</a></td><td class="left " data-stat="team_id" ><a href="/teams/PHI/2022.html">PHI</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/HOU/2022.html">HOU</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100HOU.html">W</a></td><td class="right " data-stat="mp" csk="271" >4:31</td><td class="right iz" data-stat="fg" >0</td><td class="right iz" data-stat="fga" >0</td><td class="right iz" data-stat="fg_pct" ></td><td class="right iz" data-stat="fg3" >0</td><td class="right iz" data-stat="fg3a" >0</td><td class="right iz" data-stat="fg3_pct" ></td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right " data-stat="orb" >1</td><td class="right iz" data-stat="drb" >0</td><td class="right " data-stat="trb" >1</td><td class="right iz" data-stat="ast" >0</td><td class="right " data-stat="stl" >1</td><td class="right " data-stat="blk" >1</td><td class="right iz" data-stat="tov" >0</td><td class="right " data-stat="pf" >2</td><td class="right iz" data-stat="pts" >0</td><td class="right " data-stat="plus_minus" >-5</td><td class="right " data-stat="game_score" >1.6</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="120" >120</th><td class="left " data-append-csv="daviste02" data-stat="player" csk="Davis,Terence" ><a href="/players/d/daviste02.html">Terence Davis</a></td><td class="left " data-stat="team_id" ><a href="/teams/SAC/2022.html">SAC</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/CLE/2022.html">CLE</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100SAC.html">L</a></td><td class="right " data-stat="mp" csk="206" >3:26</td><td class="right " data-stat="fg" >1</td><td class="right " data-stat="fga" >2</td><td class="right " data-stat="fg_pct" >.500</td><td class="right iz" data-stat="fg3" >0</td><td class="right " data-stat="fg3a" >1</td><td class="right iz" data-stat="fg3_pct" >.000</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right iz" data-stat="orb" >0</td><td class="right " data-stat="drb" >1</td><td class="right " data-stat="trb" >1</td><td class="right iz" data-stat="ast" >0</td><td class="right iz" data-stat="stl" >0</td><td class="right iz" data-stat="blk" >0</td><td class="right iz" data-stat="tov" >0</td><td class="right iz" data-stat="pf" >0</td><td class="right " data-stat="pts" >2</td><td class="right " data-stat="plus_minus" >+2</td><td class="right " data-stat="game_score" >1.3</td></tr>
-      
+
       <tr class="thead">
          <th aria-label="Rank" data-stat="ranker" class="ranker sort_default_asc show_partial_when_sorting right" data-tip="Rank" >Rk</th>
          <th aria-label="Player" data-stat="player" class=" sort_default_asc left" >Player</th>
@@ -968,7 +968,7 @@ sr_menus_setupMainNav_button_inline();
 <tr ><th scope="row" class="right " data-stat="ranker" csk="138" >138</th><td class="left " data-append-csv="mcdanja01" data-stat="player" csk="McDaniels,Jalen" ><a href="/players/m/mcdanja01.html">Jalen McDaniels</a></td><td class="left " data-stat="team_id" ><a href="/teams/CHO/2022.html">CHO</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/MIL/2022.html">MIL</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100CHO.html">W</a></td><td class="right " data-stat="mp" csk="622" >10:22</td><td class="right " data-stat="fg" >1</td><td class="right " data-stat="fga" >7</td><td class="right " data-stat="fg_pct" >.143</td><td class="right " data-stat="fg3" >1</td><td class="right " data-stat="fg3a" >4</td><td class="right " data-stat="fg3_pct" >.250</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right iz" data-stat="orb" >0</td><td class="right " data-stat="drb" >2</td><td class="right " data-stat="trb" >2</td><td class="right " data-stat="ast" >1</td><td class="right iz" data-stat="stl" >0</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >1</td><td class="right iz" data-stat="pf" >0</td><td class="right " data-stat="pts" >3</td><td class="right " data-stat="plus_minus" >-14</td><td class="right " data-stat="game_score" >-1.2</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="139" >139</th><td class="left " data-append-csv="augusdj01" data-stat="player" csk="Augustin,D.J." ><a href="/players/a/augusdj01.html">D.J. Augustin</a></td><td class="left " data-stat="team_id" ><a href="/teams/HOU/2022.html">HOU</a></td><td class="center iz" data-stat="game_location" ></td><td class="left " data-stat="opp_id" ><a href="/teams/PHI/2022.html">PHI</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100HOU.html">L</a></td><td class="right " data-stat="mp" csk="900" >15:00</td><td class="right iz" data-stat="fg" >0</td><td class="right " data-stat="fga" >3</td><td class="right iz" data-stat="fg_pct" >.000</td><td class="right iz" data-stat="fg3" >0</td><td class="right " data-stat="fg3a" >2</td><td class="right iz" data-stat="fg3_pct" >.000</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right " data-stat="orb" >1</td><td class="right " data-stat="drb" >1</td><td class="right " data-stat="trb" >2</td><td class="right " data-stat="ast" >1</td><td class="right iz" data-stat="stl" >0</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >1</td><td class="right iz" data-stat="pf" >0</td><td class="right iz" data-stat="pts" >0</td><td class="right " data-stat="plus_minus" >-2</td><td class="right " data-stat="game_score" >-1.4</td></tr>
 <tr ><th scope="row" class="right " data-stat="ranker" csk="140" >140</th><td class="left " data-append-csv="griffbl01" data-stat="player" csk="Griffin,Blake" ><a href="/players/g/griffbl01.html">Blake Griffin</a></td><td class="left " data-stat="team_id" ><a href="/teams/BRK/2022.html">BRK</a></td><td class="center " data-stat="game_location" >@</td><td class="left " data-stat="opp_id" ><a href="/teams/POR/2022.html">POR</a></td><td class="center " data-stat="game_result" ><a href="/boxscores/202201100POR.html">L</a></td><td class="right " data-stat="mp" csk="680" >11:20</td><td class="right iz" data-stat="fg" >0</td><td class="right " data-stat="fga" >4</td><td class="right iz" data-stat="fg_pct" >.000</td><td class="right iz" data-stat="fg3" >0</td><td class="right " data-stat="fg3a" >1</td><td class="right iz" data-stat="fg3_pct" >.000</td><td class="right iz" data-stat="ft" >0</td><td class="right iz" data-stat="fta" >0</td><td class="right iz" data-stat="ft_pct" ></td><td class="right iz" data-stat="orb" >0</td><td class="right " data-stat="drb" >2</td><td class="right " data-stat="trb" >2</td><td class="right " data-stat="ast" >3</td><td class="right iz" data-stat="stl" >0</td><td class="right iz" data-stat="blk" >0</td><td class="right " data-stat="tov" >1</td><td class="right " data-stat="pf" >1</td><td class="right iz" data-stat="pts" >0</td><td class="right " data-stat="plus_minus" >-11</td><td class="right " data-stat="game_score" >-1.5</td></tr>
-      
+
       <tr class="thead">
          <th aria-label="Rank" data-stat="ranker" class="ranker sort_default_asc show_partial_when_sorting right" data-tip="Rank" >Rk</th>
          <th aria-label="Player" data-stat="player" class=" sort_default_asc left" >Player</th>
@@ -1013,15 +1013,15 @@ sr_menus_setupMainNav_button_inline();
 
 </div>
 
-            
-            
-            
-         
-      
+
+
+
+
+
 
 <!-- global.nonempty_tables_num: 2, table_count: 2 -->
    <!-- no Local/Partials/NoteBottom.tt2 -->
-   
+
 
 </div><!-- div#content -->
 
@@ -1038,20 +1038,20 @@ sr_menus_setupMainNav_button_inline();
 
 	<div id="footer_general">
 		<div id="site_menu" role="navigation" aria-label="complete site index">
-			
-			
+
+
 <div class="section_heading assoc_site_menu" id="site_menu_sh">
   <span class="section_anchor" id="site_menu_link" data-label="Full Site Menu"></span><h2>Full Site Menu</h2>    <div class="section_heading_text">
       <ul><li><a data-scroll href="#header">Return to Top</a></li>
       </ul>
     </div>
-    		
+
 </div>
-			
+
 				<ul>
   <li>
     <a href="/players/">Players</a>
-    <div><strong>In the News</strong>: 
+    <div><strong>In the News</strong>:
       <!-- Begin:In the News -->
 <a title="LeBron James" href="/players/j/jamesle01.html">L. James</a>,
 <a title="Kevin Durant" href="/players/d/duranke01.html">K. Durant</a>,
@@ -1063,7 +1063,7 @@ sr_menus_setupMainNav_button_inline();
       <a href="/players/">...</a>
     </div>
 
-	<div><strong>All-Time Greats</strong>: 
+	<div><strong>All-Time Greats</strong>:
       <!-- Begin:All-Time Greats -->
 <a title="Elvin Hayes" href="/players/h/hayesel01.html">E. Hayes</a>,
 <a title="John Stockton" href="/players/s/stockjo01.html">J. Stockton</a>,
@@ -1075,7 +1075,7 @@ sr_menus_setupMainNav_button_inline();
       <a href="/players/">...</a>
     </div>
 
-    <div><strong>Active Greats</strong>: 
+    <div><strong>Active Greats</strong>:
       <!-- Begin:Active Greats -->
 <a title="LeBron James" href="/players/j/jamesle01.html">L. James</a>,
 <a title="Giannis Antetokounmpo" href="/players/a/antetgi01.html">G. Antetokounmpo</a>,
@@ -1141,7 +1141,7 @@ sr_menus_setupMainNav_button_inline();
       <a href="/teams/SAS/2022.html">San Antonio</a>,
       <a href="/teams/DAL/2022.html">Dallas</a>,
       <a href="/teams/MEM/2022.html">Memphis</a>,
-      <a href="/teams/HOU/2022.html">Houston</a>,      
+      <a href="/teams/HOU/2022.html">Houston</a>,
       <a href="/teams/NOP/2022.html">New Orleans</a>
     </div>
 <!-- End:Teams -->
@@ -1165,10 +1165,10 @@ sr_menus_setupMainNav_button_inline();
   <li>
     <a href="/leaders/">Leaders</a>
     <div>
-      <a href="/leaders/pts_season.html">Season Points</a>, 
-      <a href="/leaders/trb_career.html">Career Rebounds</a>, 
-      <a href="/leaders/ast_active.html">Active Assists</a>, 
-      <a href="/leaders/stl_yearly.html">Yearly Steals</a>, 
+      <a href="/leaders/pts_season.html">Season Points</a>,
+      <a href="/leaders/trb_career.html">Career Rebounds</a>,
+      <a href="/leaders/ast_active.html">Active Assists</a>,
+      <a href="/leaders/stl_yearly.html">Yearly Steals</a>,
       <a href="/leaders/blk_progress.html">Progressive Blocks</a>
       ...
     </div>
@@ -1205,15 +1205,15 @@ sr_menus_setupMainNav_button_inline();
 
   <li>
     <a target='_blank' rel='noopener' href="https://stathead.com/basketball/">Stathead</a>
-    <div><strong>Player Finders</strong>: 
-      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/psl_finder.cgi">Season Finder</a>, 
-      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pgl_finder.cgi">Game Finder</a>, 
+    <div><strong>Player Finders</strong>:
+      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/psl_finder.cgi">Season Finder</a>,
+      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pgl_finder.cgi">Game Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pstreak.cgi">Streak Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pspan_finder.cgi">Player Span Finder</a>
     </div>
-    <div><strong>Team Finders</strong>: 
-      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tsl_finder.cgi">Season Finder</a>, 
-      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tgl_finder.cgi">Game Finder</a>, 
+    <div><strong>Team Finders</strong>:
+      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tsl_finder.cgi">Season Finder</a>,
+      <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tgl_finder.cgi">Game Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tstreak.cgi">Team Streak Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/tscore.cgi">Team Score Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/rivals.cgi">Team Rivalry Finder</a>
@@ -1223,7 +1223,7 @@ sr_menus_setupMainNav_button_inline();
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/wnba_pgl_finder.cgi">Game</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/wnba_pcm_finder.cgi">Player Comparison</a>
     </div>
-    <div><strong>Other Finders</strong>: 
+    <div><strong>Other Finders</strong>:
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/draft_finder.cgi">Draft Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/h2h_finder.cgi">Head2Head Finder</a>,
       <a target='_blank' rel='noopener' href="https://stathead.com/basketball/pcm_finder.cgi">Player Comparison Finder</a>
@@ -1233,10 +1233,10 @@ sr_menus_setupMainNav_button_inline();
   <li>
     <a href="/coaches/">Coaches</a>
     <div>
-      <a href="/coaches/gueriri01c.html">Richie Guerin</a>, 
+      <a href="/coaches/gueriri01c.html">Richie Guerin</a>,
       <a href="/coaches/tomjaru01c.html">Rudy Tomjanovich</a>,
-      <a href="/coaches/obrieji99c.html">Jim O'Brien</a>, 
-      <a href="/coaches/fratemi99c.html">Mike Fratello</a>, 
+      <a href="/coaches/obrieji99c.html">Jim O'Brien</a>,
+      <a href="/coaches/fratemi99c.html">Mike Fratello</a>,
       <a href="/coaches/gentral99c.html">Alvin Gentry</a>
     </div>
   </li>
@@ -1244,11 +1244,11 @@ sr_menus_setupMainNav_button_inline();
   <li>
     <a href="/awards/">Awards</a>
     <div>
-      <a href="/awards/mvp.html">NBA MVP</a>, 
-      <a href="/awards/all_league.html">All-NBA</a>, 
-      <a href="/awards/dpoy.html">Defensive Player of the Year</a>, 
-      <a href="/awards/roy.html">Rookie of the Year</a>, 
-      <a href="/awards/all_rookie.html">All-Rookie</a>, 
+      <a href="/awards/mvp.html">NBA MVP</a>,
+      <a href="/awards/all_league.html">All-NBA</a>,
+      <a href="/awards/dpoy.html">Defensive Player of the Year</a>,
+      <a href="/awards/roy.html">Rookie of the Year</a>,
+      <a href="/awards/all_rookie.html">All-Rookie</a>,
       <a href="/awards/hof.html">Hall of Fame</a>
       ...
     </div>
@@ -1269,10 +1269,10 @@ sr_menus_setupMainNav_button_inline();
     <a href="/playoffs/">Playoffs</a>
     <div>
       <a href="/playoffs/NBA_2021.html">2021 NBA Playoffs</a>,
-      <a href="/playoffs/NBA_2020.html">2020 NBA Playoffs</a>, 
-      <a href="/playoffs/NBA_2019.html">2019 NBA Playoffs</a>, 
-      <a href="/playoffs/NBA_2018.html">2018 NBA Playoffs</a>, 
-      <a href="/playoffs/NBA_2017.html">2017 NBA Playoffs</a>, 
+      <a href="/playoffs/NBA_2020.html">2020 NBA Playoffs</a>,
+      <a href="/playoffs/NBA_2019.html">2019 NBA Playoffs</a>,
+      <a href="/playoffs/NBA_2018.html">2018 NBA Playoffs</a>,
+      <a href="/playoffs/NBA_2017.html">2017 NBA Playoffs</a>,
       <a href="/playoffs/">Playoffs Series History</a>
       ...
     </div>
@@ -1281,9 +1281,9 @@ sr_menus_setupMainNav_button_inline();
   <li>
     <a href="/allstar/">All-Star Games</a>
     <div>
-      <a href="/allstar/NBA_2021.html">2021 All-Star Game</a>, 
-      <a href="/allstar/NBA_2020.html">2020 All-Star Game</a>, 
-      <a href="/allstar/NBA_2019.html">2019 All-Star Game</a>, 
+      <a href="/allstar/NBA_2021.html">2021 All-Star Game</a>,
+      <a href="/allstar/NBA_2020.html">2020 All-Star Game</a>,
+      <a href="/allstar/NBA_2019.html">2019 All-Star Game</a>,
       <a href="/allstar/NBA_2018.html">2018 All-Star Game</a>
       ...
     </div>
@@ -1293,11 +1293,11 @@ sr_menus_setupMainNav_button_inline();
     <a href="/draft/">NBA Draft</a>
     <div>
       <a href="/draft/NBA_2021.html">2021 Draft</a>,
-      <a href="/draft/NBA_2020.html">2020 Draft</a>, 
-      <a href="/draft/NBA_2019.html">2019 Draft</a>, 
-      <a href="/draft/NBA_2018.html">2018 Draft</a>, 
-      <a href="/draft/NBA_2017.html">2017 Draft</a>, 
-      <a href="/draft/NBA_2016.html">2016 Draft</a>, 
+      <a href="/draft/NBA_2020.html">2020 Draft</a>,
+      <a href="/draft/NBA_2019.html">2019 Draft</a>,
+      <a href="/draft/NBA_2018.html">2018 Draft</a>,
+      <a href="/draft/NBA_2017.html">2017 Draft</a>,
+      <a href="/draft/NBA_2016.html">2016 Draft</a>,
       ...
     </div>
   </li>
@@ -1399,13 +1399,13 @@ sr_menus_setupMainNav_button_inline();
 
 
 
-			
+
 		</div><!-- div#site_menu -->
 		<div>
 			<div id="social" class="icon_group noload">
-	
+
 <div class="section_heading assoc_" id="_sh">
-  <span class="section_anchor" id="_link" data-label="We're Social...for Statheads" data-no-inpage="1"></span><h2>We're Social...for Statheads</h2>		
+  <span class="section_anchor" id="_link" data-label="We're Social...for Statheads" data-no-inpage="1"></span><h2>We're Social...for Statheads</h2>
 </div>
 	<a href="tel://888-512-8907" data-tip="Call us on Telephone" data-label="Telephone" aria-label="Telephone" class="poptip"><svg class="icon phone"><use xlink:href="#ic-phone"></use></svg></a>
 	<a href="//www.sports-reference.com/blog/" data-tip="The Sports Reference Blog" data-label="Our Blog" aria-label="Our Blog" class="poptip"><svg class="icon wordpress"><use xlink:href="#ic-wordpress"></use></svg></a>
@@ -1433,9 +1433,9 @@ sr_menus_setupMainNav_button_inline();
 </div><!-- div#social -->
 
 			<div id="tips_tricks">
-   
+
 <div class="section_heading assoc_tips" id="tips_sh">
-  <span class="section_anchor" id="tips_link" data-label="FAQs, Tip &amp; Tricks" data-no-inpage="1"></span><h2>FAQs, Tip &amp; Tricks</h2>		
+  <span class="section_anchor" id="tips_link" data-label="FAQs, Tip &amp; Tricks" data-no-inpage="1"></span><h2>FAQs, Tip &amp; Tricks</h2>
 </div>
    <ul>
 <!-- no Local/FooterTipsTricks.tt2 -->
@@ -1450,16 +1450,16 @@ sr_menus_setupMainNav_button_inline();
 				<p>All logos are the trademark &amp; property of their owners and not Sports Reference LLC.  We present them here for purely educational purposes.
 				<a href="https://www.sports-reference.com/blog/2016/06/redesign-team-and-league-logos-courtesy-sportslogos-net/">Our reasoning for presenting offensive logos.</a></p>
 				<p>
-					
+
 					Logos were compiled by the amazing <a href="http://sportslogos.net/">SportsLogos.net.</a>
 				</p>
-				
+
 <div class="notice">
 <p>Data Provided By
 	<a href="https://www.sportradar.com/" rel="nofollow"><img alt="SportRadar" border=0 width=275 src="https://d2p3bygnnzw9w3.cloudfront.net/req/202112021/images/klecko/sportradar.png"  style="background-color:#666; padding:.5em; border-radius:.25em"></a>
 	the official stats partner of the NBA.</p>
-	
-	
+
+
 </div>
 
      <p>Copyright &copy; 2000-2022 <a href="//www.sports-reference.com/">Sports Reference LLC</a>. All rights reserved.</p>
@@ -1477,9 +1477,9 @@ sr_menus_setupMainNav_button_inline();
 	<li><a href="https://www.hockey-reference.com/">Hockey</a></li>
 
 
-	
-	
-	
+
+
+
 	<li><a href="https://fbref.com/pt/">Futebol</a></li>
 
 	<li><a href="https://www.sports-reference.com/blog/">Blog</a></li>
@@ -1506,7 +1506,7 @@ sr_menus_setupMainNav_button_inline();
 </div><!-- div#wrap -->
 <!-- yes sticky url:  https://www.basketball-reference.com/friv/dailyleaders.fcgi -->
 <div id="fs-select-footer"></div>
-      
+
 
 
 
@@ -1555,5 +1555,3 @@ var fd_sr_site_id="bbr";window.fwSettings={widget_id:66000002075},function(){if(
 </body>
 <!-- SR -->
 </html>
-
-
