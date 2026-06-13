@@ -613,14 +613,13 @@ def get_odds_data() -> pd.DataFrame:
         odds.columns = ["datetime1"]
         odds["moneyline"] = _select_sportsbook_column(df[0], draftkings_col)
         odds["spread"] = _select_sportsbook_column(df[1], draftkings_col)
-        odds["total"] = (
-            _select_sportsbook_column(df[2], draftkings_col)
-            .str.extract(r"o\s+([\d.]+)", flags=re.I)[0]
-        )
+        odds["total"] = _select_sportsbook_column(df[2], draftkings_col).str.extract(
+            r"o\s+([\d.]+)", flags=re.I
+        )[0]
 
         # Normalize all whitespace first (handles \xa0 and other issues)
-        odds["datetime1"] = odds["datetime1"].astype(str).str.replace(
-            r"\s+", " ", regex=True
+        odds["datetime1"] = (
+            odds["datetime1"].astype(str).str.replace(r"\s+", " ", regex=True)
         )
         odds["spread"] = odds["spread"].str.replace(r"\s+", " ", regex=True)
         odds["moneyline"] = odds["moneyline"].str.replace(r"\s+", " ", regex=True)
